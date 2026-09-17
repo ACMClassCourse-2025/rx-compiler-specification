@@ -1,301 +1,59 @@
-r[expr]
-# Expressions
+# Expressions and evaluation
 
-r[expr.syntax]
-```grammar,expressions
-Expression ->
-      ExpressionWithoutBlock
-    | ExpressionWithBlock
+The settled expression forms are integer/boolean/unit literals, names and associated paths, explicitly typed Box/Vec constructors, parentheses, arrays, named-field struct construction, field/index access, calls and method calls, operators, blocks, if/while/loop, and return/break/continue. There is no match, closure, range, iterator loop, or pattern expression. Heap operations are specified in [Box and Vec](heap.md).
 
-ExpressionWithoutBlock ->
-        LiteralExpression
-      | PathExpression
-      | OperatorExpression
-      | GroupedExpression
-      | ArrayExpression
-      | IndexExpression
-      | StructExpression
-      | CallExpression
-      | MethodCallExpression
-      | FieldExpression
-      | ContinueExpression
-      | BreakExpression
-      | ReturnExpression
+## Evaluation order
 
-ExpressionWithBlock ->
-        BlockExpression
-      | LoopExpression
-      | IfExpression
-```
+Operands of ordinary expressions are evaluated left to right as written before the enclosing operation. This includes call arguments, array elements, struct field initializers, comparisons, arithmetic, and indexing. Struct field evaluation follows source order rather than declaration/layout order.
 
-r[expr.intro]
-An expression may have two roles: it always produces a *value*, and it may have *effects* (otherwise known as "side effects").
+Ordinary assignment and all supported compound assignments evaluate the right operand first, then the destination address. This includes compound assignment with a shared-reference right operand. The destination's side effects occur once; the compound update reads the destination after both operands have been evaluated. This uniform rule intentionally differs from Rust's reference-operand compound assignment. See the [operator evaluation table](expressions/operator-expr.md#evaluation-order). Lazy `&&` / <code>&#124;&#124;</code> and control-flow constructs evaluate only the selected operands or branches. Array repetition evaluates its element expression once.
 
-r[expr.evaluation]
-An expression *evaluates to* a value, and has effects during *evaluation*.
+These rules constrain optimizations whenever evaluation has observable effects, including I/O and writes through references. Removing unused values does not authorize removing effects that are still observable.
 
-r[expr.operands]
-Many expressions contain sub-expressions, called the *operands* of the expression.
+## Places and values
 
-r[expr.behavior]
-The meaning of each kind of expression dictates several things:
+A place denotes storage: a variable, dereference, field expression, indexed array element, or parenthesized place. A field or index base does not have to be an existing variable. When a value expression is used in the appropriate place context, it is evaluated once and materialized in temporary storage; this includes the base of a field/index expression and a value that is borrowed explicitly or by a method receiver adjustment. Using a place as a value copies or moves according to its type. Assignment requires a mutable place, and borrowing uses the place's address rather than implicitly copying its contents.
 
-* Whether or not to evaluate the operands when evaluating the expression
-* The order in which to evaluate the operands
-* How to combine the operands' values to obtain the value of the expression
+A mutable local can be assigned. Dereferencing `&mut T` gives a mutable place; dereferencing `&T` does not. In particular, `let p = &mut x;` need not make the binding p mutable to permit `*p = value`; reassignment of p itself does require a mutable binding.
 
-r[expr.structure]
-In this way, the structure of expressions dictates the structure of execution.
-Blocks are just another kind of expression, so blocks, statements, expressions, and blocks again can recursively nest inside each other to an arbitrary depth.
+Materialized temporary values can be mutable places even though they have no named mutable binding. For example, `make().value = 4` is supported when make returns a struct with a compatible field; `let p = &mut make().value;` can extend the relevant temporary's storage duration under the supported Rust rules. A temporary can also be the receiver of an `&mut self` method. These cases do not make an ordinary immutable variable mutable.
 
-> [!NOTE]
-> We give names to the operands of expressions so that we may discuss them, but these names are not stable and may be changed.
+Temporary lifetime and allowed implementations are described in [References](references.md). Assignment still requires an actual place expression: `1 = 2` and `1 += 2` are invalid, rather than creating temporary assignment targets. Blocks produce values; they do not create the old implicit-alias binding semantics.
 
-r[expr.precedence]
-## Expression precedence
+## Arrays
 
-The precedence of Rust operators and expressions is ordered as follows, going from strong to weak.
-Binary Operators at the same precedence level are grouped in the order given by their associativity.
+`[a, b, c]` evaluates each element once in order. `[expr; N]` evaluates expr once and repeats the resulting value. For N greater than one the element type must be Copy, not merely Clone. N is a [restricted constant](const_eval.md); zero lengths are excluded.
 
-| Operator/Expression         | Associativity       |
-|-----------------------------|---------------------|
-| [Paths][expr.path]          |                     |
-| [Method calls][expr.method] |                     |
-| [Field expressions][expr.field] | left to right   |
-| [Function calls][expr.call], [array indexing][expr.array.index] | |
-| Unary [`-`][expr.negate] [`!`][expr.negate] [`*`][expr.deref] [borrow][expr.operator.borrow] | |
-| [`as`][expr.as]             | left to right       |
-| [`*`][expr.arith-logic] [`/`][expr.arith-logic] [`%`][expr.arith-logic] | left to right       |
-| [`+`][expr.arith-logic] [`-`][expr.arith-logic] | left to right       |
-| [`<<`][expr.arith-logic] [`>>`][expr.arith-logic] | left to right     |
-| [`&`][expr.arith-logic]     | left to right       |
-| [`^`][expr.arith-logic]     | left to right       |
-| [<code>&#124;</code>][expr.arith-logic] | left to right       |
-| [`==`][expr.cmp] [`!=`][expr.cmp] [`<`][expr.cmp] [`>`][expr.cmp] [`<=`][expr.cmp] [`>=`][expr.cmp] | Require parentheses |
-| [`&&`][expr.bool-logic]     | left to right       |
-| [<code>&#124;&#124;</code>][expr.bool-logic] | left to right       |
-| [`=`][expr.assign] [`+=`][expr.compound-assign] [`-=`][expr.compound-assign] [`*=`][expr.compound-assign] [`/=`][expr.compound-assign] [`%=`][expr.compound-assign] <br> [`&=`][expr.compound-assign] [<code>&#124;=</code>][expr.compound-assign] [`^=`][expr.compound-assign] [`<<=`][expr.compound-assign] [`>>=`][expr.compound-assign] | right to left |
-| [`return`][expr.return] [`break`][expr.loop.break]  | |
+`array[index]` requires a usize index. Arrays have fixed length and can be indexed through shared or mutable references, including nested reference adjustments. Writing an element requires a mutable element place. Valid execution stays in bounds; no runtime bounds check is required.
 
-r[expr.operand-order]
-## Evaluation order of operands
+A fixed array's builtin `.len()` returns its length as usize. There is no array-to-pointer conversion in source-level by-value arguments. Moving a non-Copy value out through an array index or borrowed contents is outside valid tests. Vec indexing likewise does not allow non-Copy move-out; Vec remove and owned Box dereference provide the [specified owning operations](heap.md).
 
-r[expr.operand-order.default]
-The following list of expressions all evaluate their operands the same way, as described after the list.
-Other expressions either don't take operands or evaluate them conditionally as described on their respective pages.
+## Structs and calls
 
-* Dereference expression
-* Negation expression
-* Arithmetic and logical binary operators
-* Comparison operators
-* Type cast expression
-* Grouped expression
-* Array expression
-* Index expression
-* Struct expression
-* Call expression
-* Method call expression
-* Field expression
-* Break expression
-* Return expression
+Struct construction uses `S { field: expr, ... }` and the rules in [Items](items.md#structs). Field access through references performs the necessary builtin dereferences. Unknown fields and incompatible field values are static errors.
 
-r[expr.operand-order.operands-before-primary]
-The operands of these expressions are evaluated prior to applying the effects of the expression.
-Expressions taking multiple operands are evaluated left to right as written in the source code.
+Calls resolve a declared function or associated function and match its argument list. Methods additionally adjust the receiver within the supported reference rules. Callable closures and function pointer values are not supported. Builtin clone and equality follow [Builtin traits](builtin-traits.md).
 
-> [!NOTE]
-> Which subexpressions are the operands of an expression is determined by expression precedence as per the previous section.
+## Precedence
 
-For example, the two `next` method calls will always be called in the same order:
+The following groups run from strongest to weakest. Operators in a row share precedence.
 
-```rust
-# // Using vec instead of array to avoid references
-# // since there is no stable owned array iterator
-# // at the time this example was written.
-let mut one_two = vec![1, 2].into_iter();
-assert_eq!(
-    (1, 2),
-    (one_two.next().unwrap(), one_two.next().unwrap())
-);
-```
+| Group | Associativity |
+| --- | --- |
+| Paths, literals, grouping | Primary forms |
+| Field and method access, calls, indexing | Postfix |
+| Unary `-`, `!`, `*`, `&`, `&mut` | Prefix |
+| `as` | Left |
+| `*`, `/`, `%` | Left |
+| `+`, `-` | Left |
+| `<<`, `>>` | Left |
+| `&` | Left |
+| `^` | Left |
+| <code>&#124;</code> | Left |
+| `==`, `!=`, `<`, `<=`, `>`, `>=` | Cannot be chained without parentheses |
+| `&&` | Left |
+| <code>&#124;&#124;</code> | Left |
+| `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `^=`, <code>&#124;=</code>, `<<=`, `>>=` | Right |
+| `return`, `break` with a value | Consume the following expression |
 
-> [!NOTE]
-> Since this is applied recursively, these expressions are also evaluated from innermost to outermost, ignoring siblings until there are no inner subexpressions.
-
-r[expr.place-value]
-## Place Expressions and Value Expressions
-
-r[expr.place-value.intro]
-Expressions are divided into two main categories: place expressions and value expressions;
-there is also a third, minor category of expressions called assignee expressions.
-Within each expression, operands may likewise occur in either place context or value context.
-The evaluation of an expression depends both on its own category and the context it occurs within.
-
-r[expr.place-value.place-memory-location]
-A *place expression* is an expression that represents a memory location.
-
-r[expr.place-value.place-expr-kinds]
-These expressions are local variables, [static variables], [dereferences][deref] (`*expr`), [array indexing] expressions (`expr[expr]`), [field] references (`expr.f`) and parenthesized place expressions.
-
-r[expr.place-value.value-expr-kinds]
-All other expressions are value expressions.
-
-r[expr.place-value.value-result]
-A *value expression* is an expression that represents an actual value.
-
-r[expr.place-value.place-context]
-The following contexts are *place expression* contexts:
-
-* The left operand of a [compound assignment] expression.
-* The operand of a unary [borrow] or [dereference][deref] operator.
-* The operand of a field expression.
-* The indexed operand of an array indexing expression.
-* The operand of any [implicit borrow].
-* The base of a [functional update] struct expression.
-
-> [!NOTE]
-> Historically, place expressions were called *lvalues* and value expressions were called *rvalues*.
-
-r[expr.place-value.assignee]
-An *assignee expression* is an expression that appears in the left operand of an [assignment][assign] expression.
-Explicitly, the assignee expressions are:
-
-- Place expressions.
-- [Underscores].
-- [Structs] of assignee expressions (with optionally named
-  fields).
-- [Unit structs]
-
-r[expr.place-value.parenthesis]
-Arbitrary parenthesisation is permitted inside assignee expressions.
-
-r[expr.move]
-### Moved and copied types
-
-r[expr.move.intro]
-When a place expression is evaluated in a value expression context, or is bound by value in a pattern, it denotes the value held _in_ that memory location.
-
-r[expr.move.copy]
-If the type of that value implements [`Copy`], then the value will be copied.
-
-r[expr.move.requires-sized]
-In the remaining situations, if that type is [`Sized`], then it may be possible to move the value.
-
-r[expr.move.movable-place]
-Only the following place expressions may be moved out of:
-
-* [Variables] which are not currently borrowed.
-* [Temporary values](#temporaries).
-* [Fields][field] of a place expression which can be moved out of and don't implement [`Drop`].
-* The result of [dereferencing][deref] an expression with type [`Box<T>`] and that can also be moved out of.
-
-r[expr.move.deinitialization]
-After moving out of a place expression that evaluates to a local variable, the location is deinitialized and cannot be read from again until it is reinitialized.
-
-r[expr.move.place-invalid]
-In all other cases, trying to use a place expression in a value expression context is an error.
-
-r[expr.mut]
-### Mutability
-
-r[expr.mut.intro]
-For a place expression to be [assigned][assign] to, mutably [borrowed][borrow], [implicitly mutably borrowed], or bound to a pattern containing `ref mut`, it must be _mutable_.
-We call these *mutable place expressions*.
-In contrast, other place expressions are called *immutable place expressions*.
-
-r[expr.mut.valid-places]
-The following expressions can be mutable place expression contexts:
-
-* Mutable [variables] which are not currently borrowed.
-* [Mutable `static` items].
-* [Temporary values].
-* [Fields][field]: this evaluates the subexpression in a mutable place expression context.
-* [Dereferences][deref] of a `*mut T` pointer.
-* Dereference of a variable, or field of a variable, with type `&mut T`.
-  Note: This is an exception to the requirement of the next rule.
-* Dereferences of a type that implements `DerefMut`:
-  this then requires that the value being dereferenced is evaluated in a mutable place expression context.
-* [Array indexing] of a type that implements `IndexMut`:
-  this then evaluates the value being indexed, but not the index, in mutable place expression context.
-
-r[expr.temporary]
-### Temporaries
-
-When using a value expression in most place expression contexts, a temporary unnamed memory location is created and initialized to that value.
-The expression evaluates to that location instead, except if [promoted] to a `static`.
-The [drop scope] of the temporary is usually the end of the enclosing statement.
-
-r[expr.implicit-borrow]
-### Implicit Borrows
-
-r[expr.implicit-borrow-intro]
-Certain expressions will treat an expression as a place expression by implicitly borrowing it.
-For example, it is possible to compare two unsized [slices][slice] for equality directly, because the `==` operator implicitly borrows its operands:
-
-```rust
-# let c = [1, 2, 3];
-# let d = vec![1, 2, 3];
-let a: &[i32];
-let b: &[i32];
-# a = &c;
-# b = &d;
-// ...
-*a == *b;
-// Equivalent form:
-::std::cmp::PartialEq::eq(&*a, &*b);
-```
-
-r[expr.implicit-borrow.application]
-Implicit borrows may be taken in the following expressions:
-
-* Left operand in [method-call] expressions.
-* Left operand in [field] expressions.
-* Left operand in [call expressions].
-* Left operand in [array indexing] expressions.
-* Operand of the [dereference operator][deref] (`*`).
-* Operands of [comparison].
-* Left operands of the [compound assignment].
-
-[`Copy`]:               special-types-and-traits.md#copy
-[`Drop`]:               special-types-and-traits.md#drop
-[`if let`]:             expressions/if-expr.md#if-let-patterns
-[`Sized`]:              special-types-and-traits.md#sized
-[`while let`]:          expressions/loop-expr.md#while-let-patterns
-[array expressions]:    expressions/array-expr.md
-[array indexing]:       expressions/array-expr.md#array-and-slice-indexing-expressions
-[assign]:               expressions/operator-expr.md#assignment-expressions
-[block expressions]:    expressions/block-expr.md
-[borrow]:               expressions/operator-expr.md#borrow-operators
-[call expressions]:     expressions/call-expr.md
-[comparison]:           expressions/operator-expr.md#comparison-operators
-[compound assignment]:  expressions/operator-expr.md#compound-assignment-expressions
-[deref]:                expressions/operator-expr.md#the-dereference-operator
-[destructors]:          destructors.md
-[drop scope]:           destructors.md#drop-scopes
-[field]:                expressions/field-expr.md
-[functional update]:    expressions/struct-expr.md#functional-update-syntax
-[implicit borrow]:      #implicit-borrows
-[implicitly mutably borrowed]: #implicit-borrows
-[interior mutability]:  interior-mutability.md
-[let statement]:        statements.md#let-statements
-[match]:                expressions/match-expr.md
-[method-call]:          expressions/method-call-expr.md
-[Mutable `static` items]: items/static-items.md#mutable-statics
-[Outer attributes]:     attributes.md
-[paths]:                expressions/path-expr.md
-[promoted]:             destructors.md#constant-promotion
-[Range]:                expressions/range-expr.md
-[raw borrow]:           expressions/operator-expr.md#raw-borrow-operators
-[scrutinee]:            glossary.md#scrutinee
-[slice]:                types/slice.md
-[statement]:            statements.md
-[static variables]:     items/static-items.md
-[struct]:               expressions/struct-expr.md
-[Structs]:              expr.struct
-[Temporary values]:     #temporaries
-[tuple expressions]:    expressions/tuple-expr.md
-[Tuple structs]:        items.struct.tuple
-[Tuples]:               expressions/tuple-expr.md
-[Underscores]:          expressions/underscore-expr.md
-[Unit structs]:         items.struct.unit
-[Variables]:            variables.md
+Block/statement disambiguation additionally follows [Statements](statements.md#statement-boundary).

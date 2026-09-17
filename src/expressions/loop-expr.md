@@ -1,191 +1,58 @@
-r[expr.loop]
-# Loops and other breakable expressions
+# Control flow and never
 
-r[expr.loop.syntax]
-```grammar,expressions
-LoopExpression ->
-    InfiniteLoopExpression
-  | PredicateLoopExpression
+## If
+
+```rust,ignore
+fn choose(flag: bool) -> i32 {
+    if flag { 1 } else { 2 }
+}
 ```
 
-r[expr.loop.intro]
-Rust supports two loop expressions:
+The condition must be bool. Parentheses are optional; an unparenthesized struct literal in a condition is restricted as in Rust to disambiguate the following block. `else if` chains are supported. Only the selected branch executes.
 
-*   A [`loop` expression](#infinite-loops) denotes an infinite loop.
-*   A [`while` expression](#predicate-loops) loops until a predicate is false.
+When an unparenthesized `Name {` at the condition/body boundary could begin a struct literal, treat `{` as the start of the consequent block. To put such a struct construction in the condition, delimit it explicitly, for example `if (S { flag: true }).flag { ... }`. A function argument such as `if check(S { flag: true }) { ... }` is already delimited. This rule does not mean every brace after if starts its consequent: `if { true } { ... }` has a block-valued condition and a separate consequent block. Conditions are not generally required to have parentheses.
 
-r[expr.loop.break-label]
-All loop types support [`break` expressions](#break-expressions).
+With else, branches must produce compatible result types, allowing a diverging branch to fit the other branch's expected type. Without else, the if expression has unit type; the then block must be compatible with unit. There is no if-let or pattern condition.
 
-r[expr.loop.continue-label]
-`loop` and `while` expressions support [`continue` expressions](#continue-expressions).
+## While and loop
 
-r[expr.loop.explicit-result]
-Only `loop` expressions support [evaluation to non-trivial values](#break-and-loop-values).
+`while condition { ... }` reevaluates a bool condition before each iteration and has unit result. Parentheses around the condition are optional. `loop { ... }` repeats until control flow leaves it; break values determine the loop expression's result type. The body block of either form must be compatible with unit; a diverging body is compatible. A non-unit body tail does not become the value of the loop expression. Thus `while false { 1 }` and `loop { 1 }` are static type errors, while a value can leave loop through `break value`.
 
-r[expr.loop.infinite]
-## Infinite loops
+`break;` exits the nearest loop with unit. A value-bearing break is allowed in loop but not while. All break values belonging to a loop must be type-compatible. `continue;` starts the next iteration of the nearest loop (including the next while condition evaluation). Break/continue outside a loop are static errors. Loop labels and labeled blocks are not added by this revision.
 
-r[expr.loop.infinite.syntax]
-```grammar,expressions
-InfiniteLoopExpression -> `loop` BlockExpression
-```
+Following Rust, an unlabeled break or continue appearing in a while condition cannot target that while or any loop outside the condition; such a use is a static error. A loop expression nested inside the condition creates its own target, so `while loop { break false; } {}` is allowed. This is determined from the syntactic loop nesting and does not require reachability analysis.
 
-r[expr.loop.infinite.intro]
-A `loop` expression repeats execution of its body continuously:
-`loop { println!("I live."); }`.
-
-r[expr.loop.infinite.diverging]
-An infinite `loop` expression is diverging and has type [`!`](../types/never.md), which is considered UB. Potentially infinite loops do not appear in the testcases, e.g.
-
-```rust
-loop {
-    if (2 > 3) {
-        break;
+```rust,ignore
+fn until(limit: i32) -> i32 {
+    let mut n = 0;
+    loop {
+        if n == limit { break n; }
+        n += 1;
     }
 }
 ```
 
-r[expr.loop.infinite.break]
-A `loop` expression containing associated [`break` expression(s)](#break-expressions) may terminate, and must have type compatible with the value of the `break` expression(s).
+There is no for loop, range iterator, while-let, or iterator protocol.
 
-r[expr.loop.while]
-## Predicate loops
+## Return
 
-r[expr.loop.while.grammar]
-```grammar,expressions
-PredicateLoopExpression -> `while` Conditions BlockExpression
-```
+`return expression` evaluates its operand and returns that value from the current function using copy/move semantics. `return;` returns unit. Function tails provide the normal return value when execution reaches them. Return values must match the declared result.
 
-r[expr.loop.while.intro]
-A `while` loop expression allows repeating the evaluation of a block while a set of conditions remain true.
+## Never and unreachable code
 
-r[expr.loop.while.syntax]
-The syntax of a `while` expression is a condition expression enclosed in parentheses,
-followed by a [BlockExpression].
-Within the parentheses, condition operands can be separated by `&&` to form chains.
+Return, break, and continue expressions do not produce a value along their normal successor path and have never behavior, conventionally written `!`. A loop with no associated break expressions has never type. The presence and types of breaks determine typing without requiring proof that a particular branch executes.
 
-r[expr.loop.while.condition]
-Condition operands must be an [Expression] with a [boolean type].
-If all of the condition operands evaluate to `true`,
-then the loop body block executes.
+Never can fit an expected result type in the supported coercion contexts. This permits an if branch to return early while another branch yields a value. Unit and never are distinct: a unit call returns normally, whereas a return expression does not.
 
-r[expr.loop.while.repeat]
-After the loop body successfully executes, the condition operands are re-evaluated to determine if the body should be executed again.
-
-r[expr.loop.while.exit]
-If any condition operand evaluates to `false`,
-the body is not executed and execution continues after the `while` expression.
-
-r[expr.loop.while.short-circuit]
-Short-circuit evaluation must be supported in `while` loops.
-
-r[expr.loop.while.eval]
-A `while` expression evaluates to `()`.
-
-An example:
-
-```rust
-let mut i = 0;
-
-while (i < 10) {
-    println!("hello");
-    i = i + 1;
+```rust,ignore
+fn choose_or_return(flag: bool) -> i32 {
+    let n: i32 = if flag { return 7; } else { 3 };
+    n + 1
 }
 ```
 
-r[expr.loop.break]
-## `break` expressions
+Unreachable code is not itself an error, but it is still subject to ordinary name/type rules. A diverging expression must be represented correctly in control flow; deleting the old unreachable-code rejection does not permit executing statements after return.
 
-r[expr.loop.break.syntax]
-```grammar,expressions
-BreakExpression -> `break` Expression?
-```
+The implementation need not expose a particular never representation in its AST/IR or prove termination. Never is not a user-written type: explicit `!` annotations are unsupported in all type positions, including `fn f() -> !` and `let x: ! = ...`.
 
-r[expr.loop.break.intro]
-When `break` is encountered, execution of the associated loop body is immediately terminated, for example:
-
-```rust
-let mut last = 0;
-let mut x = 1;
-while (x < 100) {
-    if (x > 12) {
-        break;
-    }
-    last = x;
-    x += 1;
-}
-assert_eq!(last, 12);
-```
-
-r[expr.loop.break.label]
-A `break` expression is normally associated with the innermost `loop` or `while` loop enclosing the `break` expression.
-
-r[expr.loop.break.value]
-A `break` expression is only permitted in the body of a loop, and has one of the forms `break` or ([see below](#break-and-loop-values)) `break EXPR`.
-
-r[expr.loop.continue]
-## `continue` expressions
-
-r[expr.loop.continue.syntax]
-```grammar,expressions
-ContinueExpression -> `continue`
-```
-
-r[expr.loop.continue.intro]
-When `continue` is encountered, the current iteration of the associated loop body is immediately terminated, returning control to the loop *head*.
-
-r[expr.loop.continue.while]
-In the case of a `while` loop, the head is the conditional operands controlling the loop.
-
-r[expr.loop.continue.label]
-`continue` is associated with the innermost enclosing loop.
-
-r[expr.loop.continue.in-loop-only]
-A `continue` expression is only permitted in the body of a loop.
-
-r[expr.loop.break-value]
-## `break` and loop values
-
-r[expr.loop.break-value.intro]
-When associated with a `loop`, a break expression may be used to return a value from that loop, via one of the forms `break EXPR` or `break 'label EXPR`, where `EXPR` is an expression whose result is returned from the `loop`.
-For example:
-
-```rust
-let (mut a, mut b) = (1, 1);
-let result = loop {
-    if (b > 10) {
-        break b;
-    }
-    let c = a + b;
-    a = b;
-    b = c;
-};
-// first number in Fibonacci sequence over 10:
-assert_eq!(result, 13);
-```
-
-r[expr.loop.break-value.loop]
-In the case a `loop` has an associated `break`, it is not considered diverging, and the `loop` must have a type compatible with each `break` expression.
-`break` without an expression is considered identical to `break` with expression `()`.
-
-[`if` condition chains]: if-expr.md#chains-of-conditions
-[`if` expressions]: if-expr.md
-[`match` expression]: match-expr.md
-[boolean type]: ../types/boolean.md
-[scrutinee]: ../glossary.md#scrutinee
-[temporary values]: ../expressions.md#temporaries
-
-<script>
-(function() {
-    var fragments = {
-        "#predicate-pattern-loops": "loop-expr.html#while-let-patterns",
-    };
-    var target = fragments[window.location.hash];
-    if (target) {
-        var url = window.location.toString();
-        var base = url.substring(0, url.lastIndexOf('/'));
-        window.location.replace(base + "/" + target);
-    }
-})();
-</script>
+A diverging body can still fit an ordinary declared result, for example `fn forever() -> i32 { loop {} }`. A call to that function has its declared type i32; the compiler need not infer a never result across function boundaries. The ban on explicit annotations does not change the never behavior of return, break, continue, or a loop with no breaks, and does not remove the unary `!` operator.

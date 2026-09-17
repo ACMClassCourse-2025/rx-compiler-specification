@@ -106,9 +106,9 @@ impl Spec {
     ///
     /// The `rust_root` parameter specifies an optional path to the root of
     /// the rust git checkout. If `None`, it will use the `SPEC_RUST_ROOT`
-    /// environment variable. If the root is not specified, then no tests will
-    /// be linked unless `SPEC_DENY_WARNINGS` is set in which case this will
-    /// return an error.
+    /// environment variable. If the root is not specified, then no upstream
+    /// Rust tests will be linked. The course book can still deny documentation
+    /// warnings without requiring a rust-lang/rust checkout.
     pub fn new(rust_root: Option<PathBuf>) -> Result<Spec> {
         let rust_root = rust_root.or_else(|| std::env::var_os("SPEC_RUST_ROOT").map(PathBuf::from));
         Ok(Spec { rust_root })
@@ -193,9 +193,6 @@ impl Preprocessor for Spec {
 
     fn run(&self, _ctx: &PreprocessorContext, mut book: Book) -> Result<Book, Error> {
         let mut diag = Diagnostics::new();
-        if diag.deny_warnings && self.rust_root.is_none() {
-            bail!("error: SPEC_RUST_ROOT environment variable must be set");
-        }
         let grammar = grammar::load_grammar(&book, &mut diag);
         let rules = self.collect_rules(&book, &mut diag);
         let tests = self.collect_tests(&rules);

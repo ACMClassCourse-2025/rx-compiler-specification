@@ -1,110 +1,23 @@
-# Introduction
+# Rx Compiler Specification
 
-Welcome to the compiler course book.
+This book describes the Rust subset used by the compiler course. The implementation target is RV32IM. Students implement the frontend, IR, code generation, and optimizations; a supplied lexer/parser may recognize a larger syntax than this language.
 
-> [!NOTE]
-> For known bugs and omissions in this book, see our [GitHub issues]. If you see a case where the compiler behavior and the text here do not agree, file an issue so we can think about which is correct.
+## Revision status
 
-## How to use this book
+This is the **2026 working revision**, not a frozen assignment release. Confirmed decisions have been migrated into the chapters listed in the table of contents. Container APIs, conditional traits, finite paths, builtin name protection, reference adjustments, program-end heap reclamation, the reference allocator ABI, and the execution-memory baseline are specified. Integer-literal overflow, let/parameter collisions with visible unqualified const names, and equality between different source types are excluded as course UB. The previously listed language choices are settled; supplied-parser and end-to-end runtime integration remain publication work tracked in [Open decisions](open-decisions.md). Assessment and scoring arrangements are separate course documents.
 
-This book does not assume you are reading this book sequentially.
-Each chapter generally can be read standalone, but will cross-link to other chapters for facets of the language they refer to, but do not discuss.
+A pending interface is not an implicit requirement to implement the corresponding Rust standard library API. It must be specified before tests depending on it are released.
 
-There are two main ways to read this document.
+## Authority and scope
 
-The first is to answer a specific question.
-If you know which chapter answers that question, you can jump to that chapter in the table of contents.
-Otherwise, you can press `s` or click the magnifying glass on the top bar to search for keywords related to your question.
-For example, say you wanted to know when a temporary value created in a let statement is dropped.
-If you didn't already know that the [lifetime of temporaries] is defined in the [expressions chapter], you could search "temporary let" and the first search result will take you to that section.
+The chapters in this book's table of contents define this revision. Other Markdown files retained in this repository are historical material from the previous course specification or the upstream Rust Reference; they do not add language features or override these chapters. Old test cases and reference compiler behavior are evidence for migration, not independent specifications.
 
-The second is to generally improve your knowledge of a facet of the language.
-In that case, just browse the table of contents until you see something you want to know more about, and just start reading.
-If a link looks interesting, click it, and read about that section.
+Only the listed constructs are supported. References to Rust behavior apply to those constructs and the explicitly stated rules; they do not import other syntax, traits, library functions, or diagnostics. Source references have no lifetime annotations or checking, and internal calling conventions are implementation-defined.
 
-That said, there is no wrong way to read this book. Read it however you feel helps you best.
+Rust 2021 storage-scope rules serve as a reference for valid test construction. Runtime integer behavior uses overflow checks disabled. Neither choice requires students to implement Cargo profiles or edition switching.
 
-### Conventions
+## Reading and examples
 
-Like all technical books, this book has certain conventions in how it displays information.
-These conventions are documented here.
+Code blocks describe the course language unless explicitly labeled as C, assembly, or shell. They are not automatically valid rustc programs: course builtins and lifetime-erased signatures differ from Rust. Examples with unsupported syntax explain exclusions only and are labeled accordingly. The grammar covers the settled core; pending extensions are identified separately.
 
-* Statements that define a term contain that term in *italics*.
-  Whenever that term is used outside of that chapter, it is usually a link to the section that has this definition.
-
-  An *example term* is an example of a term being defined.
-
-* The main text describes the latest stable edition. Differences to previous editions are separated in edition blocks:
-
-  > [!EDITION-2018]
-  > Before the 2018 edition, the behavior was this. As of the 2018 edition, the behavior is that.
-
-* Notes that contain useful information about the state of the book or point out useful, but mostly out of scope, information are in note blocks.
-
-  > [!NOTE]
-  > This is an example note.
-
-* Example blocks show an example that demonstrates some rule or points out some interesting aspect. Some examples may have hidden lines which can be viewed by clicking the eye icon that appears when hovering or tapping the example.
-
-  > [!EXAMPLE]
-  > This is a code example.
-  > ```rust
-  > println!("hello world");
-  > ```
-
-* Warnings that show unsound behavior in the language or possibly confusing interactions of language features are in a special warning box.
-
-  > [!WARNING]
-  > This is an example warning.
-
-* Code snippets inline in the text are inside `<code>` tags.
-
-  Longer code examples are in a syntax highlighted box that has controls for copying, executing, and showing hidden lines in the top right corner.
-
-  ```rust
-  # // This is a hidden line.
-  fn main() {
-      println!("This is a code example");
-  }
-  ```
-
-  All examples are written for the latest edition unless otherwise stated.
-
-* The grammar and lexical productions are described in the [Notation] chapter.
-
-r[example.rule.label]
-* Rule identifiers appear before each language rule enclosed in square brackets. These identifiers provide a way to refer to and link to a specific rule in the language ([e.g.][example rule]). The rule identifier uses periods to separate sections from most general to most specific ([destructors.scope.nesting.function-body](https://doc.rust-lang.org/nightly/reference/destructors.html#r-destructors.scope.nesting.function-body) for example). On narrow screens, the rule name will collapse to display `[*]`.
-
-  The rule name can be clicked to link to that rule.
-
-  > [!WARNING]
-  > The organization of the rules is currently in flux. For the time being, these identifier names are not stable between releases, and links to these rules may fail if they are changed. We intend to stabilize these once the organization has settled so that links to the rule names will not break between releases.
-
-* Rules that have associated tests will include a `Tests` link below them (on narrow screens, the link is `[T]`). Clicking the link will pop up a list of tests, which can be clicked to view the test. For example, see [input.encoding.utf8].
-
-  Linking rules to tests is an ongoing effort. See the [Test summary](test-summary.md) chapter for an overview.
-
-## Contributing
-
-We welcome contributions of all kinds.
-
-You can contribute to this book by opening an issue or sending a pull request to [the Rust Reference repository].
-If this book does not answer your question, and you think its answer is in scope of it, please do not hesitate to [file an issue] or ask about it in the `t-lang/doc` stream on [Zulip].
-Knowing what people use this book for the most helps direct our attention to making those sections the best that they can be.
-And of course, if you see anything that is wrong or is non-normative but not specifically called out as such, please also [file an issue].
-
-[book]: ../book/index.html
-[github issues]: https://github.com/rust-lang/reference/issues
-[standard library]: std
-[the Rust Reference repository]: https://github.com/rust-lang/reference/
-[Unstable Book]: https://doc.rust-lang.org/nightly/unstable-book/
-[cargo book]: ../cargo/index.html
-[cargo reference]: ../cargo/reference/index.html
-[example rule]: example.rule.label
-[expressions chapter]: expressions.html
-[file an issue]: https://github.com/rust-lang/reference/issues
-[lifetime of temporaries]: expressions.html#temporaries
-[linkage]: linkage.html
-[rustc book]: ../rustc/index.html
-[Notation]: notation.md
-[Zulip]: https://rust-lang.zulipchat.com/#narrow/stream/237824-t-lang.2Fdoc
+The source grammar and static rules determine accepted programs. [Test guarantees](undefined-behavior.md) identify cases for which compilation or execution is not assessed. A compiler error is distinct from a crash, and a compiler bug on a valid program is not excused by those guarantees.

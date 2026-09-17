@@ -41,10 +41,10 @@ fn check_directory(dir: &Path, bad: &mut bool) -> Result<(), Box<dyn Error>> {
 
         if !matches!(
             path.extension().and_then(|p| p.to_str()),
-            Some("md") | Some("html")
+            Some("md") | Some("html") | Some("c")
         ) {
             // This may be extended in the future if other file types are needed.
-            style_error!(bad, path, "expected only md or html in src");
+            style_error!(bad, path, "expected only md, html, or C examples in src");
         }
 
         let contents = fs::read_to_string(&path)?;
@@ -82,7 +82,9 @@ fn check_directory(dir: &Path, bad: &mut bool) -> Result<(), Box<dyn Error>> {
                 style_error!(bad, path, "lines must not end with spaces");
             }
         }
-        cmark_check(&path, bad, &contents)?;
+        if path.extension().and_then(|p| p.to_str()) != Some("c") {
+            cmark_check(&path, bad, &contents)?;
+        }
     }
     Ok(())
 }

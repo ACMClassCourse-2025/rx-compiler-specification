@@ -1,139 +1,52 @@
-r[statement]
-# Statements
+# Bindings, statements, and blocks
 
-r[statement.syntax]
-```grammar,statements
-Statement ->
-      `;`
-    | Item
-    | LetStatement
-    | ExpressionStatement
+## Identifier bindings
+
+```text
+Binding      := mut? IDENTIFIER
+LetStatement := let Binding (: Type)? = Expression ;
+Parameter    := Binding : Type
 ```
 
-r[statement.intro]
-A *statement* is a component of a [block], which is in turn a component of an outer [expression] or [function].
+Every let requires an initializer. The binding is a single identifier, optionally mutable; there is no destructuring, `_`, `ref`, or reference pattern. Reference types and borrow expressions remain supported.
 
-r[statement.kind]
-Rust has two kinds of statement: [declaration statements](#declaration-statements) and [expression statements](#expression-statements).
+Let and ordinary parameter bindings that collide with a visible unqualified const name are course UB and absent from all tests, as specified in [Names](names.md#settled-scope-rules). No constant-pattern handling or collision diagnostic is required.
 
-r[statement.decl]
-## Declaration statements
+A local type annotation may be omitted. Type constraints from later uses in the same function can determine an earlier binding's type. An annotation fixes the type; it does not request an implicit numeric conversion. An immutable binding cannot be assigned after initialization. Assignment to a mutable place must preserve its type.
 
-A *declaration statement* is one that introduces one or more *names* into the enclosing statement block.
-The declared names may denote new variables or new [items][item].
+A binding's name is visible after its let statement through the rest of the enclosing block, subject to shadowing. The initializer sees the previous environment. Shadowing introduces a distinct binding and does not overwrite an older object's storage merely because the names match.
 
-The two kinds of declaration statements are item declarations and `let` statements.
+## Blocks and statements
 
-r[statement.item]
-### Item declarations
+A block executes its statements in order and may end with a tail expression. Its result is the tail expression's value, or `()` when there is no tail. Control flow which does not reach the end follows the [never rules](expressions/loop-expr.md#never-and-unreachable-code).
 
-r[statement.item.intro]
-An *item declaration statement* has a syntactic form identical to an [item declaration][item].
+Statements include initialized lets, expression statements, and empty `;` statements. Items are not statements. A semicolon after an expression discards its result without discarding its effects.
 
-r[statement.item.scope]
-Declaring an item within a statement block restricts its [scope] to the block containing the statement.
-The item is not given a [canonical path] nor are any sub-items it may declare.
+An expression with an outer block/control-flow form can be a statement without a semicolon. If it is a statement without a semicolon, it must have unit type or diverge. A final expression used as the enclosing block's tail can have a non-unit type. These are the Rust distinctions, including the expression-statement parsing rule below.
 
-r[statement.item.associated-scope]
-The exception to this is that associated items defined by [implementations] are still accessible in outer scopes as long as the item and, if applicable, trait are accessible.
-It is otherwise identical in meaning to declaring the item inside a module.
-
-r[statement.item.outer-generics]
-There is no implicit capture of the containing function's generic parameters, parameters, and local variables.
-For example, `inner` may not access `outer_var`.
-
-```rust
-fn outer() {
-  let outer_var = true;
-
-  fn inner() { /* outer_var is not in scope here */ }
-
-  inner();
+```rust,ignore
+fn select(flag: bool) -> i32 {
+    let base = if flag { 10 } else { 20 };
+    { base + 1 }
 }
 ```
 
-r[statement.let]
-### `let` statements
+## Statement boundary
 
-r[statement.let.syntax]
-```grammar,statements
-LetStatement ->
-    `let` PatternNoTopAlt `:` Type `=` Expression `;`
+At a position where an expression statement is being parsed, an expression with an outer block form is completed as that statement rather than greedily consuming a following infix operator. In an initializer or other value-expression context, the expression continues normally. Parentheses can force an ordinary expression context.
+
+This is Rust's syntactic disambiguation, not a literal stop at the first `}`. An attached else/else-if remains part of its if expression, and Rust-permitted field/method postfix continuations still apply. Other expression statements run to their semicolon; the enclosing block can instead end with a final tail expression before `}`. For example, `{ make() }.value;` can remain a field-access expression statement when make returns a suitable struct.
+
+```rust,ignore
+let value = if true { 10 } else { 20 } - 1; // initializer is the whole subtraction
+if true {} else {} -1;                      // if statement, then -1 expression statement
+(if true { 10 } else { 20 }) - 1;            // one expression statement
 ```
 
-r[statement.let.intro]
-A *`let` statement* introduces a new variable, given by a [pattern].
+The parser-facing grammar and examples must be checked against the supplied parser before publication. The rule is settled Rust-compatible block/statement behavior; the remaining work is implementation compatibility, not another language-design choice.
 
-r[statement.let.inference]
-The type of the pattern must be explicitly specified by a type annotation.
+## Assignment destinations
 
-r[statement.let.scope]
-Any variables introduced by a variable declaration are visible from the point of declaration until the end of the enclosing block scope, except when they are shadowed by another variable declaration.
+An assignment destination must be a single place: a variable, field, array element, or dereference, possibly parenthesized. Its type and mutability must be valid. Destructuring assignment is unsupported, including array and struct assignees. The underscore assignee `_ = expr` is also unsupported. These are static language-subset restrictions, not course UB.
 
-r[statement.let.initializer]
-The initializer expression is always present for simplification.
-
-r[statement.expr]
-## Expression statements
-
-r[statement.expr.syntax]
-```grammar,statements
-ExpressionStatement ->
-      ExpressionWithoutBlock `;`
-    | ExpressionWithBlock `;`?
-```
-
-r[statement.expr.intro]
-An *expression statement* is one that evaluates an [expression] and ignores its result.
-As a rule, an expression statement's purpose is to trigger the effects of evaluating its expression.
-
-r[statement.expr.restriction-semicolon]
-An expression that consists of only a [block expression][block] or control flow expression, if used in a context where a statement is permitted, can omit the trailing semicolon.
-This can cause an ambiguity between it being parsed as a standalone statement and as a part of another expression;
-in this case, it is parsed as a statement.
-
-r[statement.expr.constraint-block]
-The type of [ExpressionWithBlock] expressions when used as statements must be the unit type.
-
-```rust
-# let mut v = vec![1, 2, 3];
-v.pop();          // Ignore the element returned from pop
-if (v.is_empty()) {
-    v.push(5);
-} else {
-    v.remove(0);
-}                 // Semicolon can be omitted.
-[1];              // Separate expression statement, not an indexing expression.
-```
-
-When the trailing semicolon is omitted, the result must be type `()`.
-
-```rust
-// bad: the block's type is i32, not ()
-// Error: expected `()` because of default return type
-// if true {
-//   1
-// }
-
-// good: the block's type is i32
-if true {
-  1
-} else {
-  2
-};
-```
-
-[block]: expressions/block-expr.md
-[expression]: expressions.md
-[function]: items/functions.md
-[item]: items.md
-[module]: items/modules.md
-[never type]: types/never.md
-[canonical path]: paths.md#canonical-paths
-[implementations]: items/implementations.md
-[variable]: variables.md
-[outer attributes]: attributes.md
-[`cfg`]: conditional-compilation.md
-[the lint check attributes]: attributes/diagnostics.md#lint-check-attributes
-[pattern]: patterns.md
-[scope]: names/scopes.md
+Assigning an entire struct or array to a variable remains supported: `s = other;` and `a = other_array;` assign one aggregate value to one place. They do not destructure the value into several destinations.

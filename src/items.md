@@ -1,70 +1,69 @@
-r[items]
-# Items
+# Items and functions
 
-r[items.syntax]
-```grammar,items
-Item -> Function
-      | Struct
-      | Enumeration
-      | ConstantItem
-      | Trait
-      | Implementation
+A program is a single source compilation unit containing top-level functions, named-field structs, constants, and inherent impl blocks. Items cannot appear inside expression blocks, including a local const, struct, function, or impl. Methods and associated constants can appear in an inherent impl as described below.
+
+## Functions
+
+```rust,ignore
+fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
 ```
 
-r[items.intro]
-An _item_ is a component of a crate. Items are organized within a crate by a
-nested set of [modules].
+Ordinary parameters are identifiers with an optional `mut`, followed by an explicit type. Parameter types and the return type are not inferred across functions. An omitted return annotation means `()`. Every function definition has a body; const functions and foreign declarations are not course features.
 
-r[items.static-def]
-Items are entirely determined at compile-time, generally remain fixed during
-execution, and may reside in read-only memory.
+Top-level functions may be called before their definitions and may be mutually recursive. Calls evaluate arguments in source order. Arguments and results obey [copy/move value semantics](builtin-traits.md) independently of their machine-level passing convention. Function names may be call targets but are not first-class values.
 
-r[items.kinds]
-There are several kinds of items:
+The entry function and its runtime behavior are specified in [Program entry](undefined-behavior/builtin.md#program-entry).
 
-* [function definitions]
-* [struct definitions]
-* [enumeration definitions]
-* [constant items]
-* [trait definitions]
-* [implementations]
+## Structs
 
-r[items.locations]
-Items may be declared in the [root of the crate] or a [block expression].
+```rust,ignore
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+```
 
-r[items.associated-locations]
-A subset of items, called [associated items], may be declared in [traits] and [implementations].
+Structs are nominal types with explicitly typed, named fields. Tuple structs are unsupported, and empty structs are excluded by the zero-sized-data rules. Fields are accessible without visibility modifiers. Struct names and field names must resolve consistently; construction must provide each declared field exactly once with a compatible type.
 
-r[items.extern-locations]
-A subset of items, called external items, may be declared in [`extern` blocks].
+Within a struct definition, `Self` denotes the struct being defined. For example, `struct Node { children: Vec<Self> }` has the same field type as the version using `Vec<Node>`. This does not relax the prohibition on infinite inline layouts.
 
-r[items.decl-order]
-Items may be defined in any order, with the exception of [`macro_rules`] which has its own scoping behavior.
+A constructor uses `Point { x: 1, y: 2 }`; field initializers may appear in any order and are evaluated in the order written. Field shorthand and functional-update syntax are not added by this revision. Field access is `p.x`. Layout is implementation-defined within the [backend contract](backend.md).
 
-r[items.name-resolution]
-[Name resolution] of item names allows items to be defined before or after where the item is referred to in the module or block.
+The only supported outer attribute is the finite [derive](builtin-traits.md#derive). User attributes and macros are not supported.
 
-See [item scopes] for information on the scoping rules of items.
+## Inherent impls and receivers
 
-[`extern crate` declarations]: items/extern-crates.md
-[`extern` blocks]: items/external-blocks.md
-[`macro_rules`]: macros-by-example.md
-[`use` declarations]: items/use-declarations.md
-[associated items]: items/associated-items.md
-[block expression]: expressions/block-expr.md
-[constant items]: items/constant-items.md
-[enumeration definitions]: items/enumerations.md
-[function definitions]: items/functions.md
-[implementations]: items/implementations.md
-[item scopes]: names/scopes.md#item-scopes
-[modules]: items/modules.md
-[name resolution]: names/name-resolution.md
-[paths]: paths.md
-[root of the crate]: crates-and-source-files.md
-[statement]: statements.md
-[static items]: items/static-items.md
-[struct definitions]: items/structs.md
-[trait definitions]: items/traits.md
-[traits]: items/traits.md
-[type definitions]: items/type-aliases.md
-[union definitions]: items/unions.md
+```rust,ignore
+impl Point {
+    const ZERO: i32 = 0;
+
+    fn total(&self) -> i32 {
+        self.x + self.y
+    }
+
+    fn translate(&mut self, amount: i32) {
+        self.x += amount;
+        self.y += amount;
+    }
+}
+```
+
+An inherent impl belongs to a named struct. It may contain functions/methods and associated constants, but not associated type definitions or nested type declarations. `Self` denotes the implementing type. There is no `impl Trait for Type`.
+
+A method's first parameter may be `self`, `mut self`, `&self`, or `&mut self`. Other parameters use the ordinary identifier-and-type syntax. These receiver forms mean respectively a by-value receiver, mutable by-value receiver, shared reference, and mutable reference. Typed-self syntax is not supported. A function without a receiver is an associated function.
+
+Multiple inherent impl blocks are supported. They share one associated-item namespace per struct: duplicate names are static errors across all such blocks, even if signatures differ. There is no signature overloading. Builtin names and namespaces follow [Names](names.md).
+
+## Constants
+
+A top-level or associated constant has an explicit type and a [restricted constant initializer](const_eval.md). Constants are used by value; they do not acquire a mutable storage location. There are no local const items or user static items.
+
+```rust,ignore
+const LIMIT: i32 = 100;
+const NEGATIVE: i32 = (-1);
+```
+
+Constant names can be resolved independently of declaration order, including top-level constants and associated constants reached through the supported paths. An ordinary expression may use a constant declared later in the source. This is name lookup, not an extension of constant evaluation: const-to-const initializers and named array lengths remain excluded by the restricted-constant rules.

@@ -8,14 +8,8 @@ The name/path surface is the finite one specified in [Names](names.md). Type arg
 
 ## Tokens, items, and types
 
-```grammar,core
+```grammar,syntax
 @root Crate -> Item*
-
-Identifier -> <an ASCII letter or underscore followed by ASCII letters, digits or underscores, excluding a lone underscore and keywords>
-
-IntegerLiteral -> <an integer token with arbitrarily many digits and an optional supported suffix>
-
-BooleanLiteral -> `true` | `false`
 
 Item -> Function | Struct | ConstItem | InherentImpl
 
@@ -74,7 +68,7 @@ In a type context, the parser consumes leading `>` characters from combined punc
 
 ## Statements and expressions
 
-```grammar,core
+```grammar,syntax
 Block -> `{` Statement* Expression? `}`
 
 Statement -> `;` | LetStatement | Expression `;` | ExpressionWithBlock

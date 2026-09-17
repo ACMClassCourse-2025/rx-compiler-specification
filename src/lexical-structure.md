@@ -1,10 +1,105 @@
 # Lexical structure
 
+The productions in this chapter describe the course lexer. Select a production
+name or use **Show syntax diagram** to switch between the textual grammar and
+the railroad diagrams. The complete lexer and parser productions are also
+collected in the [grammar summary](grammar-summary.md).
+
+## Lexer grammar
+
+```grammar,lexer
+@root SourceFile -> (Whitespace | LineComment | BlockComment | Token)*
+
+Whitespace -> (SPACE | TAB | LF | CR LF)+
+
+LineComment -> `//` LineCommentCharacter*
+
+LineCommentCharacter -> <a 7-bit ASCII source character except LF or CR>
+
+BlockComment -> `/*` BlockCommentContent* `*/`
+
+BlockCommentContent ->
+      BlockComment
+    | <a 7-bit ASCII source character except `*` or `/`>
+    | `*` <a 7-bit ASCII source character except `/`>
+    | `/` <a 7-bit ASCII source character except `*`>
+
+Token -> Identifier | Keyword | IntegerLiteral | Punctuation
+
+Identifier -> IdentifierOrKeyword _except `_` and Keyword_
+
+IdentifierOrKeyword -> IdentifierStart IdentifierContinue*
+
+IdentifierStart -> ASCII_ALPHA | `_`
+
+IdentifierContinue -> ASCII_ALPHA | ASCII_DIGIT | `_`
+
+ASCII_ALPHA -> [`a`-`z` `A`-`Z`]
+
+ASCII_DIGIT -> [`0`-`9`]
+
+Keyword ->
+      `as` | `break` | `const` | `continue` | `crate` | `else` | `enum`
+    | `extern` | `false` | `fn` | `for` | `if` | `impl` | `in` | `let`
+    | `loop` | `match` | `mod` | `move` | `mut` | `pub` | `ref` | `return`
+    | `self` | `Self` | `static` | `struct` | `super` | `trait` | `true`
+    | `type` | `unsafe` | `use` | `where` | `while`
+    | `async` | `await` | `dyn`
+    | `abstract` | `become` | `box` | `do` | `final` | `macro` | `override`
+    | `priv` | `typeof` | `unsized` | `virtual` | `yield` | `try`
+
+BooleanLiteral -> `true` | `false`
+
+IntegerLiteral ->
+    (DecimalLiteral | BinaryLiteral | OctalLiteral | HexLiteral) IntegerSuffix?
+
+DecimalLiteral -> DEC_DIGIT (DEC_DIGIT | `_`)*
+
+BinaryLiteral -> `0b` (BIN_DIGIT | `_`)* BIN_DIGIT (BIN_DIGIT | `_`)*
+
+OctalLiteral -> `0o` (OCT_DIGIT | `_`)* OCT_DIGIT (OCT_DIGIT | `_`)*
+
+HexLiteral -> `0x` (HEX_DIGIT | `_`)* HEX_DIGIT (HEX_DIGIT | `_`)*
+
+IntegerSuffix -> `i32` | `u32` | `isize` | `usize`
+
+BIN_DIGIT -> [`0`-`1`]
+
+OCT_DIGIT -> [`0`-`7`]
+
+DEC_DIGIT -> [`0`-`9`]
+
+HEX_DIGIT -> [`0`-`9` `a`-`f` `A`-`F`]
+
+Punctuation ->
+      `=` | `<` | `<=` | `==` | `!=` | `>=` | `>`
+    | `&&` | `||` | `!`
+    | `+` | `-` | `*` | `/` | `%` | `^` | `&` | `|` | `<<` | `>>`
+    | `+=` | `-=` | `*=` | `/=` | `%=` | `^=` | `&=` | `|=` | `<<=` | `>>=`
+    | `.` | `,` | `;` | `:` | `::` | `->` | `#` | `_`
+    | `{` | `}` | `[` | `]` | `(` | `)`
+
+SPACE -> U+0020
+
+TAB -> U+0009
+
+LF -> U+000A
+
+CR -> U+000D
+```
+
 ## Source and identifiers
 
 The existing course restriction to 7-bit ASCII source is retained. Identifiers begin with an ASCII letter or underscore and continue with ASCII letters, digits, or underscores, except that the single token `_` is not an identifier. Names are case-sensitive and have no fixed length limit. Names such as `_value`, `_1`, and `__` are ordinary identifiers; supporting them does not add wildcard bindings or underscore assignees. Raw identifiers with an `r#` prefix are outside this subset.
 
 Spaces, horizontal tabs, LF, and CRLF separate tokens. Rust-style `//` line comments and nestable `/* ... */` block comments are accepted. Comments do not create declarations or attributes. The supplied frontend's Rust lexical handling may be reused; recognition of additional tokens does not add language constructs.
+
+Tokenization uses Rust's longest-token rule, except for the parser-context splits
+specified below. Comments are recognized before treating `/` as punctuation.
+The `Keyword` production contains all Rust 2021 strict and reserved keywords;
+removed language constructs therefore remain unavailable as identifiers. The
+lexer may recognize unsupported punctuation or literal forms, but doing so does
+not add them to `Token` above or to the course language.
 
 Strict and reserved Rust 2021 keywords cannot be ordinary identifiers. Keywords of removed constructs remain reserved. `self` denotes a method receiver; `Self` has its struct-definition and impl meanings. `Copy`, `Clone`, `PartialEq`, `Eq`, `Box`, and `Vec` are builtin names, not new lexical keywords. The prohibition on shadowing builtins is a namespace-level rule in [Names](names.md).
 

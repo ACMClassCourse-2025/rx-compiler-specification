@@ -18,4 +18,5 @@
 - [Box and Vec](heap.md)
 - [Backend and execution contract](backend.md)
 - [Core grammar](grammar.md)
+- [Grammar summary](grammar-summary.md)
 - [Open decisions before publication](open-decisions.md)

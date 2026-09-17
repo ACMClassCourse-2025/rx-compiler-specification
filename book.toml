@@ -10,7 +10,7 @@ git-repository-url = "https://github.com/peterzheng98/RCompiler-Spec"
 smart-punctuation = true
 
 [output.html.search.chapter]
-"grammar.md" = { enable = false }
+"grammar-summary.md" = { enable = false }
 
 [rust]
 edition = "2021"

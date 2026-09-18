@@ -11,7 +11,7 @@ An inherent impl defines associated items for a user-defined named-field struct.
 
 An impl declares its own lifetime parameters immediately after `impl`, as in `impl<'a> View<'a> { ... }`. Those parameters are in scope throughout its associated items. Methods and associated functions may declare additional lifetime parameters. A [WhereClause] before the opening brace specifies lifetime bounds.
 
-Multiple impl blocks are supported. Their member namespace and duplicate-name checks follow [Names](../names.md#settled-scope-rules). [Associated items](associated-items.md) defines the members; [function receivers](functions.md#receivers) defines methods.
+Multiple impl blocks are supported. Their member namespace and duplicate-name checks follow [Names](../names.md#scope-rules). [Associated items](associated-items.md) defines the members; [function receivers](functions.md#receivers) defines methods.
 
 ```rust,ignore
 impl Point {

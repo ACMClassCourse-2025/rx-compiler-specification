@@ -7,7 +7,7 @@ ConstantItem -> `const` IDENTIFIER `:` Type `=` ConstValue `;`
 
 A constant declaration gives a name, an explicit type, and an initializer. The initializer follows the [constant-context rules](../const_eval.md) through [ConstValue]. Each ordinary expression use of a constant produces its value.
 
-Constants are declared at the top level or as associated items in an inherent impl. The [name lookup rules](../names.md#settled-scope-rules) permit uses before the declaration.
+Constants are declared at the top level or as associated items in an inherent impl. The [name lookup rules](../names.md#scope-rules) permit uses before the declaration.
 
 ```rust,ignore
 const LIMIT: i32 = 100;

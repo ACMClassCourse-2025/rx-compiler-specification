@@ -1,6 +1,6 @@
 # Names and scopes
 
-## Settled scope rules
+## Scope rules
 
 Top-level functions, structs, constants, and inherent associated items introduce names. Parameters and `let` statements introduce local bindings. Fields belong to their struct and are found through the receiver type.
 

@@ -32,98 +32,90 @@ Struct types are nominal. References, arrays, `Box`, and `Vec` are structural. T
 
 ## Inference
 
-Inference is monomorphic. Item signatures are explicit. Each local binding's type is determined from its annotation, initializer, and already determined bindings. Later uses, including block tails, do not revise that type.
+Type inference fills in omitted local binding types from their initializers. Function and item signatures are explicit. Each binding has one fixed type; later uses do not change it. `Box` and `Vec` constructors require explicit concrete type arguments, and a receiver's type must be known before field or method lookup.
 
-Programs that need a later use to supply a missing type or change an otherwise unconstrained integer's default to another supported integer type are course UB. A later use incompatible with a type fixed by an annotation, suffix, or initializer constraint remains a static error.
+### Integer literals
 
-Within an initializer or other expression, operands and results constrain one another according to their type rules. An enclosing expected type also supplies constraints. Resolve these constraints before defaulting remaining unsuffixed integers to `i32`; finish before checking later statements. This applies inside references and arrays too. Unifying unresolved integer types is inference, not coercion. Contradictory constraints are static errors; determined integer types never change implicitly.
+Integer literals use this limited inference rule, in order:
 
-Unconstrained non-integer values need an annotation or context within the same initializer or expression. Field and method lookup requires the receiver type to be known before lookup; the result type does not select a receiver type or method. `Box` and `Vec` constructors require explicit concrete type arguments.
+1. A suffix fixes the type.
+2. Without a suffix, use the expected type if it is one of `i32`, `u32`, `isize`, or `usize`.
+3. Otherwise, use `i32`.
 
-<details>
-<summary>Inference examples</summary>
+Expected types come from the [contexts and propagation rules below](#coercion-sites-and-expected-types). Without such an expectation, another operand, a neighboring array element or branch, and later uses of a binding do not select the literal's type. Once chosen, an integer type does not change implicitly.
 
 ```rust,ignore
-fn take_u32(value: u32) {}
-
-fn examples() {
-    1 + 2;                         // i32; the semicolon discards the result
-    let sum = 1 + 2u32;             // u32, from constraints within the initializer
-    let refs = [&1, &2u32];         // [&u32; 2], without a reference coercion
-    let mut nodes = Vec::<i32>::new();
-
-    let n = 1;
-    take_u32(n);                    // course UB: needs inference from a later statement
-}
+let n = 1;                   // i32: no expected type
+let count: u32 = 1;          // u32: from the annotation
+let sum: u32 = 1 + 2;        // course UB: needs propagation through +
+let neg: isize = -1;         // course UB: needs propagation through unary -
+let r: &u32 = &1;            // course UB: needs propagation through &
+let values: [u32; 2] = [1, 2]; // u32 elements; usize length
+let bad: u32 = 1i32;         // static error: a suffix fixes the type
+let later: u32 = n;          // static error: n is already i32
+let mixed = 1 + 2u32;        // static error: no expected type for 1
 ```
 
-Writing `let n: u32 = 1;` or `let n = 1u32;` makes the call valid. Writing `let n: i32 = 1;` or `let n = 1i32;` makes it a static type error. Constraints do not pass backwards through a local binding, even within the same enclosing block: `let n: u32 = { let x = 1; x };` is also course UB.
+Array lengths and indices have expected type `usize`, so `[i32; 4]`, `[0; 4]`, and `data[0]` are valid without suffixes. Range checking follows type selection: a literal outside the selected type's range is [course UB](undefined-behavior.md#integer-literal-range). Its magnitude does not select a different type.
 
-</details>
+## Conversions and coercions
 
-## Conversions and references
+An explicit conversion uses `as`. A coercion is an automatic adjustment at one of the expression positions listed below. The organization follows the [Rust Reference](https://doc.rust-lang.org/reference/type-coercions.html), with only the types and operations supported by Rx.
 
-Integer-to-integer and bool-to-integer conversions require `as`. Conditions require `bool`.
+### Explicit conversions
 
-Coercion adjusts an expression to an expected type. The following rules are exhaustive:
+Integer-to-integer and bool-to-integer conversions require `as`. Integer casts preserve the 32-bit pattern; `false` becomes 0 and `true` becomes 1. These are the only supported [casts](expressions/operator-expr.md#casts). Conditions require `bool`; an integer is not a condition.
 
-| Source | Target | Requirement |
-| --- | --- | --- |
-| `T` | `T` | No type change; ordinary copy/move rules apply, except for mutable-reference reborrowing below |
-| `&mut T` | `&mut T` | May reborrow for an expected mutable-reference type |
-| `&S` or `&mut S` | `&T` | The source reference reaches a `T` place through zero or more builtin dereferences |
-| `&mut S` | `&mut T` | The source reference reaches a mutable `T` place through zero or more builtin dereferences |
-| Never | Any expected type | No value is produced on that path |
+### Coercion sites and expected types
 
-For the reference rules, first dereference the source reference, then follow the [builtin dereference rules](#autoderef-and-autoref) until its place type exactly matches the target's referent. A mutable target requires an outer `&mut` and no shared reference anywhere along that path. This supports `&Box<T>` to `&T`, `&mut Box<T>` to `&mut T` or `&T`, and further reference or `Box` layers. The adjustment borrows the reached place; it does not move its contents.
+A **one-to-one coercion** checks one expression against a known target, called its *expected type*. A **least upper bound (LUB) coercion** finds a common target for several expressions. This distinction follows the [Rust Compiler Development Guide](https://rustc-dev-guide.rust-lang.org/hir-typeck/coercions.html). An expected integer type can select an unsuffixed literal's type before coercion; coercion itself does not convert integers.
 
-Ordinary coercion never borrows an owned value implicitly: neither `Box<T>` to `T` nor `Box<T>` to `&T` is supported. It does not convert stored elements of arrays, `Box`, or `Vec`, rewrite nested reference types, or unsize arrays or `Vec` to slices. All other types must agree.
+These sites have a known expected type and use one-to-one coercion:
 
-### Expected types
-
-These contexts provide expected types for ordinary coercions:
-
-| Coercion site | Expected type |
+| Expression position | Expected type |
 | --- | --- |
 | Annotated `let` initializer | Annotation |
+| Constant initializer | Declared constant type, subject to the restricted [constant forms](const_eval.md) |
 | Assignment right operand | Destination |
-| Function, method, constructor, or `Vec` argument | Declared parameter |
+| Function, method, or container constructor argument | Declared parameter; method receivers follow [receiver adjustments](expressions/method-call-expr.md#receiver-adjustments) |
 | Function tail or `return` operand | Declared result |
 | Struct field initializer | Declared field |
 
-An expected type propagates through parentheses and block tails, to both result branches of an `if`, and to the values of all `break` expressions targeting a `loop`. An expected array type `[T; N]` supplies `T` to its element expressions and requires length `N`. These rules apply recursively; they do not propagate through local bindings to their earlier initializers.
+The expected type passes through parentheses and block tails, to both result branches of an `if`, and to all `break` values targeting a `loop`. An expected array type `[T; N]` supplies `T` to each listed or repeated element and requires length `N`. Each of these result expressions is checked against that target; failure is a static error except for the propagation exclusion below.
 
-Conditions require `bool`, indices require `usize`, and operators constrain operands according to their own rules. Unit-result contexts, including loop bodies and an `if` without `else`, require `()`. A call's declared parameter type supplies an expected type to its argument even if the call's result has no expected type. Merely examining another branch or array element does not supply an expected type for reference coercion.
+Propagation repeats only through the forms listed above. It does not pass through binary operations, unary operations, or borrow expressions (`&e` and `&mut e`), and does not revisit earlier binding initializers. A program that needs propagation through an operator or borrow to determine an integer literal's type is **course UB**, rather than a required static error.
 
-### Results without an expected type
+This excludes reliance on propagation, not the operators or borrows themselves. For example, `let n: i32 = 1 + 2;` works by defaulting, and `let r: &u32 = &1u32;` works because the suffix fixes the type. Incompatible types fixed by suffixes or existing bindings remain static errors. Call arguments still get their declared expected types, even inside an operator or borrow.
 
-For `if` branches, array elements, and a loop's `break` values, first ignore never results and infer the remaining types without reference coercions. All remaining results must have the same type after inference and integer defaulting. If every result is never, the common result type is never. Empty arrays follow the [zero-sized-data exclusion](undefined-behavior.md#zero-sized-data).
+Conditions require `bool`, array lengths and indices have expected type `usize`, and loop bodies and an `if` without `else` require unit results. Operators follow their [operand rules](expressions/operator-expr.md). These requirements do not enable additional conversions.
 
-If different result types could be unified only by the supported reference reborrowing or dereference coercions, the source form is course UB. This includes finding a third reference type to which the results could all coerce. Other incompatible types remain static errors. Never fitting another result type is always supported, including a reference or container type.
+### Coercion types
 
-This exclusion does not affect same-type results, integer inference, or ordinary construction of references and containers. It also does not change operator-specific adjustments or method receiver adjustments.
+Only the following adjustments are supported:
 
-<details>
-<summary>Result type examples</summary>
+| Source | Target | Adjustment |
+| --- | --- | --- |
+| `T` | `T` | Keep the type; ordinary copy/move rules apply, except for mutable-reference reborrowing below |
+| `&mut T` | `&T` | Borrow the same value through a shared reference |
+| `&S` or `&mut S` | `&T` | Follow builtin dereferences from `S` to a `T` place, then borrow it |
+| `&mut S` | `&mut T` | Follow builtin dereferences from `S` to a mutable `T` place, then borrow it mutably |
+| Never | Any target | No value is produced on that path |
 
-Assume `x` and `y` are `i32`, `x` is mutable, `b` is `Box<i32>`, and `flag` is `bool`. Each row is a separate example.
+The builtin dereference steps are `&U` to `U`, `&mut U` to `U`, and `Box<U>` to `U`. They may be repeated until the target's referent type matches exactly. A mutable target requires an outer `&mut` and no shared reference along the path. The adjustment borrows the reached value without moving its contents. `Vec` has no builtin dereference.
 
-| Expression | Requirement |
-| --- | --- |
-| `let r = if flag { &x } else { &y };` | Infer `&i32`; no coercion |
-| `let r = if flag { &mut x } else { &y };` | Course UB: no expected type for the reference coercion |
-| `let r = if flag { &b } else { &x };` | Course UB: no expected type for the dereference coercion |
-| `let a = [&mut x, &y];` | Course UB for the same reason |
-| `let r: &i32 = if flag { &mut x } else { &y };` | Valid: both branches have expected type `&i32` |
-| `let a: [&i32; 2] = [&mut x, &y];` | Valid: each element has expected type `&i32` |
-| `let r = if flag { &x } else { 1i32 };` | Static error: no supported conversion unifies the types |
+```rust,ignore
+let mut boxed = Box::<i32>::new(1);
+let r: &i32 = &boxed;           // &Box<i32> to &i32
+let m: &mut i32 = &mut boxed;   // &mut Box<i32> to &mut i32
+```
 
-</details>
+Coercion does not borrow an owned value implicitly: `Box<T>` cannot coerce to `T` or `&T`; write `&boxed` for the latter. It does not convert stored array or container elements, change inner reference mutability, or produce slices. For example, `&mut &mut i32` cannot coerce to `&mut &i32`. Array *literal elements* may each coerce because they are separate expression sites.
 
-<details>
-<summary>Mutable-reference reborrows and moves</summary>
+### Mutable-reference reborrowing
 
-An expected `&mut T` can reborrow a mutable reference, but an unconstrained `let` moves it:
+> **Note**: Since we guarantee that lifetimes are valid, you do not need to know about reborrowing for this project. We keep it here nevertheless for completeness of specification.
+
+At a coercion site, an `&mut T` may be borrowed again as `&mut T`. This is a *reborrow*: after the new borrow ends, the original reference is usable again. An unannotated `let` binding instead moves the reference:
 
 ```rust,ignore
 let mut x = 1;
@@ -137,25 +129,40 @@ let moved = p;           // move
 *moved = 4;
 ```
 
-After the move, `p` cannot be used without reinitialization. Passing `p` to an `&mut i32` parameter may reborrow it, allowing later calls. The type of `moved` is still `&mut i32`; no later use turns this move into a reborrow.
+After the move, `p` cannot be used without reinitialization. Passing `p` to an `&mut i32` parameter can reborrow it in the same way. Later uses do not turn a move into a reborrow.
 
-</details>
+### Least upper bound coercions
 
-## Autoderef and autoref
+When no expected type fixes the target, LUB coercion finds a common type for:
 
-Autoderef follows this fixed set of builtin dereferences, one layer at a time:
+- The result branches of an `if` with `else`.
+- The elements of an array literal.
+- The values of all `break` expressions targeting the same `loop`.
 
-| Place type | Dereferenced place | Access |
-| --- | --- | --- |
-| `&T` | `T` | Shared |
-| `&mut T` | `T` | Mutable unless reached through a shared reference |
-| `Box<T>` | `T` | Follows the box's access |
+With an expected type, these same expressions use one-to-one coercions to that fixed target. Function returns and the function tail also share a fixed target: the declared result type. They never infer a different function signature.
 
-An immutable binding containing `&mut T` can still provide mutable access to `T`. Once a shared reference is crossed, further dereferences on that path cannot restore mutable access. `Vec` has no builtin dereference.
+For an unknown target, first determine each result's type independently, using `i32` for unsuffixed integers that have no expected integer type. The current LUB target is not an expected type for another result. Consider results in source order and ignore never results, which can fit any target. Start with the first remaining result's type as the current target `T`. For each next result of type `U`:
 
-Field access stops at the first type declaring the field; indexing stops at the first array or `Vec`. Method calls use the [receiver candidate rules](expressions/method-call-expr.md#method-lookup). Each base or receiver is evaluated once. Explicit `*` performs one dereference.
+1. If `U` can coerce to `T`, keep `T`.
+2. Otherwise, if `T` can coerce to `U` and every earlier result can be adjusted to `U`, use `U` as the new target and adjust those results too.
+3. If not, the behavior is undefined ([course UB](undefined-behavior.md#test-guarantees)). No search for a third common type is required.
 
-Autoref inserts `&` or `&mut` for a method receiver when its selected signature requires it. Ordinary function arguments do not get autoref; write the borrow explicitly. For example, a parameter of type `&i32` accepts `&b` for `b: Box<i32>` by coercion, but does not accept `b`. These rules do not expand the [operator](expressions/operator-expr.md) or cast tables.
+If all results are never, the result type is never. Empty arrays follow the [zero-sized-data exclusion](undefined-behavior.md#zero-sized-data). A bare `break;` supplies `()`; breaks targeting nested loops do not participate.
+
+Each row below is a separate example:
+
+| Expression | Result |
+| --- | --- |
+| `let a = [&mut 1, &123];` | `[&i32; 2]`; the first element becomes shared |
+| `let a = [&123, &mut 1];` | The same type; the second element becomes shared |
+| `let a = [&mut 1u32, &123u32];` | `[&u32; 2]` |
+| `let a = [&mut 1u32, &123];` | Course UB: no expected type for `123`, so it is `i32` |
+| `let a: [&u32; 2] = [&mut 1, &123];` | Course UB: inferring `u32` would require propagation through both borrows |
+| `let a: [&u32; 2] = [&mut 1u32, &123u32];` | Valid: the literals are already `u32`; the first reference coerces to shared |
+| `let a = [&mut &1, &mut &mut 2];` | Course UB: inner reference mutability differs |
+| `let a: [&mut &i32; 2] = [&mut &1, &mut &mut 2];` | Static error: the second element cannot meet the fixed expected type |
+
+These rules determine the types of expressions; they do not change evaluation order or the separate method and operator adjustment rules.
 
 ## Recursive types
 

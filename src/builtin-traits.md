@@ -52,7 +52,7 @@ fn main() {
 
 **Functionality.** `PartialEq` enables `==` and `!=`, which borrow their operands. Scalars compare values; arrays compare corresponding elements; derived structs compare fields; references compare their targets, not their addresses. Padding is ignored, so whole-object `memcmp` is not generally valid. `Box` and `Vec` follow [container equality](heap.md#clone-and-equality).
 
-**Requirements.** Deriving `PartialEq` requires every field to be `PartialEq`. Both operands must have exactly the same inferred source type with `PartialEq`. Unresolved operands constrain one another, so an unsuffixed literal may acquire the other operand's integer type; already determined types do not convert. Different source types are course UB under the [cross-type equality guarantee](undefined-behavior.md#cross-type-equality).
+**Requirements.** Deriving `PartialEq` requires every field to be `PartialEq`. Both operands must have exactly the same source type with `PartialEq`; equality does not coerce them to a common type or supply an expected integer type to either operand. Thus `1 == 1i32` is valid, while `1 == 1u32` is course UB under the [cross-type equality guarantee](undefined-behavior.md#cross-type-equality).
 
 **Example.** Compare records without consuming them.
 

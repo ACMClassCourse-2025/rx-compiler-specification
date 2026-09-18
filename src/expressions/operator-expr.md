@@ -47,6 +47,10 @@ Primitive arithmetic and bit operations support the scalar and reference operand
 | Arithmetic/bitwise compound assignment | A mutable place of primitive type T; right is T or &T for the corresponding operation | Unit |
 | Shift compound assignment | A mutable place of primitive integer type L; right is R or &R | Unit |
 
+Expected types do not propagate through binary or unary operators to their operands. Programs requiring that propagation for integer inference are [course UB](../types.md#coercion-sites-and-expected-types). For example, `let n: u32 = 1 + 2;` and `let n: isize = -1;` are course UB; writing `1u32 + 2u32` and `-1isize` supplies the types explicitly.
+
+Compound assignment likewise does not infer the right operand's integer type from the destination. For `n: u32`, `n += 1;` requires that inference and is course UB; `n += 1u32;` is valid when `n` is mutable. All operand requirements in the table still apply.
+
 <details>
 <summary>Reference operand details</summary>
 
@@ -94,7 +98,7 @@ For example, `&a < &b`, `&mut a < &mut b`, and `&a < &mut b` work for matching o
 TypeCastExpression -> Expression `as` TypeNoBounds
 ```
 
-`as` supports integer-to-integer casts and bool-to-integer casts. Since all integers are 32 bits, integer casts preserve the 32-bit pattern and interpret it in the destination signedness. False becomes 0 and true becomes 1. Integer-to-bool and reference-to-integer casts are not supported.
+`as` supports integer-to-integer casts and bool-to-integer casts. Since all integers are 32 bits, integer casts preserve the 32-bit pattern and interpret it in the destination signedness. False becomes 0 and true becomes 1. Integer-to-bool and reference-to-integer casts are not supported. The cast target does not supply an expected type to its operand: in `1 as u32`, the literal is `i32` and the cast produces `u32`.
 
 ### Cast parsing
 
@@ -132,6 +136,8 @@ CompoundAssignmentExpression ->
 ```
 
 `&place` forms a shared reference; `&mut place` requires a mutable place. Applied to a value expression, borrowing materializes a temporary. `*reference` accesses its target, and `*box` accesses the owned T under the [Box rules](../heap.md#box-access-and-moves). Other types, including Vec, are not dereference operands. In prefix borrow position, `&&x` means `&(&x)`; infix `left && right` is short-circuit boolean and.
+
+Each explicit `*` performs one dereference. Dereferencing `&T` gives shared access; dereferencing `&mut T` gives mutable access unless reached through a shared reference. An immutable binding holding `&mut T` can still modify the target. Once a shared reference is crossed, further dereferences cannot restore mutable access.
 
 `place = value` stores with the required copy/move behavior. Compound assignment applies the corresponding operation to the current scalar value at the destination. Both forms produce unit. The following order rules apply even if reference-operation lowering ultimately uses the same scalar instructions.
 

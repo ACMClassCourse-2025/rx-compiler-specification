@@ -7,7 +7,7 @@ annotation.
 `return`, `break`, and `continue` expressions have never type: they transfer
 control instead of producing a value where they appear.
 
-Never can fit an expected result type in the supported [coercion contexts](../types.md#conversions-and-references).
+Never can fit an expected result type in the supported [coercion contexts](../types.md#conversions-and-coercions).
 Without an expected type, never results do not constrain the other results' common type; if all results are never, that common type is never. This permits an if branch to return early while another branch yields a value, including a reference or container.
 Unit and never are distinct: a unit call returns normally, whereas a return
 expression does not.
@@ -30,7 +30,7 @@ A `break` inside a nested loop targets that nested loop, so
 `loop { loop { break; } }` still has never type.
 
 If any `break` expressions target the loop, their values follow the
-[common result rules](../types.md#results-without-an-expected-type), using the loop's expected type when supplied; `break;` supplies `()`. If every break operand has never type,
+[common result rules](../types.md#least-upper-bound-coercions), using the loop's expected type when supplied; `break;` supplies `()`. If every break operand has never type,
 the loop also has never type. A `break` counts even if it is unreachable:
 `loop { if false { break 1i32; } }` has type `i32`.
 

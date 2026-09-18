@@ -16,7 +16,7 @@ ContinueExpression -> `continue`
 
 `while condition { ... }` reevaluates a bool condition before each iteration and has unit result. Parentheses around the condition are optional. `loop { ... }` repeats until control flow leaves it; break values determine the loop expression's result type. The body block of either form must be compatible with unit; a diverging body is compatible. A non-unit body tail does not become the value of the loop expression. Thus `while false { 1 }` and `loop { 1 }` are static type errors, while a value can leave loop through `break value`.
 
-`break;` exits the nearest loop with unit. A value-bearing break requires a `loop` target. The loop's expected type applies to all its break values; without one, they follow [results without an expected type](../types.md#results-without-an-expected-type). `continue;` starts the next iteration of the nearest loop (including the next while condition evaluation). Break/continue outside a loop are static errors.
+`break;` exits the nearest loop with unit. A value-bearing break requires a `loop` target. The loop's expected type applies to all its break values through [one-to-one coercions](../types.md#coercion-sites-and-expected-types); without one, [LUB coercion](../types.md#least-upper-bound-coercions) finds their common type. `continue;` starts the next iteration of the nearest loop (including the next while condition evaluation). Break/continue outside a loop are static errors.
 
 A break or continue appearing in a while condition must target a loop nested inside that condition. Targeting the containing while or any outer loop is a static error. For example, `while loop { break false; } {}` is allowed. Syntactic loop nesting determines the target.
 

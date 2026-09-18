@@ -11,13 +11,13 @@ A method call gives a receiver expression, a method identifier, and a parenthesi
 
 ## Method lookup
 
-The receiver type must be known before lookup. Method calls use builtin [autoderef and autoref](../types.md#autoderef-and-autoref):
+The receiver type must be known before lookup. Method calls find the receiver adjustments as follows:
 
 1. Start with the receiver expression's type and repeatedly dereference references and `Box`, recording each type in order. `Vec` adds no dereference step.
 2. Immediately after each recorded type `T`, insert `&T` and `&mut T` as candidate receiver types.
 3. Find all methods with the requested name whose declared receiver type exactly matches any candidate. Include inherent methods, available builtin `Clone` methods, and the specified array and container methods. Count the same method for the same concrete `Self` type only once, even if it matches at several positions.
 4. No matching method is a static error. More than one distinct matching method is course UB, even if Rust's candidate priority would select one. Argument types, expected result types, and receiver mutability do not filter this count.
-5. With one matching method, use its first matching candidate. Apply the dereferences and any borrow for that candidate; an existing mutable-reference receiver may reborrow under the [ordinary reference rules](../types.md#conversions-and-references). Then check receiver mutability and ordinary arguments. A failed check is a static error, subject to the separate ownership and lifetime test guarantees.
+5. With one matching method, use its first matching candidate. Apply the dereferences and any borrow for that candidate; an existing mutable-reference receiver may reborrow under the [ordinary reference rules](../types.md#mutable-reference-reborrowing). Then check receiver mutability and ordinary arguments. A failed check is a static error, subject to the separate ownership and lifetime test guarantees.
 
 Tests exclude competing methods; the compiler need not detect them or implement Rust's method priorities. Compiler-generated cloning invokes the builtin operation directly and does not perform this lookup. Duplicate inherent declarations remain [name errors](../names.md#name-collisions); methods on unrelated types outside the receiver's candidate list do not compete.
 

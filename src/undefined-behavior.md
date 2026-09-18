@@ -45,10 +45,10 @@ The following source forms are course UB and never appear in tests, including in
 | Course UB | Defining rules |
 | --- | --- |
 | Integer literal outside its determined type | [Integer literal range](#integer-literal-range) |
+| Integer inference requiring expected-type propagation through binary operations, unary operations, or shared/mutable borrows | [Expected-type propagation](types.md#coercion-sites-and-expected-types) |
 | Let or parameter name colliding with a visible unqualified constant | [Constant-name collisions](#constant-name-collisions) |
 | Equality between different source types | [Cross-type equality](#cross-type-equality) |
-| Local type inference requiring a later use | [Inference](types.md#inference) |
-| Reference coercion needed to join results without an expected type | [Result types](types.md#results-without-an-expected-type) |
+| LUB coercion for which neither type can become the common target | [Least upper bound coercions](types.md#least-upper-bound-coercions) |
 | Multiple distinct matching methods in a dot call | [Method lookup](expressions/method-call-expr.md#method-lookup) |
 | Use declaration violating the Rust compatibility guarantees | [Use compatibility](#use-compatibility) |
 | Invalid lifetime declaration, use, bound, or elision | [Lifetime validity](#lifetime-validity) |
@@ -58,9 +58,9 @@ These guarantees constrain source programs. Invalid memory access, incorrect ter
 
 ### Integer literal range
 
-After suffix resolution and inference, a literal outside its determined type's range is course UB. For example, positive `2147483648i32` and `4294967296u32` are excluded, with no required overflow diagnostic or wrapped result.
+An integer literal's type is selected by its suffix, its expected integer type, or the `i32` fallback, in that order. A non-i32 literal without expected type is course UB.
 
-The [literal rules](expressions/literal-expr.md#integer-typing-and-range) still permit signed minima such as `-2147483648i32` and `-(2147483648i32)`. Ordinary type errors and [runtime arithmetic wrapping](expressions/operator-expr.md#arithmetic-and-bits) are unchanged.
+Integer literal overflow is course UB. The [literal rules](expressions/literal-expr.md#integer-typing-and-range) still permit signed minima such as `-2147483648i32` and `-(2147483648i32)`.
 
 ### Constant-name collisions
 
@@ -70,7 +70,7 @@ A `let` or ordinary parameter that matches a visible unqualified constant is cou
 
 Every `==` or `!=` whose inferred operands have different source types is course UB. No diagnostic, coercion, or cross-type `PartialEq` implementation is required. This includes shared versus mutable references, different array types, different container element types, and `Vec` versus array comparisons.
 
-The [equality rules](builtin-traits.md#partialeq) define inference, capability requirements, and same-type comparison. Lifetime arguments alone do not distinguish source types under [type identity](types.md#supported-types).
+The [equality rules](builtin-traits.md#partialeq) define operand types, capability requirements, and same-type comparison. Lifetime arguments alone do not distinguish source types under [type identity](types.md#supported-types).
 
 ### Use compatibility
 

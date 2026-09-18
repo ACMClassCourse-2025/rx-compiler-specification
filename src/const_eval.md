@@ -36,12 +36,13 @@ before attempting to evaluate the involved constants.
 
 ## Typing and range
 
-Const-item types are explicit. A constant path has the declared type and value
-of its target item. Array lengths have type `usize` and must fit that type; a
-bool, signed integer constant, or negative value cannot serve as a length. Zero
-lengths are course UB under the [zero-sized-data guarantee](undefined-behavior.md#zero-sized-data).
+A constant path has the declared type and value
+of its target item. Const-item initializers have the declared expected type;
+array lengths are constant values and have expected type `usize`.
 
 Literal typing and signed-minimum cases follow [integer literal rules](expressions/literal-expr.md#integer-typing-and-range). Out-of-range literals are course UB under the [integer literal range guarantee](undefined-behavior.md#integer-literal-range). Ordinary type and restricted-form errors remain static errors.
+
+The [propagation exclusion](types.md#coercion-sites-and-expected-types) also applies here: `const N: isize = -1;` is course UB because it needs the expected type to pass through unary minus. Write `-1isize` instead. `const N: i32 = -1;` works with the ordinary `i32` default.
 
 The element expression in `[expr; 4]` is an ordinary expression governed by [array repetition](expressions/array-expr.md#array-expressions). Only its length is a constant context.
 

@@ -16,7 +16,7 @@ Every let binds a single identifier to an initializer. An optional `mut` makes t
 
 Binding visibility and shadowing follow [Names](names.md#scope-rules). A let binding that collides with a visible unqualified const name is course UB; see the [constant-name collision guarantee](undefined-behavior.md#constant-name-collisions).
 
-The optional annotation and initializer follow [local type inference](types.md#inference) and [coercion rules](types.md#conversions-and-references). Subsequent writes follow [assignment destinations](expressions/operator-expr.md#assignment-destinations).
+The optional annotation and initializer follow [local type inference](types.md#inference) and [coercion rules](types.md#conversions-and-coercions). Subsequent writes follow [assignment destinations](expressions/operator-expr.md#assignment-destinations).
 
 ## Expression statements
 

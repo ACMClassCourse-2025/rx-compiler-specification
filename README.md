@@ -1,12 +1,14 @@
 # Rx Compiler Specification
 
-Read the [specification online](https://acmclasscourse-2025.github.io/rx-compiler-specification/).
+Welcome to the Rx compiler project! In this course you will write a compiler for a subset of Rust. This repo provides the specification for the Rx language you will implement, covering both the grammar and runtime semantics.
 
-This repository contains the 2026 working specification for the compiler course's Rust subset and RV32IM target.
+## Online preview
 
-The chapters in [`src/SUMMARY.md`](src/SUMMARY.md) are the complete normative specification. Start with the [introduction](src/introduction.md), [language scope](src/undefined-behavior.md), and [publication validation](src/open-decisions.md).
+Read the specification online at [Rx Compiler Specification](https://acmclasscourse-2025.github.io/rx-compiler-specification/).
 
 ## Build and preview
+
+For local use, clone this repository and build the specification using `mdbook`.
 
 The book uses mdBook 0.4.x (CI pins 0.4.48) and the bundled `mdbook-spec` preprocessor.
 
@@ -21,8 +23,10 @@ The generated site is written to `book/`. For a local preview:
 SPEC_RELATIVE=0 mdbook serve --open
 ```
 
-`SPEC_RELATIVE=0` makes standard-library links absolute. `SPEC_DENY_WARNINGS=1` turns preprocessor warnings into errors. Grammar source syntax is documented in [`docs/grammar.md`](docs/grammar.md).
+## Issues and contributing
 
-## Validation
+If you identify any issues with the specification, any discrepancies between the specification and the [Rust Reference](https://doc.rust-lang.org/stable/reference/) that makes the specification incorrect under non-UB circumstances, please report them in the [issues section](https://github.com/acmclasscourse-2025/rx-compiler-specification/issues).
 
-Rust-labelled examples describe the course language and are ignored by `rustc` because the subset has its own builtins and restrictions. A successful book build checks document structure, grammar references, and rendering; compiler and runtime conformance require their respective test suites.
+## License
+
+This project is dual licensed under the MIT and Apache 2.0 licenses. See [LICENSE-MIT](LICENSE-MIT) and [LICENSE-APACHE](LICENSE-APACHE) for details.

@@ -62,4 +62,4 @@
 # Appendices
 
 - [Grammar summary](grammar-summary.md)
-- [Publication validation](open-decisions.md)
+<!-- - [Publication validation](open-decisions.md) -->

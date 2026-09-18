@@ -9,7 +9,7 @@ The only target is little-endian RISC-V RV32IM with the ILP32 data model. Extern
 | Clang/LLVM | Version 22 |
 | Target | `riscv32-unknown-elf` |
 | ISA and ABI | `-march=rv32im -mabi=ilp32` |
-| REIMU | Course-pinned commit |
+| REIMU | To be determined |
 | Execution memory | `--memory=256M` |
 | Stack | `--stack=1M` |
 
@@ -145,7 +145,7 @@ REIMU also provides psABI-compatible `memcpy`, `memmove`, and `memset`. Use `mem
 
 ## Resource guarantees
 
-Tests run with 256 MiB total execution memory and a 1 MiB stack. Under the reference runtime and growth strategy below, cumulative heap high-water, including allocator metadata, alignment padding, and retained old buffers, does not exceed 64 MiB. Valid sizes, capacities, and byte-count products fit 32-bit `usize`.
+<!-- Tests run with 256 MiB total execution memory and a 1 MiB stack. Under the reference runtime and growth strategy below, cumulative heap high-water, including allocator metadata, alignment padding, and retained old buffers, does not exceed 64 MiB. Valid sizes, capacities, and byte-count products fit 32-bit `usize`.
 
 The 64 MiB value is test headroom, not a source-visible heap size or a guarantee that one allocation of that size succeeds. Text, static data, stack, and heap share the 256 MiB execution limit. No separate static-data limit applies.
 
@@ -163,7 +163,9 @@ The reference implementation uses this baseline for test sizing:
 
 Capacity remains unobservable, and student implementations may use another layout or growth factor. They must still finish the same tests within the published memory limits.
 
-</details>
+</details> -->
+
+To be determined. Let the TAs finish the testcases first XD.
 
 ## Assembly and execution
 

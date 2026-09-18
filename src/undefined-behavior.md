@@ -35,7 +35,7 @@ The course subset excludes:
 - Type parameters and general generics. Lifetime syntax is supported, but its validity is guaranteed rather than checked.
 - Modules, visibility, privacy, macros, and arbitrary attributes.
 - Unsafe Rust and the standard library beyond the builtins defined here.
-- General constant evaluation and const generics. Constant propagation remains an optional optimization.
+- General constant evaluation beyond the restricted [constant contexts](const_eval.md), and const generics. Constant propagation remains an optional optimization.
 - Integer overflow checks.
 
 </details>

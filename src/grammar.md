@@ -32,7 +32,7 @@ constructor result may be followed by indexing or a method call.
 | Operators | [OperatorExpression] | `*p`, `&mut values[0]`, `a + b`, `x += &y` |
 | Blocks and branching | [BlockExpression], [IfExpression] | `{ make() }.field`, `if flag { a } else { b }` |
 | Loops and jumps | [LoopExpression], [BreakExpression], [ContinueExpression], [ReturnExpression] | `loop { break 3; }`, `while condition { ... }`, `return value` |
-| Constant contexts | [ConstValue], [Magnitude] | `123`, `(-1)`, `-(2147483648i32)`, `((true))` |
+| Constant contexts | [ConstValue], [Magnitude] | `123`, `COUNT`, `(-1)`, `-(2147483648i32)`, `((true))` |
 
 The grammar describes the shape of a construct. Name resolution, typing, place
 mutability, and the [test domain](undefined-behavior.md) determine which parsed

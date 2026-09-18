@@ -1,35 +1,45 @@
 # Constant contexts
 
-Constant contexts are const-item initializers, array type lengths, and array-repeat lengths. Each uses the literal forms defined below.
+Constant contexts are const-item initializers, array type lengths, and array-repeat lengths. Each uses the restricted forms defined below, including references to constant items.
 
 ## Allowed forms
 
 ```grammar,constants
-ConstValue -> INTEGER_LITERAL | `true` | `false` | `-` Magnitude | `(` ConstValue `)`
+ConstValue -> INTEGER_LITERAL | `true` | `false` | ConstantPath | `-` Magnitude | `(` ConstValue `)`
 
-Magnitude -> INTEGER_LITERAL | `(` Magnitude `)`
+Magnitude -> INTEGER_LITERAL | ConstantPath | `(` Magnitude `)`
+
+ConstantPath -> PathInExpression
 ```
 
-Magnitude means integer syntax without a leading minus, not an unsigned target type. Negative forms require a signed integer type. These forms permit `123`, `-1`, `(-1)`, `-(1)`, `((true))`, and valid suffixes and radices.
+`ConstantPath` must resolve to a constant item, either directly or through an associated-constant path such as `LIMIT`, `Config::LIMIT`, or `Self::LIMIT`. A path to a local, function, or other value is a static form error. `Magnitude` means an integer literal or constant path without a leading minus, not an unsigned target type. Negative forms require a signed integer type. These forms permit `123`, `LIMIT`, `-LIMIT`, `(-1)`, `-(1)`, `((true))`, and valid suffixes and radices.
 
-Each constant context contains an integer or boolean literal, an optionally parenthesized negative integer, or parentheses around another allowed form. Any other expression is a static form error.
+Each constant context contains an integer or boolean literal, a constant-item reference, an optionally parenthesized negative integer or constant, or parentheses around another allowed form. Any other expression is a static form error.
 
 ```rust,ignore
 const COUNT: usize = 64;
+const COPY: usize = COUNT;
 const SENTINEL: i32 = (-1);
 const ENABLED: bool = (true);
 
 fn main() {
-    let data: [i32; 64] = [0; 64];
-    let n: usize = COUNT; // ordinary expressions may read a constant
+    let data: [i32; COUNT] = [0; COUNT];
+    let n: usize = COPY; // ordinary expressions may also read a constant
 }
 ```
 
-Array lengths are written literally at each use. Constant names such as COUNT can be read in ordinary expressions, as shown above.
+Constant paths are evaluated recursively through their referenced constant
+items. A constant item may be declared before or after the item that uses it.
+The dependency graph must be acyclic: a self-reference or an indirect cycle
+such as `A -> B -> A` is a static error. The compiler must detect a cycle
+before attempting to evaluate the involved constants.
 
 ## Typing and range
 
-Const-item types are explicit. Array lengths have type `usize` and must fit that type; a bool, signed suffix, or negative value cannot serve as a length. Zero lengths are course UB under the [zero-sized-data guarantee](undefined-behavior.md#zero-sized-data).
+Const-item types are explicit. A constant path has the declared type and value
+of its target item. Array lengths have type `usize` and must fit that type; a
+bool, signed integer constant, or negative value cannot serve as a length. Zero
+lengths are course UB under the [zero-sized-data guarantee](undefined-behavior.md#zero-sized-data).
 
 Literal typing and signed-minimum cases follow [integer literal rules](expressions/literal-expr.md#integer-typing-and-range). Out-of-range literals are course UB under the [integer literal range guarantee](undefined-behavior.md#integer-literal-range). Ordinary type and restricted-form errors remain static errors.
 

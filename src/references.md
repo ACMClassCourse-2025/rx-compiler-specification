@@ -52,4 +52,4 @@ Shared references may alias, and disjoint mutable borrows remain valid. Dynamic 
 
 </details>
 
-Container-specific invalidation follows [Box and Vec storage rules](heap.md#storage-and-references). Program-end reclamation does not extend source-level validity.
+Container-specific invalidation follows [Box and Vec storage rules](heap.md#storage-and-references). Heap cleanup does not extend source-level validity.

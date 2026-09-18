@@ -186,4 +186,4 @@ Official tests are independent of the relative evaluation order of the two opera
 
 </details>
 
-Ending or replacing an old value does not imply clearing its bytes. Replacing a container does not require recursive destruction or immediate deallocation; its old heap storage may remain until [program-end reclamation](../heap.md#program-end-reclamation).
+Ending or replacing an old value does not imply clearing its bytes. Replacing a container does not require recursive destruction or immediate deallocation; its old heap storage may remain under the [heap cleanup rules](../heap.md#heap-cleanup).

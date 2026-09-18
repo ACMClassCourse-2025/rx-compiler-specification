@@ -113,7 +113,7 @@ void *__rx_alloc(uint32_t size, uint32_t align);
 
 `size` and `align` are byte counts. Valid calls have nonzero size and alignment 1 or 4. The function returns at least `size` accessible bytes at the requested alignment, disjoint from every allocation that has not been reused. Allocation succeeds for valid tests; failure behavior is unspecified.
 
-There is no required `__rx_dealloc`. A custom runtime may instead use a private allocator, call REIMU `malloc`, or inline equivalent behavior. In every case, the compiler computes type size, alignment, element stride, and container capacity while the runtime manages untyped storage. The execution environment reclaims all memory when the program ends. Valid allocation calculations fit `usize`, so dynamic overflow checks and panic support are unnecessary.
+There is no required `__rx_dealloc`. A custom runtime may instead use a private allocator, call REIMU `malloc`, or inline equivalent behavior. In every case, the compiler computes type size, alignment, element stride, and container capacity while the runtime manages untyped storage. The execution environment reclaims all memory after each execution. Valid allocation calculations fit `usize`, so dynamic overflow checks and panic support are unnecessary.
 
 REIMU also provides psABI-compatible `memcpy`, `memmove`, and `memset`. Use `memcpy` only for known-disjoint ranges and `memmove` when ranges may overlap. Byte helpers must not compare padding or uninitialized bytes as values and must not turn an ownership move into two owners.
 

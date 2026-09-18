@@ -8,15 +8,17 @@ container type and its single concrete type argument.
 
 `Box<T>` is an owning container for one value of type T. A Box has a
 fixed-size representation referring to separately allocated storage for its
-contents. Its source operations are described in [Box access and
+contents. Its constructor and dereference operations are described in
+[Builtin signatures](../heap.md#builtin-signatures) and [Box access and
 moves](../heap.md#box-access-and-moves).
 
 ## Vec types
 
 `Vec<T>` is an owning sequence of T values with a runtime length. The type
 argument determines the element type. The sequence's elements occupy contiguous heap
-storage, while the Vec value has a fixed-size representation. Its operations
-are specified in [Vec operations](../heap.md#vec-operations).
+storage, while the Vec value has a fixed-size representation. Its methods and
+indexing operation are specified in [Builtin signatures](../heap.md#builtin-signatures)
+and [Vec operations](../heap.md#vec-operations).
 
 ## Type arguments and composition
 
@@ -53,7 +55,7 @@ fn append(values: &mut Vec<Box<i32>>, value: Box<i32>) {
 
 The [recursive-type rules](../types.md#recursive-types) define how container indirection permits finite recursive layouts. Lifetime arguments follow the [lifetime rules](../references.md#lifetime-validity), and local annotations may be inferred from constructors or other uses.
 
-Container values are created by the [constructors](../heap.md#constructors-and-type-arguments).
+Container values are created by the [builtin constructors](../heap.md#builtin-signatures).
 Path separators, turbofish, and trailing argument commas follow
 [Paths](../paths.md); combined closing brackets follow
 [contextual punctuation](../grammar.md#contextual-punctuation).

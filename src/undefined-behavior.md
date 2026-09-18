@@ -97,7 +97,7 @@ Malformed tokens and syntax retain their ordinary lexer and parser behavior. Oth
 
 ### Zero-sized data
 
-Unit `()` is valid as a function or control-flow result. A void call may be an expression statement; a function may omit its return type, end naturally, use `return;`, or explicitly return unit.
+Unit `()` is valid as a function or control-flow result.
 
 <details>
 <summary>Excluded zero-sized uses</summary>

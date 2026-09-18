@@ -2,6 +2,10 @@
 
 Welcome to the Rx Compiler course! In this course, you are required to write a compiler for a subset of [Rust](https://www.rust-lang.org/) we call *Rx*. The compiler will target the [RV32IM](https://en.wikipedia.org/wiki/RISC-V) instruction set architecture. To speed things up, we will provide you with the [ANTLR G4](https://www.antlr.org/) representation for this language, which automates the parsing process so you will start working with an AST tree.
 
+The compiler must use LLVM IR as its intermediate representation and support emitting it as text. This lets you validate the frontend using Clang before implementing your own RISC-V backend, as described in [Backend](backend.md#llvm-ir-and-code-generation).
+
+For Rust compatibility, the parser also accepts top-level `use` declarations and lifetime syntax. You may [discard both after parsing](grammar.md#syntax-that-may-be-discarded-after-parsing); import resolution and lifetime checking are not part of the assignment.
+
 This book defines the syntax and semantics of Rx rigorously, and it, alongside the official Rust Compiler, serves as the source truth for this course. If you find any ambiguities or disagreements between the two, do not hesitate to reach out to your TA for clarification.
 
 ## How to read the specification

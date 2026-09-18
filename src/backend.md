@@ -1,8 +1,8 @@
-# Backend and execution contract
+# Backend
 
 ## Target and toolchain
 
-The only target is little-endian RISC-V RV32IM with the ILP32 data model. External C and REIMU interfaces use the base-integer RISC-V ELF psABI. Internal calling conventions are implementation-defined.
+The only target is little-endian RISC-V RV32IM with the ILP32 data model. External C and REIMU interfaces use the base-integer [RISC-V ELF psABI](https://riscv-non-isa.github.io/riscv-elf-psabi-doc/), the processor-specific application binary interface that defines how separately compiled code interoperates. Internal calling conventions are implementation-defined.
 
 | Component | Required configuration |
 | --- | --- |
@@ -15,9 +15,33 @@ The only target is little-endian RISC-V RV32IM with the ILP32 data model. Extern
 
 The compiler emits GNU-style text assembly accepted by both the Clang integrated assembler and the pinned REIMU version. A Clang build or REIMU parse, link, or execution failure violates this contract. Syntax accepted by Clang but unsupported by REIMU is not usable. Tests do not require a specific instruction selection, stack-frame shape, register allocator, symbol layout, or assembly text.
 
-Students must generate RISC-V code from their source or IR. Delegating that work to a Clang or LLVM backend is not a valid implementation. Clang may compile the C runtime, and generated programs may call custom helpers. A runtime helper must not interpret the source program or IR in place of code generation. Course staff may use other tools to produce reference results and performance baselines.
-
 RISC-V instruction behavior follows the course-pinned RISC-V Unprivileged ISA specification. External calling behavior follows the course-pinned RISC-V ELF psABI. Both versions remain fixed for the course run.
+
+## LLVM IR and code generation
+
+Students must use LLVM IR as their intermediate representation and be able to emit valid textual LLVM IR (`.ll`) accepted by Clang/LLVM 22 for the course target. The IR must preserve Rx semantics and use a target triple and data layout consistent with RV32IM/ILP32.
+
+During frontend development, students may compile this IR with Clang and run the resulting assembly in REIMU to check program behavior before their own backend is ready. The completed compiler must generate RISC-V assembly from the LLVM IR using a student-implemented backend. Clang or LLVM code generation may be used for validation, but cannot replace that backend.
+
+Clang may compile the C runtime, and generated programs may call custom helpers. A runtime helper must not interpret the source program or IR in place of code generation. Course staff may use other tools to produce reference results and performance baselines.
+
+<details>
+<summary>Frontend validation with LLVM IR</summary>
+
+Given the frontend's `student.ll` and the course `runtime-example.c`, compile both to text assembly and execute them together:
+
+```sh
+clang --target=riscv32-unknown-elf -march=rv32im -mabi=ilp32 \
+  -O0 -S student.ll -o frontend-check.s
+clang --target=riscv32-unknown-elf -march=rv32im -mabi=ilp32 \
+  -O2 -fno-builtin -S runtime-example.c -o runtime.s
+reimu --file=frontend-check.s,runtime.s --memory=256M --stack=1M \
+  --output=frontend-check.out
+```
+
+Compare `frontend-check.out` with the expected source behavior to test the frontend independently of the student backend. The program reads from standard input; `--output` keeps its output separate from REIMU's status messages. Use the same RV32 target for this check, including 32-bit addresses and `usize`/`isize`.
+
+</details>
 
 ## Data layout
 
@@ -48,24 +72,11 @@ Code crossing a selected runtime interface must use the same layout on both side
 
 </details>
 
-<details>
-<summary>Compatibility build</summary>
-
-When using the course C runtime, this relocatable link checks that Clang accepts the generated assembly and runtime together:
-
-```sh
-clang --target=riscv32-unknown-elf -march=rv32im -mabi=ilp32 \
-  -fuse-ld=lld -nostdlib -fno-builtin -O2 -Wl,-r \
-  student.s runtime-example.c -o check.o
-```
-
-The `-r` link leaves `printf`, `scanf`, and other execution symbols unresolved for REIMU. `check.o` is a compatibility artifact; REIMU executes the original text assembly and runtime. A custom runtime replaces `runtime-example.c` in this command.
-
-</details>
-
 ## Calling conventions and value semantics
 
 Ordinary functions, methods, recursion, and private assembly helpers may use any consistent internal convention. The psABI is recommended for convenience but is required only at actual external boundaries such as machine `main`, the course C runtime, and REIMU libc.
+
+The psABI's calling convention specifies where arguments and return values go, which registers a caller may expect to survive a call, and how the stack is aligned. For ordinary 32-bit integer or reference arguments, the first eight use `a0` through `a7`, and further arguments use the stack; a 32-bit scalar result uses `a0`. Callees preserve `s0` through `s11` and restore `sp`. A caller that needs a value in `a0` through `a7`, `t0` through `t6`, or `ra` after a call must preserve it itself. At these external boundaries, the stack must follow the psABI's 16-byte alignment rule. The linked specification covers aggregate arguments and the remaining rules.
 
 Machine-level indirection must preserve source by-value semantics. For example, modifying the parameter of `fn f(mut x: [i32; 3])` cannot modify a caller value that remains valid. Storage may be reused after a move when the old value is no longer observable.
 
@@ -93,6 +104,8 @@ The repository includes this complete reference implementation:
 ```c
 {{#include runtime-example.c}}
 ```
+
+The local `int32_t` and `uint32_t` typedefs avoid requiring target C library headers. The `rx_int32_is_four_bytes` and `rx_uint32_is_four_bytes` typedefs are compile-time size checks: each declares an array type of length 1 when the corresponding integer type occupies four bytes, or an invalid negative length otherwise. They allocate no storage and generate no runtime instructions.
 
 It can be compiled with:
 
@@ -154,7 +167,16 @@ Capacity remains unobservable, and student implementations may use another layou
 
 ## Assembly and execution
 
-Generated assembly and the selected runtime form one complete executable. Normal source completion returns status 0, and every output byte, including whitespace, is observable.
+REIMU accepts text assembly files and assembles, links, and executes them internally. After compiling the selected C runtime to `runtime.s` as shown above, run the student backend's `student.s` with:
+
+```sh
+reimu --file=student.s,runtime.s --memory=256M --stack=1M \
+  --output=student.out
+```
+
+Both assembly inputs are text `.s` files; the program reads from standard input and writes to `student.out`. REIMU resolves calls to its supported libc functions, such as `printf`, `scanf`, and `malloc`. No object file or ELF binary is passed to REIMU. A custom runtime supplies its own assembly in place of `runtime.s`.
+
+Normal source completion returns status 0, and every output byte, including whitespace, is observable.
 
 Valid programs may contain constants and stack offsets outside a 12-bit immediate and control-flow spans beyond one conditional branch. The specification places no separate limit on source size, compile time, compiler memory, or generated assembly size.
 

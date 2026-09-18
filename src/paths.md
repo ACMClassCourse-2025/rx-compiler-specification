@@ -2,6 +2,8 @@
 
 A path names a value, type, or associated item through `::`-separated segments. Type and expression paths share [GenericArgs].
 
+[Use declarations](items/use-declarations.md) have a separate [UsePath] syntax for Rust compatibility. Their paths are not resolved by the Rx compiler and do not extend the type or expression paths defined here.
+
 ## Paths in expressions
 
 ```grammar,paths

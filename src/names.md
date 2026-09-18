@@ -4,6 +4,8 @@
 
 Top-level functions, structs, constants, and inherent associated items introduce names. Parameters and `let` statements introduce local bindings. Fields belong to their struct and are found through the receiver type.
 
+[Use declarations](items/use-declarations.md) introduce no names in Rx and do not participate in name resolution or collision checks. Imported paths and aliases may be discarded after parsing; the builtin environment is independent of these declarations.
+
 Top-level and associated-item lookup is independent of declaration order. A local binding is visible only after its initializer and until the end of its block, subject to shadowing. Constant initializers, array lengths, and array-repeat lengths may use constant-item paths under the [constant-context rules](const_eval.md), which also require acyclic constant dependencies.
 
 `self` denotes a method receiver. `Self` denotes the struct being declared or the type of the current inherent implementation, including inside its associated items. Neither is an ordinary user-defined identifier, and `Self` is unavailable in unrelated top-level functions.

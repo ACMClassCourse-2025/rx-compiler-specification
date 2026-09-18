@@ -18,7 +18,8 @@ constructor result may be followed by indexing or a method call.
 | Identifiers and integers | [IDENTIFIER], [INTEGER_LITERAL] | `_value`, `123_i32`, `0b1010` |
 | Lifetime tokens and forms | [LIFETIME_TOKEN], [Lifetime] | `'a`, `'static`, `'_` |
 | Lifetime parameters and bounds | [GenericParams], [LifetimeParam], [WhereClause] | `fn f<'a>(x: &'a i32)`, `where 'a: 'b` |
-| Source compilation unit | [Crate], [Item] | Top-level functions, structs, constants, impls |
+| Source compilation unit | [Crate], [Item] | Top-level use declarations, functions, structs, constants, impls |
+| Use declarations | [UseDeclaration], [UseTree], [UsePath] | `use rx::core::*;`, `use rx::core::{getInt, printlnInt};` |
 | Functions and receivers | [Function], [FunctionParameters], [ShorthandSelf] | `fn f(v: Vec<i32>) -> Box<i32> { ... }`, `&mut self` |
 | Struct declarations and construction | [StructStruct], [StructExpression] | `struct S { x: i32 }`, `S { x: 1 }`, `Self { x: 1 }` |
 | Associated items | [InherentImpl], [AssociatedItem] | `impl S { fn new() -> Self { ... } }` |
@@ -47,6 +48,7 @@ destination must denote a mutable place.
 
 | Topic | Defining chapter |
 | --- | --- |
+| Use declarations | [Use declarations](items/use-declarations.md) |
 | Type and expression arguments | [Paths](paths.md#generic-arguments) |
 | Lifetime declarations and bounds | [Lifetime parameters](items/generics.md) |
 | Derive attributes | [Attribute grammar](traits-and-attributes.md#attribute-grammar) |
@@ -60,6 +62,30 @@ destination must denote a mutable place.
 | Assignment places | [Assignment destinations](expressions/operator-expr.md#assignment-destinations) |
 
 </details>
+
+## Syntax that may be discarded after parsing
+
+Two forms of Rust compatibility syntax must be parsed, but need no subsequent
+semantic processing or LLVM IR representation:
+
+- [Use declarations](items/use-declarations.md): discard the entire declaration.
+  No import resolution, module loading, alias insertion, or import-conflict
+  checking is required.
+- Lifetime syntax: discard lifetime parameter declarations, reference lifetime
+  annotations, explicit lifetime arguments, outlives bounds, and lifetime
+  where clauses. No lifetime name resolution, inference, elision checking, or
+  lifetime/borrow checker is required.
+
+The [use compatibility](undefined-behavior.md#use-compatibility) and
+[lifetime validity](undefined-behavior.md#lifetime-validity) guarantees exclude
+tests that would require these checks. Discarding lifetime syntax is an
+internal compiler step; the remaining text need not be valid Rust with all
+lifetime annotations removed.
+
+Parsing still checks the syntax of these constructs. Keep reference types and
+their mutability, concrete type arguments such as `i32` in `Vec::<&'a i32>`,
+and all other program structure. Ordinary name, type, and place-mutability
+checks and correct reference behavior remain required.
 
 ## Contextual punctuation
 

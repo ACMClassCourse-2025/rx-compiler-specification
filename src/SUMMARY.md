@@ -19,6 +19,7 @@
 - [Names and scopes](names.md)
     - [Paths](paths.md)
 - [Items](items.md)
+    - [Use declarations](items/use-declarations.md)
     - [Functions](items/functions.md)
     - [Structs](items/structs.md)
     - [Constant items](items/constant-items.md)
@@ -56,7 +57,7 @@
 - [References and storage duration](references.md)
 - [Box and Vec](heap.md)
 - [Builtin I/O and program entry](undefined-behavior/builtin.md)
-- [Backend and execution contract](backend.md)
+- [Backend](backend.md)
 
 # Appendices
 

@@ -16,6 +16,8 @@ fn choose<'a>(a: &'a i32, b: &'a i32, first: bool) -> &'a i32 {
 
 Declarations, annotations, arguments, bounds, and elision follow Rust 2021's [generic parameter](https://doc.rust-lang.org/reference/items/generics.html) and [lifetime elision](https://doc.rust-lang.org/reference/lifetime-elision.html) rules for supported constructs. Incorrect lifetime use is course UB under the centralized [lifetime validity guarantee](undefined-behavior.md#lifetime-validity).
 
+The compiler may [discard lifetime syntax after parsing](grammar.md#syntax-that-may-be-discarded-after-parsing); it need not implement lifetime checking or inference. Reference types, their mutability, and their referents remain part of the program's semantics.
+
 Each elided input reference in a function signature gets a distinct lifetime. If exactly one input lifetime exists, it determines elided outputs. A method's reference receiver determines elided outputs. Other ambiguous outputs require explicit annotations. `'_` requests inference where Rust permits it.
 
 Correct annotations describe validity; they never extend the storage duration of a local, temporary, or heap object.

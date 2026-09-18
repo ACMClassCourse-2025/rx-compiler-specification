@@ -2,6 +2,7 @@
 typedef int int32_t;
 typedef unsigned int uint32_t;
 
+/* Compile-time size checks: a negative array length makes compilation fail. */
 typedef char rx_int32_is_four_bytes[(sizeof(int32_t) == 4) ? 1 : -1];
 typedef char rx_uint32_is_four_bytes[(sizeof(uint32_t) == 4) ? 1 : -1];
 

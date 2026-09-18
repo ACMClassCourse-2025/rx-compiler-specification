@@ -35,7 +35,7 @@ ArithmeticOrLogicalExpression ->
 
 Arithmetic `+`, `-`, `*`, `/`, `%` operates on compatible integer operands without implicit integer conversion. Unary minus requires a signed integer. Bitwise `&`, `|`, `^`, and `!` operate on integers; they also provide non-short-circuit boolean operations. Boolean `!` negates truth.
 
-The reference variants supplied by Rust for these primitive types are also supported. The following table is exhaustive for arithmetic and bit operations. T denotes one supported scalar type, I denotes a supported signed integer type, and L/R denote independently chosen supported integer types. These letters describe rules, not user-generic syntax.
+Primitive arithmetic and bit operations support the scalar and reference operands in the following table. T denotes one supported scalar type, I denotes a supported signed integer type, and L/R denote independently chosen supported integer types.
 
 | Operation | Operand types | Result |
 | --- | --- | --- |
@@ -51,13 +51,13 @@ These arithmetic/bitwise reference variants accept one shared-reference layer, n
 
 The operations compute scalar results; they do not change a referent merely because an operand is a reference. Evaluating a reference operand produces its reference value; the scalar load needed by the operation occurs when that operation is performed, after its operands have been evaluated. Compound-assignment ordering is specified below.
 
-These are finite builtin operations. They do not introduce user Add/AddAssign/Deref implementations or make those traits source-visible.
+The table defines the complete builtin operand combinations for these operations.
 
 All supported integers have 32 bits. Runtime addition, subtraction, multiplication, and signed negation wrap using two's-complement arithmetic, as with Rust overflow checks disabled. Optimized and unoptimized code have the same behavior. LLVM overflow flags must not assert non-overflow unless the compiler has proved it for the particular operation.
 
-Signed division truncates toward zero; a nonzero remainder has the sign of the dividend. Division/remainder by zero and signed MIN divided or reduced modulo -1 are excluded from valid executions, even though Rust would panic for them in release builds. No check or panic runtime is required.
+Signed division truncates toward zero; a nonzero remainder has the sign of the dividend. Division/remainder by zero and signed MIN divided or reduced modulo -1 are excluded from valid executions. No check or panic runtime is required.
 
-Shifts accept integer operands, following Rust's primitive shift typing (the right operand need not have the same integer type as the left). The result has the left operand's type. Runtime shift counts use their low five bits. Signed right shift is arithmetic; unsigned right shift is logical. This explicitly specified masking must also hold in constant-folded ordinary expressions.
+Shifts accept integer operands whose types may differ. The result has the left operand's type. Runtime shift counts use their low five bits. Signed right shift is arithmetic; unsigned right shift is logical. This masking also applies to constant-folded ordinary expressions.
 
 ## Comparison and logic
 
@@ -79,7 +79,7 @@ LazyBooleanExpression ->
 
 Scalar ordering uses `<`, `<=`, `>`, `>=` on matching integer types and bool (false precedes true). Their Rust reference variants are supported and compare target values, not addresses. The underlying ordering implementations compare matching shared-reference layers or matching mutable-reference layers, recursively ending in the same supported scalar type. At the expression boundary, Rust's permitted right-operand reborrow can convert a mutable reference to a shared one; it does not convert shared to mutable or automatically rewrite nested reference layers. For example, `&a < &b`, `&mut a < &mut b`, and `&a < &mut b` work for matching ordered scalars; `&mut a < &b` and `&&a < &&mut b` do not. There is no automatic value/reference comparison such as `a < &b`.
 
-Same-typed reference equality follows the existing PartialEq rules recursively and is not restricted to the single shared-reference layer of arithmetic. Shared and mutable references have different source types, so mixed-mutability equality is excluded by the same-type test-domain rule. This equality restriction does not change the separately specified scalar-ordering reference variants, or add PartialOrd/Ord derives, struct/array/container ordering, or user-defined operator implementations.
+Same-typed reference equality follows the PartialEq rules recursively through reference layers. Shared and mutable references have different source types, so mixed-mutability equality is excluded by the same-type test-domain rule. Scalar ordering follows the separate operand rules above.
 
 `&&` and `||` require bool values, return bool, and short-circuit from left to right. They have no reference-operand variants: `&true && true` is invalid. There is no integer truthiness. Comparison chains such as `a < b < c` require parentheses and compatible intermediate types.
 
@@ -91,7 +91,7 @@ TypeCastExpression -> Expression `as` TypeNoBounds
 
 `as` supports integer-to-integer casts and bool-to-integer casts. Since all integers are 32 bits, integer casts preserve the 32-bit pattern and interpret it in the destination signedness. False becomes 0 and true becomes 1. Integer-to-bool and reference-to-integer casts are not supported.
 
-Reference borrowing/reborrowing adjustments are governed by the reference/type rules; this numeric cast table does not introduce raw pointers, arbitrary reinterpretation, or lifetime conversion syntax.
+Reference borrowing and reborrowing adjustments follow the [reference coercion rules](../types.md#conversions-and-references).
 
 ## Borrow, dereference, and assignment
 
@@ -159,6 +159,6 @@ fn main() {
 }
 ```
 
-This is an intentional simplification of the [Rust compound-assignment rules](https://doc.rust-lang.org/reference/expressions/operator-expr.html#compound-assignment-expressions), which give the reference variant left-first method-call order. Official tests do not depend on the relative evaluation order of the two operands of compound assignment; in particular, they do not distinguish the course rule from Rust using observable side effects. The example above illustrates the specified behavior rather than an assessment case.
+Official tests are independent of the relative evaluation order of the two operands of compound assignment. The example above illustrates the specified behavior and is outside that assessment domain.
 
 Ending or replacing an old value does not imply clearing its bytes. Replacing a container does not require recursive destruction or immediate deallocation; its old heap storage may remain until [program-end reclamation](../heap.md#program-end-reclamation).

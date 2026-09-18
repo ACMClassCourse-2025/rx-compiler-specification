@@ -5,6 +5,6 @@ r[expr.path.syntax]
 PathExpression -> PathInExpression
 ```
 
-A path expression resolves an unqualified value name, `self`, or an associated item such as `Point::LIMIT`. The retained path forms and namespace rules are specified in [Paths](../paths.md) and [Names](../names.md).
+A path expression resolves an unqualified value name, `self`, or an associated item such as `Point::LIMIT`. Path forms and namespace rules are specified in [Paths](../paths.md) and [Names](../names.md).
 
-A function path can be a call target but is not a first-class function value. Explicit Box/Vec constructors use [HeapConstruction]; general qualified paths and user generic calls are unsupported.
+A function path serves as a call target. Box/Vec constructors are calls to a [PathExpression] whose container segment carries [GenericArgs].

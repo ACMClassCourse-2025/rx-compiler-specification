@@ -42,7 +42,7 @@ production. See [tokens] for more information.
 
 ## Grammar visualizations
 
-Grammar productions appear in their corresponding chapters, following the Rust Reference. Lexer rules use uppercase names; syntax rules retain the Reference names and are trimmed to the supported subset.
+Grammar productions appear in the chapters that define their features. Lexer rules use uppercase names; syntax rules use mixed-case names. Each rule has a text form and a syntax diagram.
 
 Below each grammar block is a button to toggle the display of a [syntax diagram]. A square element is a non-terminal rule, and a rounded rectangle is a terminal.
 

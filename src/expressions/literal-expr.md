@@ -5,6 +5,6 @@ r[expr.literal.syntax]
 LiteralExpression -> INTEGER_LITERAL | `true` | `false`
 ```
 
-The integer and boolean branches of Rust's literal-expression grammar remain. An integer suffix fixes its type; unsuffixed integers use [local type inference](../types.md#inference). Literals do not introduce implicit conversions between determined integer types.
+Literal expressions produce integer or boolean values. An integer suffix fixes its type; unsuffixed integers use [local type inference](../types.md#inference).
 
-A minus is a [NegationExpression], including the signed-minimum literal special case. Unit `()` uses the empty branch of [TupleExpression]. Character, string, byte, C-string, and floating-point expressions are unsupported.
+A leading minus forms a [NegationExpression], including the signed-minimum literal special case. Unit `()` uses [TupleExpression].

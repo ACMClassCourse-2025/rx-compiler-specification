@@ -12,7 +12,7 @@ LetStatement -> `let` IdentifierBinding (`:` Type)? `=` Expression `;`
 IdentifierBinding -> `mut`? IDENTIFIER
 ```
 
-Every let requires an initializer. The binding is a single identifier, optionally mutable; there is no destructuring, `_`, `ref`, or reference pattern. Reference types and borrow expressions remain supported.
+Every let binds a single identifier to an initializer. An optional `mut` makes the binding mutable. The initializer may produce any supported value, including a reference formed by a borrow expression.
 
 Let and ordinary parameter bindings that collide with a visible unqualified const name are course UB and absent from all tests, as specified in [Names](names.md#settled-scope-rules). No constant-pattern handling or collision diagnostic is required.
 
@@ -30,9 +30,9 @@ ExpressionStatement ->
 
 A block executes its statements in order and may end with a tail expression. Its result is the tail expression's value, or `()` when there is no tail. Control flow which does not reach the end follows the [never rules](expressions/loop-expr.md#never-and-unreachable-code).
 
-Statements include initialized lets, expression statements, and empty `;` statements. Items are not statements. A semicolon after an expression discards its result without discarding its effects.
+Statements are initialized lets, expression statements, and empty `;` statements. A semicolon after an expression discards its result while preserving its effects.
 
-An expression with an outer block/control-flow form can be a statement without a semicolon. If it is a statement without a semicolon, it must have unit type or diverge. A final expression used as the enclosing block's tail can have a non-unit type. These are the Rust distinctions, including the expression-statement parsing rule below.
+An expression with an outer block/control-flow form can be a statement without a semicolon. Such a statement must have unit type or diverge. A final expression used as the enclosing block's tail can have a non-unit type. The expression-statement parsing rule below determines these boundaries.
 
 ```rust,ignore
 fn select(flag: bool) -> i32 {
@@ -45,7 +45,7 @@ fn select(flag: bool) -> i32 {
 
 At a position where an expression statement is being parsed, an expression with an outer block form is completed as that statement rather than greedily consuming a following infix operator. In an initializer or other value-expression context, the expression continues normally. Parentheses can force an ordinary expression context.
 
-This is Rust's syntactic disambiguation, not a literal stop at the first `}`. An attached else/else-if remains part of its if expression, and Rust-permitted field/method postfix continuations still apply. Other expression statements run to their semicolon; the enclosing block can instead end with a final tail expression before `}`. For example, `{ make() }.value;` can remain a field-access expression statement when make returns a suitable struct.
+An attached else/else-if remains part of its if expression, and field/method postfix continuations apply to a completed block expression. Other expression statements run to their semicolon; the enclosing block can instead end with a final tail expression before `}`. For example, `{ make() }.value;` is a field-access expression statement when make returns a suitable struct.
 
 ```rust,ignore
 let value = if true { 10 } else { 20 } - 1; // initializer is the whole subtraction
@@ -53,10 +53,10 @@ if true {} else {} -1;                      // if statement, then -1 expression 
 (if true { 10 } else { 20 }) - 1;            // one expression statement
 ```
 
-The parser-facing grammar and examples must be checked against the supplied parser before publication. The rule is settled Rust-compatible block/statement behavior; the remaining work is implementation compatibility, not another language-design choice.
+The supplied parser must implement these statement boundaries and the grammar above.
 
 ## Assignment destinations
 
-An assignment destination must be a single place: a variable, field, array element, or dereference, possibly parenthesized. Its type and mutability must be valid. Destructuring assignment is unsupported, including array and struct assignees. The underscore assignee `_ = expr` is also unsupported. These are static language-subset restrictions, not course UB.
+An assignment destination is a single mutable place: a variable, field, array or Vec element, or dereference, possibly parenthesized. The assigned value must have a compatible type. A destination that fails these requirements is a static error.
 
-Assigning an entire struct or array to a variable remains supported: `s = other;` and `a = other_array;` assign one aggregate value to one place. They do not destructure the value into several destinations.
+Assignments such as `s = other;` and `a = other_array;` store an entire struct or array in one place.

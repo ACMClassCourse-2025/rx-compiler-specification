@@ -14,6 +14,6 @@ NON_KEYWORD_IDENTIFIER -> IDENTIFIER_OR_KEYWORD _except `_` and a [strict](keywo
 IDENTIFIER -> NON_KEYWORD_IDENTIFIER
 ```
 
-These are the Rust Reference identifier productions with Unicode character classes restricted to ASCII and the raw-identifier branch removed. Identifiers are case-sensitive and have no fixed length limit. `_value`, `_1`, and `__` are identifiers; `_` alone is punctuation and cannot be a binding or assignment destination.
+Identifiers use ASCII letters, digits, and underscores as specified above. They are case-sensitive and have no fixed length limit. `_value`, `_1`, and `__` are identifiers; `_` alone is punctuation and cannot be a binding or assignment destination.
 
 `self` and `Self` are keywords with the meanings specified in [Names](names.md). `i32`, `Vec`, `Clone`, and the other builtin names are lexically identifiers; their protection is a namespace rule, not an extra keyword rule.

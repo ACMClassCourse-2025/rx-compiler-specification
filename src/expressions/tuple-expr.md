@@ -4,6 +4,6 @@
 TupleExpression -> `(` `)`
 ```
 
-Only the empty branch of Rust's tuple-expression grammar is retained. It constructs the unit value. Nonempty tuples and tuple indexing are unsupported.
+The expression `()` constructs the unit value.
 
-Unit is useful as the result of a function or control-flow expression. The [zero-sized-data exclusions](../undefined-behavior.md) still apply to using it as ordinary variable, argument, aggregate, or heap data. Keeping this syntactic branch does not expand that test domain.
+Unit is the result of a function or control-flow expression that completes without producing data. Its use as ordinary variable, argument, aggregate, or heap data is covered by the [zero-sized-data exclusions](../undefined-behavior.md).

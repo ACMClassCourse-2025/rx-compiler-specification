@@ -36,7 +36,7 @@ fn main() {
 }
 ```
 
-There is no use, mod, crate/super path, leading ::, longer module path, trait-qualified path, or generic user item. `Box::new` and `Vec::new` are unsupported; their concrete type argument must appear in the turbofish. No other generic expression path is added. The only callable builtin trait surface is `.clone()`; equality uses `==` and `!=`. `Clone::clone`, `<T as Clone>::clone`, and builtin trait `.eq()` / `.ne()` calls are outside this subset. User-defined inherent methods named eq or ne remain ordinary methods.
+Box and Vec constructors specify their concrete type argument in the turbofish. Builtin Clone uses `.clone()`, and builtin equality uses `==` and `!=`. Inherent methods named eq or ne follow the ordinary method rules. The grammar in [Paths](paths.md) defines the path forms.
 
 ## Protected builtin names
 
@@ -48,13 +48,13 @@ User declarations and bindings cannot replace a builtin in its protected namespa
 | Value | getInt, printInt, printlnInt |
 | Derive attribute entries | Copy, Clone, PartialEq, Eq always denote the supported builtin derives |
 
-This is a static naming rule, not new lexical keywords. The namespace distinction still applies: using a spelling in another namespace, or as a field or associated item name, does not shadow the unqualified builtin. For example, a field named Vec is permitted. An inherent method named clone is permitted and participates in the ordinary method candidate order. Users cannot add inherent impl blocks to the builtin primitive or container types; inherent impls belong to user-defined named-field structs.
+These names are lexically identifiers whose protection is checked in the stated namespace. A spelling may be used in another namespace, or as a field or associated item name. For example, a field named Vec is permitted. An inherent method named clone participates in the ordinary method candidate order. Inherent impls belong to user-defined named-field structs.
 
-Rust permits shadowing prelude types and traits and primitive type names in many such positions. This course deliberately forbids those collisions. Ordinary local shadowing, type/value separation, and cross-impl duplicate rejection otherwise retain the rules above.
+Redeclaring a protected builtin in its namespace is a static error. Ordinary local shadowing, type/value separation, and cross-impl duplicate checks follow the rules above.
 
 ## Method lookup
 
-Method calls use the candidate ordering in the [Rust Reference](https://doc.rust-lang.org/reference/expressions/method-call-expr.html#method-call-expressions), restricted to the types and operations supported by this language. There is no separate course-specific method priority.
+Method calls resolve using the following candidate order:
 
 1. Start with the receiver expression's type and repeatedly apply supported dereferencing, recording each type in order.
 2. Immediately after each recorded type T, insert &T and &mut T as candidate receiver types.
@@ -65,6 +65,6 @@ The priority between inherent and trait methods applies within each candidate, n
 
 For an ordinary derived-Clone struct S with no inherent clone, calling `r.clone()` on `r: &S` selects S's clone and returns S. If S is not Clone, the shared reference itself still has Clone; the method search can instead select the reference clone with receiver &&S. This distinction follows from the same candidate sequence.
 
-Only specified builtin trait operations participate; the currently exposed Clone method is always available for types with that capability. Copy and Eq add no callable methods. Providing the four builtin traits does not import additional standard-library methods. Builtin array methods are available under their specified receiver signatures.
+The builtin Clone method participates for types with that capability. Copy and Eq are marker capabilities. Builtin array methods participate under their specified receiver signatures.
 
-There are no user Deref implementations, generic bounds, trait objects, slices, or array-to-slice unsizing. Those branches of the full Rust procedure are absent. References and Box provide builtin dereferencing candidates; Vec provides its specified methods and indexing without a slice candidate. See [Builtin traits](builtin-traits.md#clone) and [Heap](heap.md) for the supported operations.
+References and Box provide builtin dereferencing candidates. Vec provides its specified methods and indexing. See [Builtin traits](builtin-traits.md#clone) and [Heap](heap.md) for the supported operations.

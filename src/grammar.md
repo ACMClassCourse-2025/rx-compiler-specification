@@ -1,27 +1,127 @@
 # Parser conventions
 
-The [grammar summary](grammar-summary.md) collects the settled syntax from the individual Reference-style chapters. Semantic restrictions in the other chapters still apply: receiver parameters are only for methods, constant forms have restricted types, derives must be valid, assignment requires a place, and zero-sized data is outside the test domain.
+The language grammar is defined by the Lexer and Syntax blocks in each chapter.
+The [grammar summary](grammar-summary.md) collects those same productions in
+one place. The rules below specify precedence, contextual token interpretation,
+and expression boundaries for the resulting syntax trees.
 
-As in the Rust Reference, the productions are intentionally precedence-neutral. Use the [operator precedence](expressions.md#precedence), [statement boundary](statements.md#statement-boundary), and Rust-compatible condition/struct-literal disambiguation rules when constructing a parser. The grammar is not intended to be fed unchanged to an LR or recursive-descent generator.
+## Syntax coverage
 
-The name/path surface is the finite one specified in [Names](names.md). Type arguments on expressions appear only in `Box::<T>::new(value)` and `Vec::<T>::new()`, with explicit concrete T. Type-position `_`, destructuring assignment, and explicit never-type annotations are unsupported; `!` appears only as an expression operator in this grammar.
+Each occurrence of [Type] and [Expression] admits the alternatives in their
+respective productions. This composition applies recursively: a struct field
+may have a Vec of Boxes, a constructor argument may contain a block, and a
+constructor result may be followed by indexing or a method call.
+
+| Source form | Defining productions | Examples |
+| --- | --- | --- |
+| Identifiers and integers | [IDENTIFIER], [INTEGER_LITERAL] | `_value`, `123_i32`, `0b1010` |
+| Source compilation unit | [Crate], [Item] | Top-level functions, structs, constants, impls |
+| Functions and receivers | [Function], [FunctionParameters], [ShorthandSelf] | `fn f(v: Vec<i32>) -> Box<i32> { ... }`, `&mut self` |
+| Struct declarations and construction | [StructStruct], [StructExpression] | `struct S { x: i32 }`, `S { x: 1 }`, `Self { x: 1 }` |
+| Associated items | [InherentImpl], [AssociatedItem] | `impl S { fn new() -> Self { ... } }` |
+| Derive attributes | [OuterAttribute], [DeriveAttribute] | `#[derive(Clone, PartialEq, Eq)]` |
+| Bindings and statements | [LetStatement], [ExpressionStatement] | `let mut v = Vec::<i32>::new();`, `v.push(1);` |
+| Type names, arrays, references, and unit | [TypePath], [ArrayType], [ReferenceType], [TupleType] | `Self`, `[Vec<i32>; 2]`, `&mut Box<i32>`, `()` |
+| Container types | [TypePath], [TypePathSegment], [GenericArgs] | `Box<[i32; 4]>`, `Vec<Box<Node>>`, `Vec<Vec<i32,>,>` |
+| Container construction | [CallExpression], [PathInExpression] | `Box::<i32>::new(7)`, `Vec::<Box<i32>>::new()` |
+| Paths, calls, fields, and indexing | [PathExpression], [CallExpression], [MethodCallExpression], [FieldExpression], [IndexExpression] | `S::new()`, `value.clone()`, `value.field`, `values[0]` |
+| Arrays, grouping, and unit values | [ArrayExpression], [GroupedExpression], [TupleExpression] | `[1, 2, 3]`, `[0; 4]`, `(value)`, `()` |
+| Operators | [OperatorExpression] | `*p`, `&mut values[0]`, `a + b`, `x += &y` |
+| Blocks and branching | [BlockExpression], [IfExpression] | `{ make() }.field`, `if flag { a } else { b }` |
+| Loops and jumps | [LoopExpression], [BreakExpression], [ContinueExpression], [ReturnExpression] | `loop { break 3; }`, `while condition { ... }`, `return value` |
+| Constant contexts | [ConstValue], [Magnitude] | `123`, `(-1)`, `-(2147483648i32)`, `((true))` |
+
+The grammar describes the shape of a construct. Name resolution, typing, place
+mutability, and the [test domain](undefined-behavior.md) determine which parsed
+programs are valid. For example, the identifier in a struct construction must
+name a struct, a method receiver belongs to an inherent impl, and an assignment
+destination must denote a mutable place.
 
 ## Items and types
 
-The optional comma after a receiver alone and the comma after a final ordinary parameter each allow one trailing comma. Repeated commas are not accepted. Derive names cannot repeat within or across attributes on one struct; `#[derive()]` has no effect. Empty structs and zero-length arrays are parsed forms whose use is excluded by the zero-sized-data rules. Identifiers and integer tokens have no fixed length limit. Integer-literal overflow after type determination and let/parameter collisions with a visible unqualified const name are course UB, not required diagnostics. Signed-minimum literal forms remain valid. Self is available in struct definitions and inherent impls. Builtin type and value names are protected under the namespace rules.
+A receiver and the final ordinary parameter each allow a trailing comma.
+Derive attributes accept an optional trailing comma; each capability occurs at
+most once across the attributes on a struct. `#[derive()]` is an empty list.
 
-In a type context, the parser consumes leading `>` characters from combined punctuation as closing delimiters and leaves any remaining punctuation to the enclosing syntax. This handles `>>`, `>=`, and `>>=` in examples such as `Vec<Vec<i32>>` and `let v: Vec<Vec<i32>>=Vec::<Vec<i32>>::new();`. In a reference-type or prefix-borrow context, `&&` is interpreted as two `&` tokens, so `&&i32` and `&&x` are supported. A lexer may produce combined punctuation tokens; the parser interprets or splits them according to syntactic context. In ordinary infix expression context, the combined tokens retain their operator meanings.
+Generic type paths use [TypePathSegment] with [GenericArgs]. In type contexts,
+the separator before the argument list is optional: `Box<T>` and `Box::<T>`
+name the same type. Expression paths introduce the list with `::`, as in
+`Box::<T>::new(value)` and `Vec::<T>::new()`. [GenericArgList] accepts
+comma-separated type arguments and an optional trailing comma. Box and Vec
+each require one concrete argument; this arity is checked against the resolved
+builtin. [Type] recursively describes each argument, including arrays,
+references, structs, `Self`, and container paths.
+
+`Self` denotes the struct in its declaration and its inherent impls. The
+[naming rules](names.md) determine builtin-name protection and lookup. Integer
+and identifier tokens may have any finite length. Literal overflow and
+let/parameter collisions with visible unqualified const names follow the
+[course UB rules](undefined-behavior.md).
+
+## Contextual punctuation
+
+The parser interprets combined punctuation according to its current grammar
+context. The lexer may emit a combined token; the parser consumes the needed
+prefix and leaves the remaining punctuation for the enclosing construct.
+
+| Combined token | Context | Interpretation |
+| --- | --- | --- |
+| `&&` | Reference type or prefix borrow | Two `&` tokens, as in `&&i32` or `&&x` |
+| `>>` | Closing nested type arguments | Two closing `>` tokens |
+| `>=` | Closing type arguments before assignment | A closing `>` followed by `=` |
+| `>>=` | Closing nested type arguments before assignment | Two closing `>` tokens followed by `=` |
+
+In ordinary infix expression contexts, these tokens denote their corresponding
+operators. Thus the following spellings need no space before the assignment:
+
+```rust,ignore
+let values: Vec<i32>=Vec::<i32>::new();
+let nested: Vec<Vec<i32>>=Vec::<Vec<i32>>::new();
+```
+
+## Casts and conditions
+
+The [operator precedence table](expressions.md#precedence) governs expression
+nesting. After a type-path segment in a cast, `<` begins [GenericArgs] rather
+than a comparison. A leading `<` from `<<` likewise enters type-argument
+parsing. Parenthesizing the cast makes the intended operation explicit:
+`(x as usize) < y` and `(x as usize) << y`. A parenthesized type already closes
+the type syntax, so `x as (usize) < y` and `x as (usize) << y` also parse as
+comparison and shift. Operators such as `<=`, `>`, `>>`, and `==` follow
+ordinary precedence after the cast type.
+
+The parser checks the resulting syntax; name resolution checks its type
+arguments. Thus `x as usize<i32>` has a type-path syntax tree but is a static
+error because the primitive usize takes no type arguments.
+
+[Conditions] has boolean type. At an ambiguous `Name {` boundary in an if or
+while condition, the brace begins the body block. Delimited expressions can
+contain a struct construction, as in `if (S { flag: true }).flag { ... }` and
+`if check(S { flag: true }) { ... }`. A block expression may itself be the
+condition: `if { true } { ... }`. See [If expressions](expressions/if-expr.md).
 
 ## Expressions and statement boundaries
 
-Calls must resolve to supported functions or methods; the expression-shaped callee does not introduce function pointers. Although a broad [PathInExpression] production can parse `Box::new` or `Vec::new`, these forms are outside the subset: constructors require [HeapConstruction] with explicit T. The constructor's T may itself contain nested Box/Vec and references, but no `_`. No other turbofish syntax is supported.
+At an expression-statement boundary, a complete outer expression-with-block
+finishes the statement before a following ambiguous infix operator. An
+attached else or else-if belongs to its if expression. Field and method
+postfix continuations can remain part of the expression, as in
+`{ make() }.field;`.
 
-Cast parsing retains Rust's syntactic restriction: an unparenthesized `<` or `<<` immediately after `Expression as Type` is treated as the beginning of type/generic syntax rather than as a comparison or shift. Because the corresponding type syntax is unsupported here, that source is rejected by the parser. `(x as usize) < y` and `(x as usize) << y` are the supported forms. This decision uses the grammar context alone and is not deferred to semantic analysis.
+A let initializer and other value contexts continue parsing the full expression
+according to precedence. A final expression before the enclosing `}` is the
+block's tail and supplies its result. A semicolon-free expression-with-block
+used as a preceding statement must have unit type or diverge. These rules also
+apply when the final [ExpressionStatement] represents a tail with an outer
+block form. See [Statement boundary](statements.md#statement-boundary).
 
-A struct literal requires each field exactly once. [Conditions] denotes an expression parsed with Rust's condition restrictions: at an ambiguous top-level `Name {`, the brace starts the consequent/body block rather than a struct initializer. This restriction does not remove explicitly delimited expressions such as `(S { field: value })`, `check(S { field: value })`, or a block expression serving as the condition. Conditions still have bool type. See [If expressions](expressions/if-expr.md).
+Function and method calls resolve a declared callable and match its parameter
+list. Box construction takes one argument, Vec construction takes an empty
+argument list, and both state their element type explicitly. Assignment updates
+one mutable place, including an array or Vec element.
 
-At expression-statement boundaries, follow Rust's block-expression disambiguation. A complete outer expression-with-block is not extended by a following ambiguous infix operator; in a value context such as a let initializer, parsing continues normally. This is not a scan that stops at the first closing brace: attached else branches belong to the if, Rust-permitted field/method postfix continuations still apply, and a final expression before the enclosing `}` can be its tail without a semicolon. A semicolon-free expression-with-block statement must satisfy the statement typing rules.
-
-An assignment's left expression must denote a single mutable place; array/struct destructuring assignees and `_` are unsupported.
-
-The body block of while and loop must be compatible with unit; a diverging body is compatible. Break values determine a loop expression's result. An unlabeled break/continue in a while condition cannot target that while or an enclosing loop; a loop nested inside the condition still provides its own target. See [Control flow](expressions/loop-expr.md#while-and-loop).
+The bodies of while and loop must be compatible with unit; a diverging body is
+compatible. Break values determine a loop expression's result. A loop nested
+inside a while condition provides its own jump target. Unlabeled break and
+continue in that condition must target a loop inside the condition. See
+[Control flow](expressions/loop-expr.md#while-and-loop).

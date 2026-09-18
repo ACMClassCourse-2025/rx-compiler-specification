@@ -109,3 +109,53 @@ links, with no duplicate page IDs. There are 102 unique grammar productions.
 Browser checks compared the published Reference with six local grammar pages,
 verified show/hide and cross-page diagram navigation, and checked 390px layouts
 for the token and function chapters without horizontal page overflow.
+
+## 2026-09-18 generic paths and specification prose review
+
+Three delegated reviews checked syntax coverage, semantic boundaries, and
+feature descriptions. The preceding revision already reached container types
+and constructors through specialized productions; the main issues were their
+separate syntax structure and discoverability. Box/Vec now use the Reference's
+shared TypePathSegment, PathExprSegment, and GenericArgs structure. GenericArg
+is Type, and constructors use ordinary PathExpression and CallExpression.
+Specialized container type and construction productions have been removed.
+The container type chapter explains composition and recursion using those
+shared productions.
+
+Type positions accept both `Box<T>` and `Box::<T>`, including nested concrete
+types and trailing commas. Expression paths use explicit turbofish arguments.
+Name resolution checks the supported entities and their arity: an empty or
+multi-argument generic list can have a syntax tree while failing the container's
+one-argument requirement. Ordinary functions and methods retain their existing
+signatures. Struct construction uses PathInExpression with a struct-resolution
+check. InherentImpl uses Type and checks that its target is a user-defined
+named-field struct, including a parenthesized spelling.
+
+The review also made Vec elements explicit in the place and assignment rules.
+Cast disambiguation now distinguishes a following generic list from a completed
+parenthesized type: `x as (usize) < y` is a comparison, while
+`x as usize<i32>` parses a type path and fails its type-argument check.
+
+Active chapters describe the current features directly. Static errors, course
+UB, ownership/reference test guarantees, and the heap reclamation contract
+retain their established meanings. The publication page now lists the remaining
+parser/runtime integration checks. Editorial history and upstream comparisons
+remain in these maintenance documents.
+
+The warning-denying mdBook build and active-source style check passed. The
+rendered grammar summary contains 103 productions. A temporary derivability
+audit over the 76 non-lexer productions passed 126 syntax cases, including
+nested containers, ordinary constructor calls, receivers, derives, and
+deliberate syntax and semantic-error forms. It supplies identifier/integer token
+rules and does not validate precedence, contextual parsing, semantic checking,
+or the supplied parser implementation.
+
+The final 51 active/generated HTML pages contain 4,955 resolving local file,
+fragment, and SVG links, with no duplicate page IDs. Browser checks verified
+the shared type/path diagrams, constructor-call diagrams, four cross-chapter
+navigation paths, visibility persistence, and the new container examples.
+Paths, Types, and Box/Vec type pages fit a 390px viewport without horizontal
+page overflow. rustc independently accepted the parenthesized cast-type,
+grouped constructor-call, and parenthesized impl-target examples. These checks
+cover the documentation and selected Rust syntax; compiler and runtime
+integration remain publication work.

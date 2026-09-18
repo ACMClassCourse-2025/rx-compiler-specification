@@ -1,6 +1,6 @@
 # 后端与执行契约（工作草案）
 
-> 本文已纳入 2026 工作版规范，尚未冻结。堆接口与回收策略见 [Box and Vec](heap.md)，发布待办见 [Open decisions](open-decisions.md)。
+> 本文已纳入 2026 工作版规范，尚未冻结。堆接口与回收策略见 [Box and Vec](heap.md)，发布验证见 [Publication validation](open-decisions.md)。
 
 ## 1. 规范范围
 

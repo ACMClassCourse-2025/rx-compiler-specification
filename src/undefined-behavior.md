@@ -10,19 +10,19 @@
 
 Unsupported syntax does not require implementing the corresponding feature or its specialized diagnostics. A supplied parser may recognize it; the compiler may reject it at the language-subset boundary. The precise negative-test and submission protocol is still to be published.
 
-## Removed features
+## Language features
 
-The language does not include user traits or trait implementations, user generics, enum, match, general patterns, nested items, tuple values/types other than unit, tuple structs, String, str, char, floating point, slices, closures, function values/pointers, async constructs, unsafe, raw pointers, or general macros. There is no exit builtin.
+The language provides functions, named-field structs, constants, inherent impls, identifier bindings, integer and boolean operations, fixed arrays, references, and builtin Box/Vec containers. Source types and their composition are listed in [Types](types.md), and the [grammar summary](grammar-summary.md) collects the syntax.
 
-The finite derive attribute for Copy, Clone, PartialEq, and Eq is an exception to the macro exclusion. Box and Vec are builtin type constructors, not an exception allowing user generic definitions. Their [interfaces and conditional capabilities](heap.md) are defined; heap storage may remain allocated until program termination and be reclaimed together.
+Structs can derive Copy, Clone, PartialEq, and Eq. Box and Vec are builtin type constructors with the [interfaces and conditional capabilities](heap.md) specified in this book. Heap storage may remain allocated until program termination and be reclaimed together.
 
-Only if, while, and loop are supported control-flow forms. There is no for, iterator protocol, if let, while let, or let-else. Destructuring assignment, type-position `_`, and explicit never-type annotations are unsupported. Diverging expressions still have never behavior. There is no use or module system; only the [listed paths](names.md#supported-paths) are supported. The old reference's module/import and pattern chapters do not introduce requirements.
+Control flow uses if, while, loop, return, break, and continue. Diverging expressions have never behavior during type checking. Names belong to a single source compilation unit and resolve through the [specified paths](names.md#supported-paths). The source grammar and static rules determine which other forms are rejected.
 
 ## Execution guarantees
 
 For the supplied inputs, official valid executions do not divide or take a remainder by zero, evaluate signed MIN / -1 or MIN % -1, access an array out of bounds, read uninitialized data, use moved values, or violate reference validity and borrowing rules. No dynamic checks, panic handling, or stack unwinding are required for these cases.
 
-Wrapping arithmetic and masked shifts are defined by the [operator rules](expressions/operator-expr.md), not excluded as overflow errors. Integer literals outside their determined type's range are course UB; the valid signed-minimum forms remain supported. Let and ordinary parameter bindings that collide with a visible unqualified const name are also course UB. Equality expressions whose operand source types are not exactly identical are course UB, even where full Rust supplies a cross-type PartialEq implementation. These exclusions apply throughout the program, including const contexts where applicable and unreachable code; no positive, negative, or performance test contains them. See [Literals](lexical-structure.md#literals), [Names](names.md#settled-scope-rules), and [Equality](builtin-traits.md#equality).
+Wrapping arithmetic and masked shifts have the defined behavior in [Operators](expressions/operator-expr.md). Integer literals outside their determined type's range are course UB; the valid signed-minimum forms remain supported. Let and ordinary parameter bindings that collide with a visible unqualified const name are also course UB. Equality expressions whose operand source types are not exactly identical are course UB. These exclusions apply throughout the program, including const contexts where applicable and unreachable code; no positive, negative, or performance test contains them. See [Literals](lexical-structure.md#literals), [Names](names.md#settled-scope-rules), and [Equality](builtin-traits.md#equality).
 
 Ordinary type errors remain compile-time errors. Dead code alone is not a static error; ordinary name and type checking still applies to it. These course UB exclusions do not require overflow, const-binding collision, or cross-type equality diagnostics.
 
@@ -30,7 +30,7 @@ These guarantees concern source semantics. Invalid accesses, unexpected terminat
 
 ## Lifetime and ownership
 
-Lifetime syntax, parameters, bounds, and annotations are absent. The compiler does not implement lifetime inference, borrow checking, or ownership dataflow checking. Tests guarantee the conditions in [References](references.md) and [Copy and move](builtin-traits.md). Ordinary type and place-mutability errors still require diagnosis.
+Tests guarantee the lifetime, borrowing, and ownership conditions in [References](references.md) and [Copy and move](builtin-traits.md). These guarantees replace the need for lifetime inference, borrow checking, and ownership dataflow checking. Ordinary type and place-mutability errors require diagnosis.
 
 In particular, a reference field without a lifetime annotation and a reference-returning signature with multiple possible input origins are legal course syntax. Tests ensure the actual referent remains valid.
 

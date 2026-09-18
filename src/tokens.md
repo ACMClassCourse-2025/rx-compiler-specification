@@ -9,7 +9,7 @@ r[lex.token.syntax]
     | PUNCTUATION
 ```
 
-These are the Rust Reference token alternatives retained by the course. Keywords, including `true` and `false`, have identifier-like spellings. Their syntactic roles are determined by the keyword rules and [LiteralExpression]. Character, string, byte, C-string, floating-point, lifetime, raw-identifier, and macro token forms do not add supported source constructs.
+Tokens are identifiers or keywords, integer literals, and punctuation. Keywords, including `true` and `false`, have identifier-like spellings. Their syntactic roles are determined by the keyword rules and [LiteralExpression].
 
 ## Integer literals
 
@@ -39,7 +39,7 @@ HEX_DIGIT -> [`0`-`9` `a`-`f` `A`-`F`]
 INTEGER_SUFFIX -> `i32` | `u32` | `isize` | `usize`
 ```
 
-The radix and digit productions retain the original Reference grammar. The general Rust literal suffix is narrowed to the four supported integer types. Decimal digits and radix prefixes use Rust spelling, with underscore separators; a non-decimal literal must contain at least one digit after the prefix.
+Integer literals use decimal digits or a binary, octal, or hexadecimal prefix, with optional underscore separators. A non-decimal literal must contain at least one digit after the prefix. The four integer suffixes specify the corresponding integer type.
 
 | Form | Examples |
 | --- | --- |
@@ -67,6 +67,6 @@ PUNCTUATION ->
     | `{` | `}` | `[` | `]` | `(` | `)`
 ```
 
-Punctuation retains its Rust spelling. Comments take priority over `/` punctuation; combined operators are recognized before shorter prefixes. The parser may split `&&`, `>>`, `>=`, and `>>=` in the specified reference/type contexts. See [contextual token interpretation](lexical-structure.md#punctuation).
+Comments take priority over `/` punctuation; combined operators are recognized before shorter prefixes. The parser may split `&&`, `>>`, `>=`, and `>>=` in the specified reference/type contexts. See [contextual token interpretation](lexical-structure.md#punctuation).
 
 An integer is not followed by a supported fractional or exponent part. The absence of floating-point expressions does not make a malformed Rust numeric token valid. Brackets and braces remain paired delimiters; `#` is used only in the supported outer derive attribute.

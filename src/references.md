@@ -2,9 +2,9 @@
 
 ## Lifetime-erased references
 
-The language supports `&T` and `&mut T`, but no lifetime annotations, declarations, bounds, or inference/checking. T may be a supported concrete type; this notation does not introduce user generics.
+Reference types are written `&T` and `&mut T`, where T is a supported concrete type. Their declarations specify the referenced type and mutability. Tests guarantee the validity of each reference's lifetime and use.
 
-Reference types may appear in fields, arrays, parameters, and results. The following course signatures are legal without annotations that Rust would otherwise require:
+Reference types may appear in fields, arrays, parameters, and results. For example:
 
 ```rust,ignore
 struct View { value: &i32 }
@@ -44,7 +44,7 @@ fn main() {
 
 There is no requirement to calculate or emit these storage endpoints. A valid baseline is to allocate fixed stack storage per function invocation and retain it until return, with separate storage for objects that must coexist. Recursion gets independent storage; dead objects from previous loop iterations need not accumulate stack space.
 
-This is a permitted baseline, not a restriction on optimized code. Constant propagation, mem2reg, scalar replacement, dead-code elimination, inlining, and safe storage reuse remain allowed. A source object need not have a physical stack slot if all observable behavior is preserved. Missing lifetime intrinsics do not disable these optimizations.
+Optimized implementations may use constant propagation, mem2reg, scalar replacement, dead-code elimination, inlining, and safe storage reuse. They may also eliminate a source object's physical stack slot when all observable behavior is preserved.
 
 Retaining physical storage does not make an otherwise dangling source reference valid. Constant promotion is not required; tests do not depend on returning a reference to a promoted literal or other program-lifetime temporary. Ordinary extending let borrows can be implemented with stack storage.
 
@@ -61,4 +61,4 @@ The test domain excludes:
 
 Shared references may alias, and disjoint mutable borrows are allowed. Tests are responsible for actual validity, including dynamic indices. The compiler is not required to diagnose these cases, and they must not be ownership-error negative tests.
 
-Box/Vec reference invalidation and valid container borrowing follow the [heap operations](heap.md#storage-and-references). The [program-end heap reclamation policy](heap.md#program-end-reclamation) does not extend source-level reference validity; keeping allocated bytes cannot make an expired reference usable. Conservative stack storage remains a separate implementation choice. Interior mutability, concurrency, pinning, trait objects, and lifetime variance are not added by this revision.
+Box/Vec reference invalidation and valid container borrowing follow the [heap operations](heap.md#storage-and-references). The [program-end heap reclamation policy](heap.md#program-end-reclamation) does not extend source-level reference validity; keeping allocated bytes cannot make an expired reference usable. Conservative stack storage remains a separate implementation choice.

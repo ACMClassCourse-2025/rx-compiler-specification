@@ -1,7 +1,13 @@
 # Grammar summary
 
-The following is a summary of the grammar production rules, collected automatically from their individual chapters as in the Rust Reference. Each category has the original Lexer or Syntax box and a **Show syntax diagram** button. Select a production to follow its diagram; consult its defining chapter for semantic restrictions.
+This page collects every production from the language chapters. Lexer rules
+define tokens and separators; Syntax rules combine them into types, items,
+statements, and expressions. Each category has a **Show syntax diagram** button,
+and production names link to their diagrams.
 
-See [Notation](notation.md) for the grammar notation and [Parser conventions](grammar.md) for precedence and contextual disambiguation. This page does not define a second grammar.
+[Notation](notation.md) explains the symbols. [Parser conventions](grammar.md)
+specifies precedence and contextual disambiguation and provides a syntax
+coverage table. Typing, lookup, and execution rules accompany the productions
+in their defining chapters.
 
 {{ grammar-summary }}

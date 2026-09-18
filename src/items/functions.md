@@ -21,7 +21,7 @@ FunctionParam -> IdentifierBinding `:` Type
 FunctionReturnType -> `->` Type
 ```
 
-This is Rust's function production after removing qualifiers, generic parameters, where clauses, declarations without bodies, variadics, parameter attributes, and patterns. A [SelfParam] is allowed only as the first parameter of a function in an inherent impl; top-level functions cannot have receivers. Typed receivers and lifetime annotations are excluded.
+A function definition consists of its name, parameter list, optional result type, and body. A function in an inherent impl may begin its parameter list with a [SelfParam]: `self`, `mut self`, `&self`, or `&mut self`. Top-level functions use ordinary parameters.
 
 Ordinary parameters require explicit types. A trailing comma is allowed after a receiver or the last ordinary parameter. An omitted result means `()`. See [functions](../items.md#functions) and [receivers](../items.md#inherent-impls-and-receivers) for the established typing, calling, and ownership rules.
 

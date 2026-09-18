@@ -1,23 +1,23 @@
 # Rx Compiler Specification
 
-This book describes the Rust subset used by the compiler course. The implementation target is RV32IM. Students implement the frontend, IR, code generation, and optimizations; a supplied lexer/parser may recognize a larger syntax than this language.
+This book defines the Rust subset used by the compiler course. The implementation target is RV32IM. Students implement the frontend, IR, code generation, and optimizations, using the supplied lexer/parser as the frontend foundation.
 
 ## Revision status
 
-This is the **2026 working revision**, not a frozen assignment release. Confirmed decisions have been migrated into the chapters listed in the table of contents. Container APIs, conditional traits, finite paths, builtin name protection, reference adjustments, program-end heap reclamation, the reference allocator ABI, and the execution-memory baseline are specified. Integer-literal overflow, let/parameter collisions with visible unqualified const names, and equality between different source types are excluded as course UB. The previously listed language choices are settled; supplied-parser and end-to-end runtime integration remain publication work tracked in [Open decisions](open-decisions.md). Assessment and scoring arrangements are separate course documents.
+This is the **2026 working revision**. It specifies the language, builtin containers and traits, reference validity, program-end heap reclamation, the runtime interface, and the RV32IM execution contract. Supplied-parser and end-to-end runtime integration are tracked in [publication validation](open-decisions.md). Assessment and scoring arrangements are separate course documents.
 
-A pending interface is not an implicit requirement to implement the corresponding Rust standard library API. It must be specified before tests depending on it are released.
+Each assessed interface must be specified before tests depending on it are released.
 
 ## Authority and scope
 
-The chapters in this book's table of contents define this revision. Other Markdown files retained in this repository are historical material from the previous course specification or the upstream Rust Reference; they do not add language features or override these chapters. Old test cases and reference compiler behavior are evidence for migration, not independent specifications.
+The chapters in this book's table of contents define the language and its execution contract. Other repository documents, migration records, test cases, and reference implementations provide supporting material; the chapters listed here take precedence.
 
-Only the listed constructs are supported. References to Rust behavior apply to those constructs and the explicitly stated rules; they do not import other syntax, traits, library functions, or diagnostics. Source references have no lifetime annotations or checking, and internal calling conventions are implementation-defined.
+The grammar and static rules specify the supported constructs. References to Rust behavior apply to those constructs and the explicitly stated rules. Reference syntax records a referent type and mutability, while tests guarantee lifetime and borrowing validity. Internal calling conventions are implementation-defined.
 
-Rust 2021 storage-scope rules serve as a reference for valid test construction. Runtime integer behavior uses overflow checks disabled. Neither choice requires students to implement Cargo profiles or edition switching.
+Rust 2021 storage-scope rules serve as a reference for valid test construction. Runtime integer arithmetic uses the wrapping and shift rules in [Operators](expressions/operator-expr.md).
 
 ## Reading and examples
 
-Code blocks describe the course language unless explicitly labeled as C, assembly, or shell. They are not automatically valid rustc programs: course builtins and lifetime-erased signatures differ from Rust. Examples with unsupported syntax explain exclusions only and are labeled accordingly. The grammar covers the settled core; pending extensions are identified separately.
+Code blocks describe the course language unless explicitly labeled as C, assembly, or shell. They use the builtin functions and reference signatures defined in this book. Examples of invalid or excluded programs are labeled accordingly. Each language chapter presents its grammar and the corresponding static and execution rules.
 
 The source grammar and static rules determine accepted programs. [Test guarantees](undefined-behavior.md) identify cases for which compilation or execution is not assessed. A compiler error is distinct from a crash, and a compiler bug on a valid program is not excused by those guarantees.

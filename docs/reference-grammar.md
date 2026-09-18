@@ -32,12 +32,12 @@ not require implementing those operators in a course parser generator.
 | Tokens | Token, INTEGER_LITERAL, radix/digit productions, PUNCTUATION | Only integer value tokens and four suffixes; no text, floating-point, or lifetime branches |
 | Crates and items | Crate, Item, Function, FunctionParameters, StructStruct, ConstantItem, InherentImpl, AssociatedItem | No local items, qualifiers, user generics, traits, modules, tuple structs, or declarations without bodies |
 | Statements | Statement, LetStatement, ExpressionStatement | Required let initializer; IdentifierBinding replaces patterns; no item statement or let-else |
-| Expressions | ExpressionWithoutBlock / ExpressionWithBlock and original expression chapters | Remove unsupported expression alternatives; retain only empty TupleExpression; add HeapConstruction |
+| Expressions | ExpressionWithoutBlock / ExpressionWithBlock and original expression chapters | Supported expression alternatives; unit TupleExpression; container constructors use ordinary PathExpression and CallExpression |
 | Operators | BorrowExpression, DereferenceExpression, NegationExpression, arithmetic, comparison, cast, assignment | Remove raw borrows and try propagation; keep course semantics for typing and order |
 | Control flow | LoopExpression, InfiniteLoopExpression, PredicateLoopExpression, Conditions, break/continue/return | No labels, patterns, let chains, iterator loop, or match |
-| Types and paths | TypeNoBounds, ParenthesizedType, TypePath, ReferenceType, ArrayType, empty TupleType | No lifetimes or general type arguments; finite course paths and required builtin container arguments |
+| Types and paths | TypeNoBounds, ParenthesizedType, TypePath, TypePathSegment, PathExprSegment, GenericArgs, ReferenceType, ArrayType, empty TupleType | GenericArg is Type; type paths accept optional `::` before arguments, expression paths use turbofish; name resolution requires one concrete argument on Box/Vec |
 | Array lengths and constants | ArrayExpression / ArrayElements, ArrayType, ConstantItem | ConstValue replaces arbitrary constant expressions |
-| Attributes and heap | OuterAttribute and expression/type grammar categories | Finite DeriveAttribute, HeapType, and explicit HeapConstruction are course-specific additions |
+| Attributes | OuterAttribute | Finite DeriveAttribute for the four builtin capabilities |
 
 The existing semantic chapters remain authoritative for the agreed test domain,
 ownership, local inference, equality, ZST exclusions, and program-end heap
@@ -47,6 +47,14 @@ alternatives. TupleType and TupleExpression contain only `()`.
 Each production is defined once in its relevant chapter. The grammar summary is
 generated from those definitions. src/grammar.md now contains parser conventions
 and contextual disambiguation, with no independent replacement grammar.
+
+Container syntax uses the same path and call productions as other names.
+TypePathSegment accepts optional `::` before GenericArgs; PathExprSegment uses
+the expression turbofish. GenericArg retains the Type alternative. Arity and
+the finite set of supported entities are checked by name resolution, so broad
+path syntax does not imply user generic declarations or additional builtins.
+StructExpression likewise reuses PathInExpression, and InherentImpl reuses Type
+with a semantic requirement for a user-defined named-field struct.
 
 ## Verification
 

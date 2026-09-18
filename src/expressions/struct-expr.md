@@ -9,9 +9,9 @@ StructExprFields -> StructExprField (`,` StructExprField)* `,`?
 StructExprField -> IDENTIFIER `:` Expression
 ```
 
-This keeps the named-field branch of Rust's struct-expression grammar. The path must be one unqualified struct name or `Self`, resolved in the type namespace. Field shorthand, numeric tuple fields, functional update (`..base`), and attributes are removed.
+A struct expression gives a path followed by a brace-delimited list of `field: expression` initializers. The path must resolve in the type namespace to a declared named-field struct. The supported forms are an unqualified struct name and `Self`; [path resolution](../paths.md#path-resolution) diagnoses other paths.
 
-Each declared field must appear exactly once. Initializers are evaluated in source order, even when it differs from declaration order. At condition boundaries, the [Rust condition parsing restriction](if-expr.md) distinguishes the struct initializer brace from the body brace.
+Each declared field must appear exactly once. Initializers are evaluated in source order, even when it differs from declaration order. At condition boundaries, the [condition parsing rule](if-expr.md) distinguishes the struct initializer brace from the body brace.
 
 ```rust,ignore
 struct Point { x: i32, y: i32 }

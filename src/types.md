@@ -24,13 +24,13 @@ ParenthesizedType -> `(` Type `)`
 | `[T; N]` | Fixed-length array; N is a restricted constant of type usize |
 | `&T`, `&mut T` | Shared or mutable reference, without a lifetime annotation |
 | `()` | Function/control-flow result; ordinary zero-sized data uses are excluded |
-| Builtin `Box<T>`, `Vec<T>` | Owned heap object and dynamic sequence; nesting and recursion through indirection are supported |
+| Builtin [`Box<T>`, `Vec<T>`](types/heap.md) | Owned heap object and dynamic sequence; nesting and recursion through indirection are supported |
 
-No floating point, other integer widths, char, string, tuple, enum, slice, raw pointer, function-value, trait-object, or user-generic type is supported. Never is used internally to type diverging expressions. Explicit `!` is not permitted in any user-written type position, including function results, parameters, local annotations, fields, and nested types. The unary `!` operator remains supported.
+The table above defines the source-level types. Type checking also uses never internally for diverging expressions. User-written type annotations use the grammar above; an explicit `!` in a type position is a static error. The expression operator `!` performs boolean or bitwise negation.
 
 Type identity is structural for reference, array, Box, and Vec types and nominal for structs. Array lengths are compared by their resulting literal values, so `[i32; 4]` and `[i32; (4usize)]` are the same type. The four integer names remain distinct even though all have 32 bits.
 
-Box and Vec each take one supported concrete type argument: `Box<T>` and `Vec<T>`. They may contain structs, arrays, references, and other containers, subject to the existing type-validity and zero-sized-data rules. This composition does not require Copy or Clone. Nested closing angle brackets follow Rust type syntax, including `Vec<Vec<i32>>`. Their only constructors are the explicitly typed `Box::<T>::new(value)` and `Vec::<T>::new()`, as specified in [Heap](heap.md). No type-position `_` is supported, including within nested type arguments.
+Box and Vec each take one concrete type argument: `Box<T>` and `Vec<T>`. Their syntax uses [TypePath] and [GenericArgs], with the composition described in [Box and Vec types](types/heap.md). They may contain structs, arrays, references, and other containers, subject to the type-validity and zero-sized-data rules. Copy and Clone become relevant when an operation requires them. Nested types use closing angle brackets as in `Vec<Vec<i32>>`; type paths may also use `::<...>`. Constructors are written `Box::<T>::new(value)` and `Vec::<T>::new()`, as specified in [Heap](heap.md). Each type argument is written explicitly at every nesting level.
 
 ## Inference
 
@@ -47,19 +47,19 @@ fn main() {
 }
 ```
 
-An integer suffix or an explicit annotation fixes the integer type. Unsuffixed literals acquire an integer type from all applicable constraints; still-unconstrained integer variables default to i32 after constraint collection. Contradictory constraints are static errors. This is not an implicit conversion of an already determined integer value.
+An integer suffix or an explicit annotation fixes the integer type. Unsuffixed literals acquire an integer type from all applicable constraints; still-unconstrained integer variables default to i32 after constraint collection. Contradictory constraints are static errors. An already determined integer type retains its identity.
 
-Function calls, returns, field initialization, array elements, operators, and control-flow joins must satisfy their type rules. For example, an array literal must have a common element type, and a loop's break values must agree with the loop result. Unconstrained non-integer types require sufficient context or an annotation; arbitrary type-position `_` syntax is not introduced by allowing omitted let annotations.
+Function calls, returns, field initialization, array elements, operators, and control-flow joins must satisfy their type rules. For example, an array literal must have a common element type, and a loop's break values must agree with the loop result. Unconstrained non-integer types require sufficient context or an annotation.
 
-Backward constraints do not require arbitrary deferred field or method resolution. As in Rust, the receiver's relevant type must be known when field or method lookup needs it; an unresolved receiver or element type can require an earlier annotation. The compiler need not enumerate all structs that have a given field or revisit an unresolved member access after later unrelated statements.
+Field and method lookup require the receiver's relevant type to be known at the lookup point. An unresolved receiver or element type can require an earlier annotation, even when later uses contribute backward constraints to other expressions. Lookup uses the known receiver type's fields and method candidates.
 
-Container constructors require an explicit concrete element type, so `let mut v = Vec::<Node>::new();` already determines it. `Vec::new()` with a later push is not a supported way to infer an omitted constructor argument. Omitted local annotations and backward constraints elsewhere remain supported; required field/method lookup still needs enough receiver type information at that point.
+Container constructors require an explicit concrete element type, so `let mut v = Vec::<Node>::new();` determines the binding's type immediately. Local annotations may be omitted, and backward constraints apply elsewhere in the function subject to the receiver-lookup rule above.
 
 ## Conversions and references
 
-There are no implicit conversions between determined integer types. Integer-to-integer and bool-to-integer conversion use `as`; see [Operators](expressions/operator-expr.md#casts). Integers do not convert to bool for conditions.
+Conversion between determined integer types, and conversion from bool to an integer, use `as`; see [Operators](expressions/operator-expr.md#casts). Conditions require bool.
 
-Implicit coercions follow the Rust rules restricted to the following operations: mutable-to-shared reborrow, mutable-to-mutable reborrow, builtin reference/Box deref coercions, and never-to-expected-type conversion. Shared access cannot be upgraded to mutable access. Apart from these adjustments, target types must agree. Ordinary type and place-mutability checks are required; tests guarantee borrow validity.
+Implicit coercions support mutable-to-shared reborrow, mutable-to-mutable reborrow, builtin reference/Box deref coercions, and never-to-expected-type conversion. Shared access remains shared. Apart from these adjustments, target types must agree. Ordinary type and place-mutability checks are required; tests guarantee borrow validity.
 
 | Coercion site | Expected type |
 | --- | --- |

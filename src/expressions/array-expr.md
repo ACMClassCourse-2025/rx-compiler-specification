@@ -11,7 +11,7 @@ ArrayElements ->
     | Expression `;` ConstValue
 ```
 
-The list and repetition branches come from the Reference. The repetition length is narrowed from an arbitrary expression to [ConstValue]. Lists evaluate elements in order; repetition evaluates the element expression once. More than one repetition requires Copy. Empty arrays and zero lengths are parsed but excluded by the zero-sized-data rules.
+An array expression lists its elements or repeats one element a [ConstValue] number of times. Lists evaluate elements in order; repetition evaluates the element expression once. More than one repetition requires Copy. Empty arrays and zero lengths are parsed but excluded by the zero-sized-data rules.
 
 ## Array index expressions
 

@@ -22,6 +22,7 @@
 - [Types and inference](types.md)
     - [Array types](types/array.md)
     - [Reference types](types/pointer.md)
+    - [Box and Vec types](types/heap.md)
     - [Unit type](types/unit.md)
 - [Expressions and evaluation](expressions.md)
     - [Literal expressions](expressions/literal-expr.md)
@@ -48,4 +49,4 @@
 - [Backend and execution contract](backend.md)
 - [Parser conventions](grammar.md)
 - [Grammar summary](grammar-summary.md)
-- [Open decisions before publication](open-decisions.md)
+- [Publication validation](open-decisions.md)

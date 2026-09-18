@@ -7,6 +7,6 @@ CallExpression -> Expression `(` CallParams? `)`
 CallParams -> Expression ( `,` Expression )* `,`?
 ```
 
-The original Reference production is retained. Arguments evaluate from left to right and obey the declared parameter types and copy/move rules. The callee must resolve to a supported declared function, associated function, or builtin. Expression-shaped callee syntax does not introduce closures or function pointers.
+A call evaluates its arguments from left to right and passes them according to the declared parameter types and copy/move rules. The callee must resolve to a declared function, associated function, or builtin. An optional trailing comma follows the last argument.
 
-An associated method may also be called as `Type::method(receiver, ...)`, with its receiver supplied as an ordinary first argument. That form uses ordinary argument coercions rather than method-call autoref. Explicit heap constructors have the narrower [HeapConstruction] syntax.
+An associated method may also be called as `Type::method(receiver, ...)`, with its receiver supplied as an ordinary first argument. That form uses ordinary argument coercions rather than method-call autoref. Box/Vec constructor calls use the same call syntax with explicit type arguments on the container path segment.

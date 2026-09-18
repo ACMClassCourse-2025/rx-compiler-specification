@@ -1,5 +1,31 @@
 # Expressions and evaluation
 
+```grammar,expressions
+Expression -> ExpressionWithoutBlock | ExpressionWithBlock
+
+ExpressionWithoutBlock ->
+      LiteralExpression
+    | PathExpression
+    | OperatorExpression
+    | GroupedExpression
+    | ArrayExpression
+    | IndexExpression
+    | TupleExpression
+    | StructExpression
+    | CallExpression
+    | HeapConstruction
+    | MethodCallExpression
+    | FieldExpression
+    | ContinueExpression
+    | BreakExpression
+    | ReturnExpression
+
+ExpressionWithBlock ->
+      BlockExpression
+    | LoopExpression
+    | IfExpression
+```
+
 The settled expression forms are integer/boolean/unit literals, names and associated paths, explicitly typed Box/Vec constructors, parentheses, arrays, named-field struct construction, field/index access, calls and method calls, operators, blocks, if/while/loop, and return/break/continue. There is no match, closure, range, iterator loop, or pattern expression. Heap operations are specified in [Box and Vec](heap.md).
 
 ## Evaluation order

@@ -1,34 +1,9 @@
-r[type.array]
 # Array types
 
-r[type.array.syntax]
 ```grammar,types
-ArrayType -> `[` Type `;` Expression `]`
+ArrayType -> `[` Type `;` ConstValue `]`
 ```
 
-r[type.array.intro]
-An array is a fixed-size sequence of `N` elements of type `T`. The array type
-is written as `[T; N]`.
+The Reference array-type production is narrowed to a [ConstValue] length. The element type can be any supported concrete type. The length has type usize, and type identity uses its resulting literal value.
 
-r[type.array.constraint]
-The size is a [constant expression] that evaluates to a [`usize`].
-
-Examples:
-
-```rust
-// A stack-allocated array
-let array: [i32; 3] = [1, 2, 3];
-
-// A heap-allocated array, coerced to a slice
-let boxed_array: Box<[i32]> = Box::new([1, 2, 3]);
-```
-
-r[type.array.index]
-All elements of arrays are always initialized, and access to an array is
-always bounds-checked in safe methods and operators.
-
-> [!NOTE]
-> The [`Vec<T>`] standard library type provides a heap-allocated resizable array type.
-
-[`usize`]: numeric.md#machine-dependent-integer-types
-[constant expression]: ../const_eval.md#constant-expressions
+Zero lengths are excluded from assessed data uses. Named lengths, const arithmetic, inferred lengths, and slices are unsupported. See [types and inference](../types.md) and [constant contexts](../const_eval.md).

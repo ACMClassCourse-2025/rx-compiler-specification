@@ -86,3 +86,26 @@ Parser-context punctuation now covers type-closing `>=` and `>>=` as well as `>>
 The reference C runtime now exports `__rx_alloc(uint32_t size, uint32_t align)` over REIMU malloc and provides no deallocator. The reference Vec baseline uses capacity 0, then 4, then doubling, retaining old buffers until program termination. Formal execution fixes `--memory=256M --stack=1M`; official tests keep reference cumulative heap high-water, including allocator overhead, within 64 MiB.
 
 LLVM 22.1.8 compiled the updated runtime and a generated-code-style caller for RV32IM/ILP32 with warnings denied. Their relocatable link produced an ELF32 little-endian RISC-V object with the expected `__rx_alloc` symbol and unresolved REIMU libc symbols. The available local REIMU executable ran the two assembly files under the formal memory/stack parameters, allocated and accessed two i32 values, printed `42`, returned status 0 and reported 406 weighted cycles. The REIMU source worktree has separate uncommitted allocator changes and was not rebuilt by this documentation task, so publication must still pin and rebuild the chosen commit. Full compiler-generated Box/Vec scenarios remain integration validation; the testcase and reference compiler were not changed here.
+
+## 2026-09-18 Reference grammar restoration
+
+The initial restoration in e111476 centralized a custom lexer/syntax grammar.
+It is superseded by the original Reference-style chapter organization: Notation,
+lexical subchapters, item subchapters, expression-specific chapters, and type/path
+chapters now contain their own grammar blocks and linked railroad diagrams.
+The original production names and alternatives were restored and then trimmed
+against the settled subset. Course-specific binding, const, derive, and heap
+rules are explicit additions. The grammar summary is generated from these
+chapters; parser conventions retain the established context rules separately.
+See reference-grammar.md for upstream provenance and the adaptation table.
+
+Existing consolidated semantic rules were retained. If and return descriptions
+were moved to their corresponding Reference chapters with compatibility links.
+The course compiler, testcase submodule, and runtime implementation are unchanged.
+
+Strict mdBook generation and active-source style checks passed. The resulting
+50 active/generated HTML pages have 4,714 resolving local file, fragment, and SVG
+links, with no duplicate page IDs. There are 102 unique grammar productions.
+Browser checks compared the published Reference with six local grammar pages,
+verified show/hide and cross-page diagram navigation, and checked 390px layouts
+for the token and function chapters without horizontal page overflow.

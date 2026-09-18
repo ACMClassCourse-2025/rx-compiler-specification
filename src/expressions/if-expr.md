@@ -1,90 +1,22 @@
-r[expr.if]
-# `if` expressions
+# If expressions
 
 r[expr.if.syntax]
 ```grammar,expressions
 IfExpression ->
     `if` Conditions BlockExpression
-    (`else` ( BlockExpression | IfExpression ) )?
+    (`else` (BlockExpression | IfExpression))?
 
-Conditions -> `(` Expression _except [StructExpression]_ `)`
+Conditions -> Expression _except an unparenthesized [StructExpression] at the condition/body boundary_
 ```
-<!-- TODO: The struct exception above needs clarification, see https://github.com/rust-lang/reference/issues/1808
-     The chain grammar could use some work, see https://github.com/rust-lang/reference/issues/1811
--->
 
-r[expr.if.intro]
-The syntax of an `if` expression is a sequence of one or more condition operands separated by `&&`,
-followed by a consequent block, any number of `else if` conditions and blocks, and an optional trailing `else` block.
-
-r[expr.if.condition]
-Condition operands must be an [Expression] with a [boolean type].
-
-r[expr.if.condition-true]
-If all of the condition operands evaluate to `true`, 
-the consequent block is executed and any subsequent `else if` or `else` block is skipped.
-
-r[expr.if.else-if]
-If any condition operand evaluates to `false`, 
-the consequent block is skipped and any subsequent `else if` condition is evaluated.
-
-r[expr.if.short-circuit]
-Short-circuit evaluation must be supported in `if` expressions.
-
-```rust
-fn main(){
-    let mut x: i32 = 6;
-    if (true || {
-        x += 1;
-        true
-    }) {
-        printlnInt(x); // 6
-    }
+```rust,ignore
+fn choose(flag: bool) -> i32 {
+    if flag { 1 } else { 2 }
 }
 ```
 
-r[expr.if.else]
-If all `if` and `else if` conditions evaluate to `false` then any `else` block is executed.
+The condition must be bool. Parentheses are optional; an unparenthesized struct literal in a condition is restricted as in Rust to disambiguate the following block. `else if` chains are supported. Only the selected branch executes.
 
-r[expr.if.result]
-An `if` expression evaluates to the same value as the executed block, or `()` if no block is evaluated.
+When an unparenthesized `Name {` at the condition/body boundary could begin a struct literal, treat `{` as the start of the consequent block. To put such a struct construction in the condition, delimit it explicitly, for example `if (S { flag: true }).flag { ... }`. A function argument such as `if check(S { flag: true }) { ... }` is already delimited. This rule does not mean every brace after if starts its consequent: `if { true } { ... }` has a block-valued condition and a separate consequent block. Conditions are not generally required to have parentheses.
 
-r[expr.if.type]
-An `if` expression must have the same type in all situations.
-
-```rust
-# let x = 3;
-if (x == 4) {
-    println!("x is four");
-} else if (x == 3) {
-    println!("x is three");
-} else {
-    println!("x is something else");
-}
-
-// `if` can be used as an expression.
-let y = if (12 * 15 > 150) {
-    "Bigger"
-} else {
-    "Smaller"
-};
-assert_eq!(y, "Bigger");
-```
-
-[`match` expressions]: match-expr.md
-[boolean type]: ../types/boolean.md
-[scrutinee]: ../glossary.md#scrutinee
-
-<script>
-(function() {
-    var fragments = {
-        "#if-let-expressions": "if-expr.html#if-let-patterns",
-    };
-    var target = fragments[window.location.hash];
-    if (target) {
-        var url = window.location.toString();
-        var base = url.substring(0, url.lastIndexOf('/'));
-        window.location.replace(base + "/" + target);
-    }
-})();
-</script>
+With else, branches must produce compatible result types, allowing a diverging branch to fit the other branch's expected type. Without else, the if expression has unit type; the then block must be compatible with unit. There is no if-let or pattern condition.

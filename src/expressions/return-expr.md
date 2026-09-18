@@ -1,24 +1,11 @@
-r[expr.return]
-# `return` expressions
+# Return expressions
 
 r[expr.return.syntax]
 ```grammar,expressions
 ReturnExpression -> `return` Expression?
 ```
 
-r[expr.return.intro]
-Return expressions are denoted with the keyword `return`.
+`return expression` evaluates its operand and returns that value from the current function using copy/move semantics. `return;` returns unit. Function tails provide the normal return value when execution reaches them. Return values must match the declared result.
 
-r[expr.return.behavior]
-Evaluating a `return` expression moves its argument into the designated output location for the current function call, destroys the current function activation frame, and transfers control to the caller frame.
 
-An example of a `return` expression:
-
-```rust
-fn max(a: i32, b: i32) -> i32 {
-    if (a > b) {
-        return a;
-    }
-    return b;
-}
-```
+See [never and unreachable code](loop-expr.md#never-and-unreachable-code) for typing and reachability.

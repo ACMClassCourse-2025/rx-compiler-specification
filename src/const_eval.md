@@ -4,10 +4,10 @@ Constant contexts are const-item initializers, array type lengths, and array-rep
 
 ## Allowed forms
 
-```text
-Magnitude  := INTEGER_LITERAL | ( Magnitude )
-ConstValue := INTEGER_LITERAL | true | false
-            | - Magnitude | ( ConstValue )
+```grammar,constants
+ConstValue -> INTEGER_LITERAL | `true` | `false` | `-` Magnitude | `(` ConstValue `)`
+
+Magnitude -> INTEGER_LITERAL | `(` Magnitude `)`
 ```
 
 Magnitude means integer syntax without a leading minus, not an unsigned target type. Negative forms require a signed integer type. These forms permit `123`, `-1`, `(-1)`, `-(1)`, `((true))`, and valid suffixes and radices.

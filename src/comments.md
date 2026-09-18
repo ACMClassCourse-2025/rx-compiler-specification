@@ -3,53 +3,25 @@ r[comments]
 
 r[comments.syntax]
 ```grammar,lexer
-@root LINE_COMMENT ->
-      `//` ~LF*
+@root COMMENT -> LINE_COMMENT | BLOCK_COMMENT
 
-@root BLOCK_COMMENT ->
-      `/*` BLOCK_COMMENT_CONTENT* `*/`
+LINE_COMMENT -> `//` ~LF*
 
-BLOCK_COMMENT_CONTENT ->
-      BLOCK_COMMENT
-    | ~[`*` `/`]
-    | `*` ~`/`
-    | `/` ~`*`
+BLOCK_COMMENT -> `/*` ( BLOCK_COMMENT | BLOCK_CHAR )* `*/`
+
+BLOCK_CHAR -> CHAR _not at the start of `/*` or `*/`_
 ```
 
-Comments follow the general C++ style of line (`//`) and
-block (`/* ... */`) comment forms. Nested block comments are supported.
+Comments follow Rust's line (`//`) and nestable block (`/* ... */`) forms and act as whitespace. A line comment ends before LF or at end of file; a CR in CRLF is part of the ignored comment text. An empty line comment at end of file is valid.
 
-r[comments.normal.tokenization]
-Comments are interpreted as a form of whitespace.
+At each position in a block comment, `/*` opens a nested comment and `*/` closes the current one; only otherwise can one character be consumed as [BLOCK_CHAR]. This is the Reference's nested-comment structure with the delimiter lookahead written as a prose restriction. A comment cannot skip a closing delimiter or consume half of it as ordinary content. Unterminated comments are invalid.
 
-r[comments.normal.examples]
-### Examples
+The course does not interpret documentation comments as attributes. Spellings such as `///`, `//!`, `/** ... */`, and `/*! ... */` remain ordinary comments.
 
-```rust
-// This is a valid line comment
-
-/* This is a valid block comment */
-
-/* Nested block comments are supported:
-   /* inner comment */
-   More content here
-*/
-
-//   - A comment  
-//// - Also a comment
-
-/*   - A comment */
-/*** - A comment */
-
-/* we can /* nest /* deeply */ nested */ comments */
-
-// empty line comment
-//
-
-// empty block comment
-/**/
-
-/* /* You should strictly match /* and */ of the nested block comment. */
-fn main(){} // this is a comment not a code piece
-*/
+```rust,ignore
+// A line comment.
+/* outer /* inner */ outer again */
+/***/
+/* a trailing slash / */
+fn main() {}
 ```

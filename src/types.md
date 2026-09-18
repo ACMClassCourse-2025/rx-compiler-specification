@@ -1,5 +1,18 @@
 # Types and inference
 
+```grammar,types
+Type -> TypeNoBounds
+
+TypeNoBounds ->
+      ParenthesizedType
+    | TypePath
+    | TupleType
+    | ReferenceType
+    | ArrayType
+
+ParenthesizedType -> `(` Type `)`
+```
+
 ## Supported types
 
 | Type | Meaning |

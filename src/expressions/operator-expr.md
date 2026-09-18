@@ -1,6 +1,37 @@
 # Operators
 
+```grammar,expressions
+OperatorExpression ->
+      BorrowExpression
+    | DereferenceExpression
+    | NegationExpression
+    | ArithmeticOrLogicalExpression
+    | ComparisonExpression
+    | LazyBooleanExpression
+    | TypeCastExpression
+    | AssignmentExpression
+    | CompoundAssignmentExpression
+```
+
 ## Arithmetic and bits
+
+```grammar,expressions
+NegationExpression ->
+      `-` Expression
+    | `!` Expression
+
+ArithmeticOrLogicalExpression ->
+      Expression `+` Expression
+    | Expression `-` Expression
+    | Expression `*` Expression
+    | Expression `/` Expression
+    | Expression `%` Expression
+    | Expression `&` Expression
+    | Expression `|` Expression
+    | Expression `^` Expression
+    | Expression `<<` Expression
+    | Expression `>>` Expression
+```
 
 Arithmetic `+`, `-`, `*`, `/`, `%` operates on compatible integer operands without implicit integer conversion. Unary minus requires a signed integer. Bitwise `&`, `|`, `^`, and `!` operate on integers; they also provide non-short-circuit boolean operations. Boolean `!` negates truth.
 
@@ -30,6 +61,20 @@ Shifts accept integer operands, following Rust's primitive shift typing (the rig
 
 ## Comparison and logic
 
+```grammar,expressions
+ComparisonExpression ->
+      Expression `==` Expression
+    | Expression `!=` Expression
+    | Expression `>` Expression
+    | Expression `<` Expression
+    | Expression `>=` Expression
+    | Expression `<=` Expression
+
+LazyBooleanExpression ->
+      Expression `||` Expression
+    | Expression `&&` Expression
+```
+
 `==` and `!=` are defined only for operands with exactly the same source type after ordinary local inference and the supported PartialEq capability. Equality can constrain an unresolved operand type, including an unsuffixed integer literal, to the other operand's type; it does not coerce already determined, different types. They borrow operands and do not move non-Copy values. Struct/array comparison is structural and same-typed references compare their targets, as specified in [Builtin traits](../builtin-traits.md). Cross-type equality expressions are course UB and absent from all tests; they do not request an implicit coercion or a general two-type trait implementation.
 
 Scalar ordering uses `<`, `<=`, `>`, `>=` on matching integer types and bool (false precedes true). Their Rust reference variants are supported and compare target values, not addresses. The underlying ordering implementations compare matching shared-reference layers or matching mutable-reference layers, recursively ending in the same supported scalar type. At the expression boundary, Rust's permitted right-operand reborrow can convert a mutable reference to a shared one; it does not convert shared to mutable or automatically rewrite nested reference layers. For example, `&a < &b`, `&mut a < &mut b`, and `&a < &mut b` work for matching ordered scalars; `&mut a < &b` and `&&a < &&mut b` do not. There is no automatic value/reference comparison such as `a < &b`.
@@ -40,11 +85,37 @@ Same-typed reference equality follows the existing PartialEq rules recursively a
 
 ## Casts
 
+```grammar,expressions
+TypeCastExpression -> Expression `as` TypeNoBounds
+```
+
 `as` supports integer-to-integer casts and bool-to-integer casts. Since all integers are 32 bits, integer casts preserve the 32-bit pattern and interpret it in the destination signedness. False becomes 0 and true becomes 1. Integer-to-bool and reference-to-integer casts are not supported.
 
 Reference borrowing/reborrowing adjustments are governed by the reference/type rules; this numeric cast table does not introduce raw pointers, arbitrary reinterpretation, or lifetime conversion syntax.
 
 ## Borrow, dereference, and assignment
+
+```grammar,expressions
+BorrowExpression ->
+      (`&` | `&&`) Expression
+    | (`&` | `&&`) `mut` Expression
+
+DereferenceExpression -> `*` Expression
+
+AssignmentExpression -> Expression `=` Expression
+
+CompoundAssignmentExpression ->
+      Expression `+=` Expression
+    | Expression `-=` Expression
+    | Expression `*=` Expression
+    | Expression `/=` Expression
+    | Expression `%=` Expression
+    | Expression `&=` Expression
+    | Expression `|=` Expression
+    | Expression `^=` Expression
+    | Expression `<<=` Expression
+    | Expression `>>=` Expression
+```
 
 `&place` forms a shared reference; `&mut place` requires a mutable place. Applied to a value expression, borrowing materializes a temporary. `*reference` accesses its target, and `*box` accesses the owned T under the [Box rules](../heap.md#box-access-and-moves). Other types, including Vec, are not dereference operands. In prefix borrow position, `&&x` means `&(&x)`; infix `left && right` is short-circuit boolean and.
 

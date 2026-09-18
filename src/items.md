@@ -1,5 +1,9 @@
 # Items and functions
 
+```grammar,items
+Item -> Function | Struct | ConstantItem | Implementation
+```
+
 A program is a single source compilation unit containing top-level functions, named-field structs, constants, and inherent impl blocks. Items cannot appear inside expression blocks, including a local const, struct, function, or impl. Methods and associated constants can appear in an inherent impl as described below.
 
 ## Functions

@@ -6,6 +6,16 @@ Start with [Introduction](src/introduction.md), the [table of contents](src/SUMM
 
 Only table-of-contents chapters define this revision. Other source pages are historical material from the previous specification or the upstream Rust Reference. Old tests do not independently define the language. See the [migration record](docs/2026-migration.md) for the scope of this documentation revision.
 
+## Grammar and diagrams
+
+The book restores the Rust Reference's original chapter organization for Lexer
+and Syntax blocks. Start with [Notation](src/notation.md),
+[Tokens](src/tokens.md), or [Functions](src/items/functions.md). Each rule has a
+linked railroad diagram and a Show syntax diagram button. The
+[grammar summary](src/grammar-summary.md) is generated from those chapter rules.
+The [source and adaptation record](docs/reference-grammar.md) identifies the
+upstream revision and the course-specific cuts.
+
 ## Build
 
 Use the Rust toolchain selected by rust-toolchain.toml and mdBook 0.4.x; CI currently pins mdBook 0.4.48. The repository's mdbook-spec preprocessor is built through Cargo.

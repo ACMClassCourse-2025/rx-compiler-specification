@@ -1,11 +1,15 @@
 # Bindings, statements, and blocks
 
+```grammar,statements
+Statement -> `;` | LetStatement | ExpressionStatement
+```
+
 ## Identifier bindings
 
-```text
-Binding      := mut? IDENTIFIER
-LetStatement := let Binding (: Type)? = Expression ;
-Parameter    := Binding : Type
+```grammar,statements
+LetStatement -> `let` IdentifierBinding (`:` Type)? `=` Expression `;`
+
+IdentifierBinding -> `mut`? IDENTIFIER
 ```
 
 Every let requires an initializer. The binding is a single identifier, optionally mutable; there is no destructuring, `_`, `ref`, or reference pattern. Reference types and borrow expressions remain supported.
@@ -17,6 +21,12 @@ A local type annotation may be omitted. Type constraints from later uses in the 
 A binding's name is visible after its let statement through the rest of the enclosing block, subject to shadowing. The initializer sees the previous environment. Shadowing introduces a distinct binding and does not overwrite an older object's storage merely because the names match.
 
 ## Blocks and statements
+
+```grammar,statements
+ExpressionStatement ->
+      ExpressionWithoutBlock `;`
+    | ExpressionWithBlock `;`?
+```
 
 A block executes its statements in order and may end with a tail expression. Its result is the tail expression's value, or `()` when there is no tail. Control flow which does not reach the end follows the [never rules](expressions/loop-expr.md#never-and-unreachable-code).
 

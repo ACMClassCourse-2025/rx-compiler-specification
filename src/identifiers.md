@@ -3,67 +3,17 @@ r[ident]
 
 r[ident.syntax]
 ```grammar,lexer
-IDENTIFIER_OR_KEYWORD ->
-      ASCII_ALPHA (ASCII_ALPHA | ASCII_DIGIT | `_`)*
+IDENTIFIER_OR_KEYWORD -> ( ASCII_ALPHA | `_` ) ASCII_CONTINUE*
 
 ASCII_ALPHA -> [`a`-`z` `A`-`Z`]
 
-ASCII_DIGIT -> [`0`-`9`]
+ASCII_CONTINUE -> ASCII_ALPHA | DEC_DIGIT | `_`
 
-NON_KEYWORD_IDENTIFIER -> IDENTIFIER_OR_KEYWORD _except a [strict][lex.keywords.strict] or [reserved][lex.keywords.reserved] keyword_
+NON_KEYWORD_IDENTIFIER -> IDENTIFIER_OR_KEYWORD _except `_` and a [strict](keywords.md#strict-keywords) or [reserved](keywords.md#reserved-keywords) keyword_
 
 IDENTIFIER -> NON_KEYWORD_IDENTIFIER
 ```
 
-<!-- When updating the version, update the UAX links, too. -->
-r[ident.ascii]
-Identifiers are restricted to ASCII characters only. The first character must be an English letter (a-z, A-Z), and subsequent characters can be English letters, digits (0-9), or underscores. Some examples of identifiers:
+These are the Rust Reference identifier productions with Unicode character classes restricted to ASCII and the raw-identifier branch removed. Identifiers are case-sensitive and have no fixed length limit. `_value`, `_1`, and `__` are identifiers; `_` alone is punctuation and cannot be a binding or assignment destination.
 
-* `foo`
-* `identifier`
-* `myVariable123`
-* `test_case`
-
-r[ident.length]
-Identifiers are case-sensitive. Identifiers longer than 64 characters result in undefined behavior.
-
-r[ident.profile]
-The profile used is:
-
-* Start := ASCII letters (`a`-`z`, `A`-`Z`)
-* Continue := ASCII letters (`a`-`z`, `A`-`Z`), ASCII digits (`0`-`9`), and underscore (`_`)
-
-> [!NOTE]
-> Unlike standard Rust, identifiers starting with an underscore are not allowed in this specification.
-
-> [!WARNING]
-> Unicode identifiers (such as `Москва`, `東京`) are not supported and result in undefined behavior.
-
-r[ident.keyword]
-Identifiers may not be a [strict] or [reserved] keyword without the `r#` prefix described below in [raw identifiers](#raw-identifiers).
-
-r[ident.restrictions]
-## Restrictions
-
-r[ident.restrictions.ascii-only]
-All identifiers must use ASCII characters only. Unicode characters are not supported and result in undefined behavior.
-
-r[ident.restrictions.length]
-Identifiers longer than 64 characters result in undefined behavior.
-
-r[ident.restrictions.underscore]
-Identifiers may not start with an underscore character. This differs from standard Rust behavior.
-
-r[ident.normalization]
-## Normalization
-
-Since identifiers are restricted to ASCII characters, no Unicode normalization is required. Identifiers are compared byte-for-byte and are case-sensitive.
-
-[`extern crate`]: items/extern-crates.md
-[`no_mangle`]: abi.md#the-no_mangle-attribute
-[`path` attribute]: items/modules.md#the-path-attribute
-[external blocks]: items/external-blocks.md
-[module]: items/modules.md
-[path]: paths.md
-[reserved]: keywords.md#reserved-keywords
-[strict]: keywords.md#strict-keywords
+`self` and `Self` are keywords with the meanings specified in [Names](names.md). `i32`, `Vec`, `Clone`, and the other builtin names are lexically identifiers; their protection is a namespace rule, not an extra keyword rule.

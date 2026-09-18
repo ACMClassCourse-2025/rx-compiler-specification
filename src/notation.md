@@ -6,15 +6,15 @@ The following notations are used by the *Lexer* and *Syntax* grammar snippets:
 
 | Notation          | Examples                      | Meaning                                   |
 |-------------------|-------------------------------|-------------------------------------------|
-| CAPITAL           | KW_IF, INTEGER_LITERAL        | A token produced by the lexer             |
+| CAPITAL           | IDENTIFIER, INTEGER_LITERAL        | A token produced by the lexer             |
 | _ItalicCamelCase_ | _LetStatement_, _Item_        | A syntactical production                  |
 | `string`          | `x`, `while`, `*`             | The exact character(s)                    |
-| x<sup>?</sup>     | `pub`<sup>?</sup>             | An optional item                          |
+| x<sup>?</sup>     | `mut`<sup>?</sup>             | An optional item                          |
 | x<sup>\*</sup>    | _OuterAttribute_<sup>\*</sup> | 0 or more of x                            |
-| x<sup>+</sup>     |  _MacroMatch_<sup>+</sup>     | 1 or more of x                            |
+| x<sup>+</sup>     |  _Statement_<sup>+</sup>     | 1 or more of x                            |
 | x<sup>a..b</sup>  | HEX_DIGIT<sup>1..6</sup>      | a to b repetitions of x                   |
 | Rule1 Rule2       | `fn` _Name_ _Parameters_      | Sequence of rules in order                |
-| \|                | `u8` \| `u16`, Block \| Item  | Either one or another                     |
+| \|                | `i32` \| `u32`, Block \| Item  | Either one or another                     |
 | \[ ]               | \[`b` `B`]                     | Any of the characters listed              |
 | \[ - ]             | \[`a`-`z`]                     | Any of the characters in the range        |
 | ~\[ ]              | ~\[`b` `B`]                    | Any characters, except those listed       |
@@ -42,6 +42,8 @@ production. See [tokens] for more information.
 
 ## Grammar visualizations
 
+Grammar productions appear in their corresponding chapters, following the Rust Reference. Lexer rules use uppercase names; syntax rules retain the Reference names and are trimmed to the supported subset.
+
 Below each grammar block is a button to toggle the display of a [syntax diagram]. A square element is a non-terminal rule, and a rounded rectangle is a terminal.
 
 [syntax diagram]: https://en.wikipedia.org/wiki/Syntax_diagram
@@ -52,9 +54,9 @@ The following are common definitions used in the grammar.
 
 r[input.syntax]
 ```grammar,lexer
-@root CHAR -> <a Unicode scalar value>
+CHAR -> <a 7-bit ASCII source character>
 
-NUL -> U+0000
+SPACE -> U+0020
 
 TAB -> U+0009
 
@@ -63,7 +65,7 @@ LF -> U+000A
 CR -> U+000D
 ```
 
-[binary operators]: expressions/operator-expr.md#arithmetic-and-logical-binary-operators
+[binary operators]: expressions/operator-expr.md#arithmetic-and-bits
 [keywords]: keywords.md
 [tokens]: tokens.md
-[unary operators]: expressions/operator-expr.md#borrow-operators
+[unary operators]: expressions/operator-expr.md#borrow-dereference-and-assignment

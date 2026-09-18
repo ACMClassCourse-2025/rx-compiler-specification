@@ -6,7 +6,7 @@ language = "en"
 [output.html]
 additional-css = ["theme/reference.css"]
 additional-js = ["theme/reference.js"]
-git-repository-url = "https://github.com/peterzheng98/RCompiler-Spec"
+git-repository-url = "https://github.com/ACMClassCourse-2025/RCompiler-Spec-Draft"
 smart-punctuation = true
 
 [output.html.search.chapter]

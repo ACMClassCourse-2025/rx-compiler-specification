@@ -1,8 +1,7 @@
 # Grammar summary
 
-This page collects every lexer and syntax production used by the course
-language. Select a production name or use **Show syntax diagram** to display the
-railroad form. Semantic restrictions and contextual parser rules remain in the
-linked language chapters.
+The following is a summary of the grammar production rules, collected automatically from their individual chapters as in the Rust Reference. Each category has the original Lexer or Syntax box and a **Show syntax diagram** button. Select a production to follow its diagram; consult its defining chapter for semantic restrictions.
+
+See [Notation](notation.md) for the grammar notation and [Parser conventions](grammar.md) for precedence and contextual disambiguation. This page does not define a second grammar.
 
 {{ grammar-summary }}

@@ -14,6 +14,14 @@ Box and Vec are non-Copy. Their operations, including Box move-out and Vec remov
 
 ## Derive
 
+```grammar,attributes
+OuterAttribute -> `#` `[` DeriveAttribute `]`
+
+DeriveAttribute -> `derive` `(` (DeriveName (`,` DeriveName)* `,`?)? `)`
+
+DeriveName -> `Copy` | `Clone` | `PartialEq` | `Eq`
+```
+
 ```rust,ignore
 #[derive(Clone, PartialEq, Eq)]
 struct Record {

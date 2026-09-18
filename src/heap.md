@@ -1,5 +1,15 @@
 # Box and Vec
 
+```grammar,types
+HeapType -> (`Box` | `Vec`) `<` Type `,`? `>`
+```
+
+```grammar,expressions
+HeapConstruction ->
+      `Box` `::` `<` Type `,`? `>` `::` `new` `(` Expression `,`? `)`
+    | `Vec` `::` `<` Type `,`? `>` `::` `new` `(` `)`
+```
+
 ## Confirmed direction
 
 The language provides builtin `Box<T>` for one owned heap object and `Vec<T>` for an owned contiguous sequence with runtime length. These are finite compiler-known type constructors, not user-defined generics. Source-level unsafe, raw pointers, malloc/free, generic functions, generic structs, and generic impls are not introduced.

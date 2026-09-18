@@ -5,8 +5,9 @@ r[expr.literal.syntax]
 LiteralExpression -> INTEGER_LITERAL | `true` | `false`
 ```
 
-Literal expressions produce integer or boolean values. [INTEGER_LITERAL]
-defines the spelling of integer tokens. Unit `()` uses [TupleExpression].
+Literal expressions produce integer or boolean values. [INTEGER_LITERAL] defines the spelling of integer tokens.
+
+Note that Unit `()` uses [UnitExpression] instead.
 
 ## Integer typing and range
 

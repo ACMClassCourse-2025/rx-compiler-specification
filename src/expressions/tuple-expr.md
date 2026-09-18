@@ -1,7 +1,7 @@
 # Unit expressions
 
 ```grammar,expressions
-TupleExpression -> `(` `)`
+UnitExpression -> `(` `)`
 ```
 
 The expression `()` constructs the unit value.

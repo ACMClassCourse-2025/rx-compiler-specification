@@ -52,4 +52,4 @@ Within an inherent impl, the first parameter may be [SelfParam]. Its forms are:
 A function with a receiver is a method; a function without a receiver is an
 associated function. Later parameters use [FunctionParam]. Receiver lifetimes
 follow the [lifetime validity rules](../references.md#lifetime-validity), and
-by-value receivers follow [copy/move semantics](../builtin-traits.md#value-semantics).
+by-value receivers follow [copy/move semantics](../builtin-traits.md#copy).

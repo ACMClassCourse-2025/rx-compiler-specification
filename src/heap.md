@@ -1,6 +1,6 @@
 # Box and Vec
 
-[Box and Vec types](types/heap.md) defines container composition. This chapter defines their operations, references, and allocation lifetime. The [capability table](builtin-traits.md#derive) defines `Copy`, `Clone`, and equality support.
+[Box and Vec types](types/heap.md) defines container composition. This chapter defines their operations, references, and allocation lifetime. The [capability table](builtin-traits.md#capability-requirements) defines `Copy`, `Clone`, and equality support.
 
 ## Builtin signatures
 

@@ -25,6 +25,8 @@
     - [Implementations](items/implementations.md)
     - [Associated items](items/associated-items.md)
     - [Lifetime parameters and bounds](items/generics.md)
+- [Traits and attributes](traits-and-attributes.md)
+    - [Builtin traits](builtin-traits.md)
 - [Statements and bindings](statements.md)
 - [Types and inference](types.md)
     - [Array types](types/array.md)
@@ -51,7 +53,6 @@
 
 # Values and execution
 
-- [Copy, move, and builtin traits](builtin-traits.md)
 - [References and storage duration](references.md)
 - [Box and Vec](heap.md)
 - [Builtin I/O and program entry](undefined-behavior/builtin.md)

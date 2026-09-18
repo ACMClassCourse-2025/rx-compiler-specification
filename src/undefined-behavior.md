@@ -51,7 +51,7 @@ Valid executions obey these contracts:
 | Integer arithmetic and preconditions | [Operators](expressions/operator-expr.md#arithmetic-and-bits) |
 | Array indices | [Index expressions](expressions/array-expr.md#array-index-expressions) |
 | Container operations | [Box and Vec](heap.md) |
-| Initialization, copying, moves, and ownership | [Value semantics](builtin-traits.md#value-semantics) |
+| Initialization, copying, moves, and ownership | [Value semantics](builtin-traits.md#copy) |
 | Lifetimes, borrowing, and storage | [References](references.md) |
 
 The following source forms are course UB and never appear in tests, including in unreachable code and constant contexts where applicable:
@@ -80,7 +80,7 @@ A `let` or ordinary parameter that matches a visible unqualified constant is cou
 
 Every `==` or `!=` whose inferred operands have different source types is course UB. No diagnostic, coercion, or cross-type `PartialEq` implementation is required. This includes shared versus mutable references, different array types, different container element types, and `Vec` versus array comparisons.
 
-The [equality rules](builtin-traits.md#equality) define inference, capability requirements, and same-type comparison. Lifetime arguments alone do not distinguish source types under [type identity](types.md#supported-types).
+The [equality rules](builtin-traits.md#partialeq) define inference, capability requirements, and same-type comparison. Lifetime arguments alone do not distinguish source types under [type identity](types.md#supported-types).
 
 ### Lifetime validity
 

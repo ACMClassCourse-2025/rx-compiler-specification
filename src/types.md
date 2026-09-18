@@ -6,7 +6,7 @@ Type -> TypeNoBounds
 TypeNoBounds ->
       ParenthesizedType
     | TypePath
-    | TupleType
+    | UnitType
     | ReferenceType
     | ArrayType
 

@@ -10,7 +10,7 @@ ExpressionWithoutBlock ->
     | GroupedExpression
     | ArrayExpression
     | IndexExpression
-    | TupleExpression
+    | UnitExpression
     | StructExpression
     | CallExpression
     | MethodCallExpression

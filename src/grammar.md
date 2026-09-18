@@ -24,11 +24,11 @@ constructor result may be followed by indexing or a method call.
 | Associated items | [InherentImpl], [AssociatedItem] | `impl S { fn new() -> Self { ... } }` |
 | Derive attributes | [OuterAttribute], [DeriveAttribute] | `#[derive(Clone, PartialEq, Eq)]` |
 | Bindings and statements | [LetStatement], [ExpressionStatement] | `let mut v = Vec::<i32>::new();`, `v.push(1);` |
-| Type names, arrays, references, and unit | [TypePath], [ArrayType], [ReferenceType], [TupleType] | `Self`, `[Vec<i32>; 2]`, `&mut Box<i32>`, `()` |
+| Type names, arrays, references, and unit | [TypePath], [ArrayType], [ReferenceType], [UnitType] | `Self`, `[Vec<i32>; 2]`, `&mut Box<i32>`, `()` |
 | Container types | [TypePath], [TypePathSegment], [GenericArgs] | `Box<[i32; 4]>`, `Vec<Box<Node>>`, `Vec<Vec<i32,>,>` |
 | Container construction | [CallExpression], [PathInExpression] | `Box::<i32>::new(7)`, `Vec::<Box<i32>>::new()` |
 | Paths, calls, fields, and indexing | [PathExpression], [CallExpression], [MethodCallExpression], [FieldExpression], [IndexExpression] | `S::new()`, `value.clone()`, `value.field`, `values[0]` |
-| Arrays, grouping, and unit values | [ArrayExpression], [GroupedExpression], [TupleExpression] | `[1, 2, 3]`, `[0; 4]`, `(value)`, `()` |
+| Arrays, grouping, and unit values | [ArrayExpression], [GroupedExpression], [UnitExpression] | `[1, 2, 3]`, `[0; 4]`, `(value)`, `()` |
 | Operators | [OperatorExpression] | `*p`, `&mut values[0]`, `a + b`, `x += &y` |
 | Blocks and branching | [BlockExpression], [IfExpression] | `{ make() }.field`, `if flag { a } else { b }` |
 | Loops and jumps | [LoopExpression], [BreakExpression], [ContinueExpression], [ReturnExpression] | `loop { break 3; }`, `while condition { ... }`, `return value` |
@@ -49,7 +49,7 @@ destination must denote a mutable place.
 | --- | --- |
 | Type and expression arguments | [Paths](paths.md#generic-arguments) |
 | Lifetime declarations and bounds | [Lifetime parameters](items/generics.md) |
-| Derive attributes | [Builtin traits](builtin-traits.md#derive) |
+| Derive attributes | [Attribute grammar](traits-and-attributes.md#attribute-grammar) |
 | Operator precedence | [Expressions](expressions.md#precedence) |
 | Casts followed by comparison or shift | [Cast parsing](expressions/operator-expr.md#cast-parsing) |
 | Struct construction in a condition | [If expressions](expressions/if-expr.md) |

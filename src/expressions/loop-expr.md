@@ -30,4 +30,6 @@ fn until(limit: i32) -> i32 {
 }
 ```
 
-Diverging expressions and unreachable code follow [Never type](../types/never.md).
+See [Never type](../types/never.md#loop-expressions) for when a `loop` expression
+has never type, and [Unreachable code](../types/never.md#unreachable-code) for
+checks that still apply after control flow leaves a block.

@@ -62,6 +62,9 @@ The following source forms are course UB and never appear in tests, including in
 | Integer literal outside its determined type | [Integer literal range](#integer-literal-range) |
 | Let or parameter name colliding with a visible unqualified constant | [Constant-name collisions](#constant-name-collisions) |
 | Equality between different source types | [Cross-type equality](#cross-type-equality) |
+| Local type inference requiring a later use | [Inference](types.md#inference) |
+| Reference coercion needed to join results without an expected type | [Result types](types.md#results-without-an-expected-type) |
+| Multiple distinct matching methods in a dot call | [Method lookup](expressions/method-call-expr.md#method-lookup) |
 | Use declaration violating the Rust compatibility guarantees | [Use compatibility](#use-compatibility) |
 | Invalid lifetime declaration, use, bound, or elision | [Lifetime validity](#lifetime-validity) |
 | Observable zero-sized data use outside the unit-result exception | [Zero-sized data](#zero-sized-data) |

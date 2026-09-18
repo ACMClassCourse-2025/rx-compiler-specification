@@ -30,7 +30,7 @@ fn main() {
 
 **Functionality.** `Clone` provides `fn clone(&self) -> Self`. Derived clone recursively clones fields and elements into an independent value. Scalars and shared references are copied; a shared reference's target is not cloned. [Container cloning](heap.md#clone-and-equality) defines owned heap contents.
 
-An explicit `.clone()` uses normal [method lookup](expressions/method-call-expr.md#method-lookup), including same-named inherent methods. Compiler-generated field clones call the field's builtin operation directly.
+An explicit `.clone()` uses [method lookup](expressions/method-call-expr.md#method-lookup). Multiple matching methods, including same-named inherent methods or clones at different dereference levels, make the call course UB. Compiler-generated field clones call the field's builtin operation directly.
 
 **Requirements.** Deriving `Clone` requires every field to be `Clone`. Mutable references are not `Clone`.
 

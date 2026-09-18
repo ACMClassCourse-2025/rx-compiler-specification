@@ -51,8 +51,8 @@ let borrowed = Vec::<&'a i32>::new();
 | --- | --- |
 | Value | Binding, constant, function, or `self` |
 | Type | Primitive, declared struct, `Self`, `Box<T>`, or `Vec<T>` |
-| Associated item | Struct path or `Self`, followed by a declared member |
-| Builtin constructor | `Box::<T>::new` or `Vec::<T>::new` |
+| Associated item | Struct path or `Self`, followed by a declared member or derived builtin method |
+| Builtin associated operation | `Box::<T>::new`, `Vec::<T>::new`, or a supported builtin method on a type path, such as `Box::<i32>::clone` |
 
 Functions and methods may use explicit lifetime arguments where Rust permits them. Omitted lifetimes use the supported Rust 2021 inference and elision rules. Tests guarantee that explicit lifetime arguments, including early-bound and late-bound uses, are valid.
 

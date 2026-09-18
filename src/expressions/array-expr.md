@@ -13,7 +13,7 @@ ArrayElements ->
 
 An array expression lists its elements or repeats one element a [ConstValue] number of times. List elements follow the [ordinary evaluation order](../expressions.md#evaluation-order). Repetition evaluates its element expression once and repeats the resulting value; more than one repetition requires Copy, rather than merely Clone. Its length follows the [constant-context rules](../const_eval.md#typing-and-range). Empty arrays and zero lengths are parsed but their data uses follow the [zero-sized-data rules](../undefined-behavior.md#zero-sized-data).
 
-Element expressions must have a common type under [inference and coercion](../types.md).
+An expected array type supplies its element type to each element expression. Without one, elements follow [results without an expected type](../types.md#results-without-an-expected-type).
 
 ## Array index expressions
 
@@ -22,7 +22,7 @@ r[expr.array.index.syntax]
 IndexExpression -> Expression `[` Expression `]`
 ```
 
-An index must have type usize. Arrays and Vec support indexing. The base may be reached through repeated reference or Box dereferences. Shared access yields a shared element place; mutable access yields a mutable one. A value base follows the [temporary-place rules](../expressions.md#places-and-values).
+An index has expected type `usize`. Arrays and `Vec` support indexing after builtin [autoderef](../types.md#autoderef-and-autoref). Shared access yields a shared element place; mutable access yields a mutable one. A value base follows the [temporary-place rules](../expressions.md#places-and-values).
 
 Array indexing must stay within its fixed length in valid executions. Runtime bounds checks and panic handling are not required. Reading an element follows [copy/move semantics](../builtin-traits.md#copy), including the test exclusion for non-Copy moves through an array index. Vec access and removal follow the [Vec operation rules](../heap.md#vec-operations).
 

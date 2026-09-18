@@ -82,7 +82,9 @@ LazyBooleanExpression ->
 
 Equality operators use the [PartialEq and equality rules](../builtin-traits.md#partialeq), including operand typing, implicit borrowing, and structural comparison. Equality between different source types is course UB; see the [cross-type equality guarantee](../undefined-behavior.md#cross-type-equality).
 
-Scalar ordering uses `<`, `<=`, `>`, `>=` on matching integer types and bool (false precedes true). Their Rust reference variants are supported and compare target values, not addresses. The underlying ordering implementations compare matching shared-reference layers or matching mutable-reference layers, recursively ending in the same supported scalar type. At the expression boundary, Rust's permitted right-operand reborrow can convert a mutable reference to a shared one; it does not convert shared to mutable or automatically rewrite nested reference layers. For example, `&a < &b`, `&mut a < &mut b`, and `&a < &mut b` work for matching ordered scalars; `&mut a < &b` and `&&a < &&mut b` do not. There is no automatic value/reference comparison such as `a < &b`.
+Scalar ordering uses `<`, `<=`, `>`, `>=` on matching integer types and bool (false precedes true). Reference operands compare target values, not addresses. Their reference layers must have matching mutability at each depth and end in the same supported scalar type. One additional operand combination is supported: a left operand of type `&T` allows a right operand of type `&mut T`, reborrowed as `&T`, with exactly the same referent type `T`. This operator-specific adjustment does not depend on an expected result type and does not rewrite inner reference layers.
+
+For example, `&a < &b`, `&mut a < &mut b`, and `&a < &mut b` work for matching ordered scalars; `&mut a < &b` and `&&a < &&mut b` do not. There is no automatic value/reference comparison such as `a < &b`, or dereference through `Box` for ordering.
 
 `&&` and `||` require bool values, return bool, and short-circuit from left to right. They have no reference-operand variants: `&true && true` is invalid. There is no integer truthiness. Comparison chains such as `a < b < c` require parentheses and compatible intermediate types.
 
@@ -93,8 +95,6 @@ TypeCastExpression -> Expression `as` TypeNoBounds
 ```
 
 `as` supports integer-to-integer casts and bool-to-integer casts. Since all integers are 32 bits, integer casts preserve the 32-bit pattern and interpret it in the destination signedness. False becomes 0 and true becomes 1. Integer-to-bool and reference-to-integer casts are not supported.
-
-Reference borrowing and reborrowing adjustments follow the [reference coercion rules](../types.md#conversions-and-references).
 
 ### Cast parsing
 

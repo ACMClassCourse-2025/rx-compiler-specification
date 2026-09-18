@@ -53,7 +53,7 @@ fn append(values: &mut Vec<Box<i32>>, value: Box<i32>) {
 
 </details>
 
-The [recursive-type rules](../types.md#recursive-types) define how container indirection permits finite recursive layouts. Lifetime arguments follow the [lifetime rules](../references.md#lifetime-validity), and local annotations may be inferred from constructors or other uses.
+The [recursive-type rules](../types.md#recursive-types) define how container indirection permits finite recursive layouts. Lifetime arguments follow the [lifetime rules](../references.md#lifetime-validity). An unannotated local can infer its container type from its initializer, but [not from later statements](../types.md#inference).
 
 Container values are created by the [builtin constructors](../heap.md#builtin-signatures).
 Path separators, turbofish, and trailing argument commas follow

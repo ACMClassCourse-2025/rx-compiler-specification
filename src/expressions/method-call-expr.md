@@ -11,22 +11,25 @@ A method call gives a receiver expression, a method identifier, and a parenthesi
 
 ## Method lookup
 
-Method calls resolve using the following candidate order:
+The receiver type must be known before lookup. Method calls use builtin [autoderef and autoref](../types.md#autoderef-and-autoref):
 
-1. Start with the receiver expression's type and repeatedly apply supported dereferencing, recording each type in order.
-2. Immediately after each recorded type T, insert &T and &mut T as candidate receiver types.
-3. Visit candidates in that order. At each candidate, first search inherent methods whose receiver matches it, then available builtin trait methods whose receiver matches it. Select the first matching method at the first successful priority level; ambiguity at that level is a static error.
-4. Check that the selected call satisfies the ordinary argument and receiver-mutability rules. An invalid call is not retried with a later candidate. Ownership and lifetime validity remain guaranteed by tests rather than checked by the compiler.
+1. Start with the receiver expression's type and repeatedly dereference references and `Box`, recording each type in order. `Vec` adds no dereference step.
+2. Immediately after each recorded type `T`, insert `&T` and `&mut T` as candidate receiver types.
+3. Find all methods with the requested name whose declared receiver type exactly matches any candidate. Include inherent methods, available builtin `Clone` methods, and the specified array and container methods. Count the same method for the same concrete `Self` type only once, even if it matches at several positions.
+4. No matching method is a static error. More than one distinct matching method is course UB, even if Rust's candidate priority would select one. Argument types, expected result types, and receiver mutability do not filter this count.
+5. With one matching method, use its first matching candidate. Apply the dereferences and any borrow for that candidate; an existing mutable-reference receiver may reborrow under the [ordinary reference rules](../types.md#conversions-and-references). Then check receiver mutability and ordinary arguments. A failed check is a static error, subject to the separate ownership and lifetime test guarantees.
 
-The priority between inherent and trait methods applies within each candidate, not across the whole list. For a receiver of type S, an available builtin clone with receiver &S can therefore be selected before an inherent clone with receiver &mut S. If both have receiver &S, the inherent method takes priority. Expected return types do not select a different method.
+Tests exclude competing methods; the compiler need not detect them or implement Rust's method priorities. Compiler-generated cloning invokes the builtin operation directly and does not perform this lookup. Duplicate inherent declarations remain [name errors](../names.md#name-collisions); methods on unrelated types outside the receiver's candidate list do not compete.
 
 <details>
-<summary>Clone lookup examples</summary>
+<summary>Receiver and clone examples</summary>
 
-For an ordinary derived-Clone struct S with no inherent clone, calling `r.clone()` on `r: &S` selects S's clone and returns S. If S is not Clone, the shared reference itself still has Clone; the method search can instead select the reference clone with receiver &&S. This distinction follows from the same candidate sequence.
+For `Box<S>`, the candidate receiver types are `Box<S>`, `&Box<S>`, `&mut Box<S>`, `S`, `&S`, and `&mut S`. For a unique method on `S` taking `&self`, calling it on the box dereferences to `S` and borrows that place. An `&mut self` method also requires mutable access along this path.
+
+If `S` derives `Clone` and has no inherent `clone`, `s.clone()` for `s: S` has one method and returns `S`. For `r: &S`, both `S`'s clone (receiver `&S`) and the reference's clone (receiver `&&S`) match, so `r.clone()` is course UB. Write `S::clone(r)` to select `S`'s builtin clone explicitly. If `S` is not `Clone` and has no inherent `clone`, `r.clone()` instead has only the reference clone and returns `&S`.
+
+Likewise, `b.clone()` for `b: Box<i32>` is course UB because both the box and its integer support `Clone`. `Box::<i32>::clone(&b)` explicitly selects the box's operation. An inherent `clone` competing with a derived `clone` also makes the dot call course UB, regardless of their receiver forms.
 
 </details>
 
-The builtin Clone method participates for types with that capability. Copy and Eq are marker capabilities. Builtin array methods participate under their specified receiver signatures.
-
-References and Box provide builtin dereferencing candidates. Vec provides its specified methods and indexing. See [Builtin traits](../builtin-traits.md#clone) and [Heap](../heap.md) for the supported operations.
+An explicit `Type::method(receiver, ...)` call selects that type's associated operation and uses [ordinary argument coercions](call-expr.md), not receiver lookup or autoref. If an inherent method and a builtin method on that exact type share the name, the inherent method is selected. See [Builtin traits](../builtin-traits.md#clone) and [Heap](../heap.md) for available builtin operations.

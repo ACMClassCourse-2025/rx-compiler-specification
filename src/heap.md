@@ -1,6 +1,6 @@
 # Box and Vec
 
-[Box and Vec types](types/heap.md) defines container composition. This chapter defines their operations, references, and allocation lifetime. The [capability table](builtin-traits.md#capability-requirements) defines `Copy`, `Clone`, and equality support.
+[Box and Vec types](types/heap.md) defines container composition. This chapter defines their operations, references, and allocation lifetime. The [capability table](builtin-traits.md#trait-capability-summary) defines `Copy`, `Clone`, and equality support.
 
 ## Builtin signatures
 
@@ -61,8 +61,8 @@ When `T` is `Clone`, the containers support these builtin `Clone` methods:
 | `Vec<T>` | `fn clone(&self) -> Vec<T>` | Clones elements in order into an independent vector of equal length. |
 
 Owned nested containers clone recursively; shared references are copied without
-cloning their targets. The `Clone` capability and method lookup rules are
-specified in [Builtin traits](builtin-traits.md#clone).
+cloning their targets. The `Clone` capability is specified in [Builtin traits](builtin-traits.md#clone).
+Dot calls remain subject to the [competing-method exclusion](expressions/method-call-expr.md#method-lookup): for example, use `Box::<i32>::clone(&boxed)` to select the box's clone explicitly.
 
 `Box` equality compares stored values. `Vec` equality compares length and corresponding elements, ignoring allocation address, capacity, and padding. These operations compose with struct derives and finite values of recursive types.
 

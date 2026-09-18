@@ -18,7 +18,7 @@ The conditional Clone and equality operations below support recursive type graph
 
 ## Constructors and type arguments
 
-Constructors are written `Box::<T>::new(value)` and `Vec::<T>::new()`. The single type argument T is an explicit concrete type, including at every nesting level. Type paths accept `Box<T>` / `Vec<T>` and the equivalent `Box::<T>` / `Vec::<T>` spellings. Expression paths introduce the arguments with `::<T>`, following the [path syntax](paths.md). Both constructors use [CallExpression] with a [PathExpression] callee.
+Constructors are written `Box::<T>::new(value)` and `Vec::<T>::new()`. The single type argument T is an explicit concrete type, including at every nesting level. References and structs inside T may carry lifetime arguments or use permitted lifetime elision, as in `Vec::<&'a i32>::new()` and `Vec::<View<'_>>::new()`. Type paths accept `Box<T>` / `Vec<T>` and the equivalent `Box::<T>` / `Vec::<T>` spellings. Expression paths introduce the arguments with `::<T>`, following the [path syntax](paths.md). Both constructors use [CallExpression] with a [PathExpression] callee.
 
 ```rust,ignore
 let b = Box::<i32>::new(7);

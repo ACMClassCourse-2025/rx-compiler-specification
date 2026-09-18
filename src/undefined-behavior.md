@@ -32,7 +32,7 @@ These guarantees concern source semantics. Invalid accesses, unexpected terminat
 
 Tests guarantee the lifetime, borrowing, and ownership conditions in [References](references.md) and [Copy and move](builtin-traits.md). These guarantees replace the need for lifetime inference, borrow checking, and ownership dataflow checking. Ordinary type and place-mutability errors require diagnosis.
 
-In particular, a reference field without a lifetime annotation and a reference-returning signature with multiple possible input origins are legal course syntax. Tests ensure the actual referent remains valid.
+Lifetime declarations, arguments, annotations, bounds, and elision obey Rust's rules for the supported syntax. Incorrect lifetime declarations or uses, including missing annotations where elision is invalid, are course UB throughout the program. Tests contain no such case, including in negative tests or unreachable code. The [lifetime validity contract](references.md#lifetime-validity) lists the covered cases. Actual reference uses also satisfy the borrowing and storage-duration rules.
 
 ## Zero-sized data
 

@@ -35,7 +35,8 @@ govern the assessed element and referent types.
 | `Box<[i32; 4]>` | One owned four-element array |
 | `Vec<Box<i32>>` | A sequence of owned integer boxes |
 | `Box<Vec<i32>>` | One owned vector |
-| `Vec<&i32>` | A sequence of shared references |
+| `Vec<&i32>` or `Vec<&'a i32>` | A sequence of shared references |
+| `Vec<View<'a>>` | A sequence of structs with a lifetime argument |
 | `&mut Vec<Box<i32>>` | A mutable reference to a vector of boxes |
 | `[Vec<i32>; 2]` | A two-element array of vectors |
 | `Vec<Vec<i32,>,>` | Nested vectors with trailing type-argument commas |
@@ -62,8 +63,10 @@ fn append(nodes: &mut Vec<Box<Node>>, value: Box<Node>) {
 
 The container indirection supports recursive definitions such as Node above;
 the [recursive-type rules](../types.md#recursive-types) determine finite layout.
-Each example's T is fully specified by its type syntax. Local binding
-annotations may be inferred from a constructor or other uses in the function.
+Each example's element type is specified by its type syntax; lifetime arguments
+within that type follow the [lifetime elision rules](../references.md#lifetime-validity).
+Local binding annotations may be inferred from a constructor or other uses in
+the function.
 
 ## Constructors
 

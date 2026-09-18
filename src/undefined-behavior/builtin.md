@@ -10,7 +10,7 @@ fn main() -> () {
 }
 ```
 
-The return annotation may be omitted. Main has no parameters. Reaching its end or executing `return;` ends the source program normally. The generated machine entry returns status 0 as specified by the [backend contract](../backend.md#4-符号入口和-runtime). Source programs cannot call main.
+The return annotation may be omitted. Main has an empty value-parameter list and no generic parameters. Reaching its end or executing `return;` ends the source program normally. The generated machine entry returns status 0 as specified by the [backend contract](../backend.md#4-符号入口和-runtime). Source programs cannot call main.
 
 Programs print their answers using the I/O functions below.
 

@@ -18,6 +18,7 @@
     - [Constant items](items/constant-items.md)
     - [Implementations](items/implementations.md)
     - [Associated items](items/associated-items.md)
+    - [Lifetime parameters and bounds](items/generics.md)
 - [Bindings, statements, and blocks](statements.md)
 - [Types and inference](types.md)
     - [Array types](types/array.md)

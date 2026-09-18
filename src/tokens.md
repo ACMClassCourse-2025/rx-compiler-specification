@@ -6,10 +6,11 @@ r[lex.token.syntax]
 @root Token ->
       IDENTIFIER_OR_KEYWORD
     | INTEGER_LITERAL
+    | LIFETIME_TOKEN
     | PUNCTUATION
 ```
 
-Tokens are identifiers or keywords, integer literals, and punctuation. Keywords, including `true` and `false`, have identifier-like spellings. Their syntactic roles are determined by the keyword rules and [LiteralExpression].
+Tokens are identifiers or keywords, integer literals, lifetime tokens, and punctuation. Keywords, including `true` and `false`, have identifier-like spellings. Their syntactic roles are determined by the keyword rules and [LiteralExpression].
 
 ## Integer literals
 
@@ -53,6 +54,19 @@ The lexer consumes the complete Rust-style numeric token. An invalid suffix or r
 There is no token-length or numeric-magnitude limit. Preserve the digits and suffix without requiring the magnitude to fit a host integer. After type determination, out-of-range literals are course UB, as specified in [Lexical structure](lexical-structure.md#literals).
 
 A minus is a separate token. `-2147483648i32` and `-(2147483648i32)` are valid signed-minimum forms. `0x01_f32` is a hexadecimal integer magnitude with no suffix, not a floating-point literal.
+
+## Lifetimes
+
+r[lex.token.life.syntax]
+```grammar,lexer
+LIFETIME_TOKEN -> `'` IDENTIFIER_OR_KEYWORD
+
+LIFETIME_OR_LABEL -> `'` NON_KEYWORD_IDENTIFIER
+```
+
+A lifetime token consists of an apostrophe immediately followed by its name, with no intervening whitespace or comment. The lexer consumes the complete name. Examples include `'a`, `'data`, `'static`, and `'_`. The name is not immediately followed by another apostrophe; a spelling such as `'a'` is a character-literal form outside the token grammar above.
+
+[LIFETIME_OR_LABEL] supplies ordinary named lifetimes to [Lifetime]. The special spellings `'static` and `'_` have their own alternatives there. Lifetime tokens occur in reference types, parameter declarations, path arguments, and bounds. The loop and jump productions determine the supported control-flow syntax.
 
 ## Punctuation
 

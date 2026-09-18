@@ -1,20 +1,68 @@
 # References and storage duration
 
-## Lifetime-erased references
+## Reference annotations
 
-Reference types are written `&T` and `&mut T`, where T is a supported concrete type. Their declarations specify the referenced type and mutability. Tests guarantee the validity of each reference's lifetime and use.
+Reference types are written `&T`, `&mut T`, `&'a T`, or `&'a mut T`, where T is a supported concrete type. The optional lifetime states how long the reference is valid. Lifetime names, `'static`, `'_`, parameter declarations, and bounds follow [Lifetime parameters and bounds](items/generics.md).
 
 Reference types may appear in fields, arrays, parameters, and results. For example:
 
 ```rust,ignore
-struct View { value: &i32 }
+struct View<'a> { value: &'a i32 }
 
-fn choose(a: &i32, b: &i32, first: bool) -> &i32 {
+fn choose<'a>(a: &'a i32, b: &'a i32, first: bool) -> &'a i32 {
     if first { a } else { b }
 }
 ```
 
-Tests ensure every actual reference use is valid. The compiler need not infer which input a returned reference comes from.
+## Lifetime validity
+
+Lifetime declarations, annotations, arguments, bounds, and elision follow
+Rust 2021's [parameter rules](https://doc.rust-lang.org/reference/items/generics.html)
+and [elision rules](https://doc.rust-lang.org/reference/lifetime-elision.html)
+for the supported constructs. Tests guarantee their validity
+throughout each program, including signatures, struct fields, function bodies,
+and unreachable code. An incorrect lifetime declaration or use is course UB
+and appears in no positive, negative, or performance test. This covers:
+
+- Undeclared lifetime names, invalid parameter names, duplicate declarations,
+  and forbidden lifetime-parameter shadowing.
+- Lifetime arguments with an incorrect number, order, or placement, including
+  explicit arguments where Rust requires a late-bound lifetime to be inferred.
+- Missing annotations where Rust's elision rules cannot determine a lifetime,
+  such as a reference field without an explicit lifetime or an ambiguous
+  reference-returning signature.
+- Unsatisfied lifetime or type-outlives bounds, and function bodies or uses
+  that fail to uphold their annotated lifetimes, including `'static`.
+- Unused lifetime parameters when Rust rejects the declaration.
+
+The contract applies to well-formed lifetime syntax. Malformed tokens and
+syntax retain their ordinary lexical and parsing rules. Other type and
+place-mutability errors remain the specified static errors.
+
+An omitted reference lifetime is valid where Rust permits elision. In a
+function signature, each elided input reference gets a distinct lifetime; if
+there is exactly one input lifetime, it determines elided output lifetimes.
+For methods with a reference receiver, that receiver's lifetime determines
+elided output lifetimes. Other cases use explicit annotations. `'_` requests
+the inferred lifetime where Rust permits that placeholder. For path arguments,
+such as a local `View<'_>` type, Rust's corresponding lifetime elision rules
+apply.
+
+```rust,ignore
+fn identity(value: &i32) -> &i32 {
+    value
+}
+
+impl<'a> View<'a> {
+    fn borrowed(&self) -> &i32 {
+        self.value
+    }
+}
+```
+
+Correct annotations describe reference validity; they do not extend the
+storage duration of a local, temporary, or heap object. Tests also ensure that
+every actual reference use satisfies the borrowing and ownership rules below.
 
 ## Static checks and valid borrowing
 

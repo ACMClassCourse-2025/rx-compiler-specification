@@ -8,6 +8,8 @@ Top-level function, struct, and constant names can be resolved independently of 
 
 `self` denotes a method receiver. `Self` denotes the type being defined inside a struct definition, and the implementing type inside an inherent impl, including its methods and associated constants. `Self` is not available in unrelated top-level functions. Neither `self` nor `Self` is an ordinary user-declared identifier.
 
+Lifetime names have a separate namespace with the scopes specified by [lifetime parameters](items/generics.md). Their validity is covered by the lifetime test guarantee.
+
 Types and values occupy separate namespaces. Named-field structs introduce a type name; functions and constants introduce value names. Struct field names are local to their struct. Type annotations, struct construction names, and the prefix of Type::member resolve in the type namespace; an unqualified expression name resolves in the value namespace. A named-field struct name is not a callable value constructor. A struct and a function can therefore have the same spelling without conflict.
 
 Top-level items must be unique within each namespace. Fields must have distinct names within a struct, and parameters within a function must have distinct names. Successive local lets may shadow earlier locals, parameters, and non-protected global function names. Lookup selects the nearest binding; calling a selected non-callable value is a static error, without retrying a hidden function. A let initializer uses the environment before that new binding.
@@ -18,7 +20,7 @@ All inherent impl blocks for one struct share one associated-value namespace. Du
 
 ## Supported paths
 
-The supported forms are unqualified names, `self`, `Type::member`, and `Self::member`, plus the two explicit heap constructors `Box::<T>::new(value)` and `Vec::<T>::new()`. Associated functions and constants are accessed through a type; ordinary methods can also be invoked with method-call syntax. Type::method may be called with its receiver as an explicit first argument and ordinary argument coercions, without method-call autoref. For example:
+The supported forms are unqualified names, `self`, struct paths followed by `::member`, and `Self::member`, plus the two explicit heap constructors `Box::<T>::new(value)` and `Vec::<T>::new()`. Associated functions and constants are accessed through a type; ordinary methods can also be invoked with method-call syntax. Type::method may be called with its receiver as an explicit first argument and ordinary argument coercions, without method-call autoref. For example:
 
 ```rust,ignore
 struct Counter { value: i32 }
@@ -36,7 +38,7 @@ fn main() {
 }
 ```
 
-Box and Vec constructors specify their concrete type argument in the turbofish. Builtin Clone uses `.clone()`, and builtin equality uses `==` and `!=`. Inherent methods named eq or ne follow the ordinary method rules. The grammar in [Paths](paths.md) defines the path forms.
+Struct paths may carry lifetime arguments, as in `View::<'a>::new(value)` and `View<'a>` in a type context. Functions and methods may use explicit lifetime arguments where Rust permits them. Box and Vec constructors specify their concrete type argument in the turbofish. Builtin Clone uses `.clone()`, and builtin equality uses `==` and `!=`. Inherent methods named eq or ne follow the ordinary method rules. The grammar in [Paths](paths.md) defines the path forms.
 
 ## Protected builtin names
 

@@ -29,13 +29,14 @@ not require implementing those operators in a course parser generator.
 | --- | --- | --- |
 | Notation; identifiers | Lexer boxes, uppercase names, character classes | ASCII character classes; no raw identifiers; `_` alone is not a binding |
 | Comments | COMMENT, LINE_COMMENT, nested BLOCK_COMMENT, BLOCK_CHAR | Documentation spellings are ordinary comments; delimiter lookahead is explicit |
-| Tokens | Token, INTEGER_LITERAL, radix/digit productions, PUNCTUATION | Only integer value tokens and four suffixes; no text, floating-point, or lifetime branches |
-| Crates and items | Crate, Item, Function, FunctionParameters, StructStruct, ConstantItem, InherentImpl, AssociatedItem | No local items, qualifiers, user generics, traits, modules, tuple structs, or declarations without bodies |
+| Tokens | Token, INTEGER_LITERAL, radix/digit productions, LIFETIME_TOKEN, LIFETIME_OR_LABEL, PUNCTUATION | Integer value tokens with four suffixes and ASCII lifetime names; numeric and lifetime-token boundaries are stated in prose |
+| Crates and items | Crate, Item, Function, FunctionParameters, StructStruct, ConstantItem, InherentImpl, AssociatedItem | Named-field structs, functions with bodies, and inherent impls; lifetime parameters and where clauses occupy their Reference positions |
+| Lifetime parameters and bounds | GenericParams, GenericParam, LifetimeParam, Lifetime, LifetimeBounds, WhereClause and its items | GenericParam is LifetimeParam; type bounds contain lifetime bounds; validity follows Rust and incorrect lifetime use is course UB |
 | Statements | Statement, LetStatement, ExpressionStatement | Required let initializer; IdentifierBinding replaces patterns; no item statement or let-else |
 | Expressions | ExpressionWithoutBlock / ExpressionWithBlock and original expression chapters | Supported expression alternatives; unit TupleExpression; container constructors use ordinary PathExpression and CallExpression |
 | Operators | BorrowExpression, DereferenceExpression, NegationExpression, arithmetic, comparison, cast, assignment | Remove raw borrows and try propagation; keep course semantics for typing and order |
 | Control flow | LoopExpression, InfiniteLoopExpression, PredicateLoopExpression, Conditions, break/continue/return | No labels, patterns, let chains, iterator loop, or match |
-| Types and paths | TypeNoBounds, ParenthesizedType, TypePath, TypePathSegment, PathExprSegment, GenericArgs, ReferenceType, ArrayType, empty TupleType | GenericArg is Type; type paths accept optional `::` before arguments, expression paths use turbofish; name resolution requires one concrete argument on Box/Vec |
+| Types and paths | TypeNoBounds, ParenthesizedType, TypePath, TypePathSegment, PathExprSegment, GenericArgs, ReferenceType, ArrayType, empty TupleType | GenericArg is Lifetime or Type; references accept a lifetime; type paths accept optional `::` before arguments, expression paths use turbofish; Box/Vec require one concrete type argument |
 | Array lengths and constants | ArrayExpression / ArrayElements, ArrayType, ConstantItem | ConstValue replaces arbitrary constant expressions |
 | Attributes | OuterAttribute | Finite DeriveAttribute for the four builtin capabilities |
 
@@ -50,11 +51,19 @@ and contextual disambiguation, with no independent replacement grammar.
 
 Container syntax uses the same path and call productions as other names.
 TypePathSegment accepts optional `::` before GenericArgs; PathExprSegment uses
-the expression turbofish. GenericArg retains the Type alternative. Arity and
-the finite set of supported entities are checked by name resolution, so broad
-path syntax does not imply user generic declarations or additional builtins.
+the expression turbofish. GenericArg retains Lifetime and Type. Type-argument
+arity and the finite set of supported entities are checked by name resolution;
+lifetime validity is guaranteed by tests. User items declare lifetime parameters,
+while the builtin Box/Vec types supply the concrete type-argument interfaces.
 StructExpression likewise reuses PathInExpression, and InherentImpl reuses Type
 with a semantic requirement for a user-defined named-field struct.
+
+The lifetime parameter and where-clause productions come from the Reference's
+items/generics.md and trait-bounds.md chapters. They are collected in the active
+items/generics.md chapter with the lifetime-only subset of parameter and bound
+forms. ReferenceType and ShorthandSelf include their optional Lifetime, and
+Function, StructStruct, and InherentImpl include GenericParams and WhereClause.
+The syntax diagrams use the same renderer as the other Reference productions.
 
 ## Verification
 

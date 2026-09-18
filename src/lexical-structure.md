@@ -26,6 +26,10 @@ After suffix resolution and type inference, an integer literal outside its deter
 
 The unit expression is written `()` and follows the zero-sized-data rules.
 
+## Lifetime tokens
+
+A lifetime token starts with an apostrophe immediately followed by an ASCII identifier spelling, as in `'a`, `'data`, `'static`, or `'_`. Its complete lexical form is defined in [Tokens](tokens.md#lifetimes). Lifetimes occur in reference types, generic parameters and arguments, and bounds. The special spellings `'static` and `'_` follow the [lifetime rules](items/generics.md).
+
 ## Punctuation
 
 Operators and delimiters are listed in the [grammar](grammar-summary.md). A lexer may emit one `&&` token. In infix position it is lazy boolean and; in prefix borrow position `&&x` means `&(&x)`, and in type position `&&T` means `&(&T)`. These forms work with adjacent ampersands or with whitespace between separate borrow tokens.

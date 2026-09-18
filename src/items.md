@@ -14,7 +14,7 @@ fn add(a: i32, b: i32) -> i32 {
 }
 ```
 
-Ordinary parameters are identifiers with an optional `mut`, followed by an explicit type. Function signatures determine parameter and result types independently of their callers. An omitted return annotation means `()`. Every function definition has a body.
+Ordinary parameters are identifiers with an optional `mut`, followed by an explicit type. Function signatures determine parameter and result types independently of their callers. An omitted return annotation means `()`. Every function definition has a body. Functions may declare [lifetime parameters and bounds](items/generics.md).
 
 Top-level functions may be called before their definitions and may be mutually recursive. Calls evaluate arguments in source order. Arguments and results obey [copy/move value semantics](builtin-traits.md) independently of their machine-level passing convention. Function names may be call targets but are not first-class values.
 
@@ -36,7 +36,7 @@ Within a struct definition, `Self` denotes the struct being defined. For example
 
 A constructor uses `Point { x: 1, y: 2 }`; each initializer gives an explicit field name and expression. Field initializers may appear in any order and are evaluated in the order written. Field access is `p.x`. Layout is implementation-defined within the [backend contract](backend.md).
 
-Struct declarations may carry [derive attributes](builtin-traits.md#derive) for Copy, Clone, PartialEq, and Eq.
+Struct declarations may carry [derive attributes](builtin-traits.md#derive) for Copy, Clone, PartialEq, and Eq. Structs that contain references can declare lifetime parameters, as in `struct View<'a> { value: &'a i32 }`. Their lifetime arguments and bounds follow the [lifetime rules](references.md#lifetime-validity).
 
 ## Inherent impls and receivers
 
@@ -57,7 +57,7 @@ impl Point {
 
 An inherent impl belongs to a named struct and contains functions, methods, and associated constants. `Self` denotes the implementing type.
 
-A method's first parameter is `self`, `mut self`, `&self`, or `&mut self`. Other parameters use the ordinary identifier-and-type syntax. These receiver forms mean respectively a by-value receiver, mutable by-value receiver, shared reference, and mutable reference. A function without a receiver is an associated function.
+A method's first parameter is `self`, `mut self`, `&self`, or `&mut self`; a reference receiver can specify its lifetime as `&'a self` or `&'a mut self`. Other parameters use the ordinary identifier-and-type syntax. These receiver forms mean respectively a by-value receiver, mutable by-value receiver, shared reference, and mutable reference. A function without a receiver is an associated function.
 
 Multiple inherent impl blocks are supported. They share one associated-item namespace per struct: duplicate names are static errors across all such blocks, even if signatures differ. There is no signature overloading. Builtin names and namespaces follow [Names](names.md).
 

@@ -15,6 +15,8 @@ constructor result may be followed by indexing or a method call.
 | Source form | Defining productions | Examples |
 | --- | --- | --- |
 | Identifiers and integers | [IDENTIFIER], [INTEGER_LITERAL] | `_value`, `123_i32`, `0b1010` |
+| Lifetime tokens and forms | [LIFETIME_TOKEN], [Lifetime] | `'a`, `'static`, `'_` |
+| Lifetime parameters and bounds | [GenericParams], [LifetimeParam], [WhereClause] | `fn f<'a>(x: &'a i32)`, `where 'a: 'b` |
 | Source compilation unit | [Crate], [Item] | Top-level functions, structs, constants, impls |
 | Functions and receivers | [Function], [FunctionParameters], [ShorthandSelf] | `fn f(v: Vec<i32>) -> Box<i32> { ... }`, `&mut self` |
 | Struct declarations and construction | [StructStruct], [StructExpression] | `struct S { x: i32 }`, `S { x: 1 }`, `Self { x: 1 }` |
@@ -47,10 +49,18 @@ Generic type paths use [TypePathSegment] with [GenericArgs]. In type contexts,
 the separator before the argument list is optional: `Box<T>` and `Box::<T>`
 name the same type. Expression paths introduce the list with `::`, as in
 `Box::<T>::new(value)` and `Vec::<T>::new()`. [GenericArgList] accepts
-comma-separated type arguments and an optional trailing comma. Box and Vec
-each require one concrete argument; this arity is checked against the resolved
-builtin. [Type] recursively describes each argument, including arrays,
-references, structs, `Self`, and container paths.
+comma-separated lifetime and type arguments and an optional trailing comma.
+Box and Vec each require one concrete type argument; this arity is checked
+against the resolved builtin. [Type] recursively describes each type argument,
+including arrays, references, structs, `Self`, and container paths.
+
+[GenericParams] introduces lifetime parameters on functions, structs, and
+impls; [WhereClause] expresses lifetime bounds. [ReferenceType] and reference
+receivers accept a [Lifetime] after `&`. Path lifetime arguments precede type
+arguments. Their declarations, arguments, bounds, and elision follow the
+[lifetime validity contract](references.md#lifetime-validity), including the
+classification of incorrect lifetime use as course UB. Type-argument checks
+continue to enforce the declared type parameters of the resolved name.
 
 `Self` denotes the struct in its declaration and its inherent impls. The
 [naming rules](names.md) determine builtin-name protection and lookup. Integer

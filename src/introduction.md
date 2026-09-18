@@ -12,7 +12,7 @@ Each assessed interface must be specified before tests depending on it are relea
 
 The chapters in this book's table of contents define the language and its execution contract. Other repository documents, migration records, test cases, and reference implementations provide supporting material; the chapters listed here take precedence.
 
-The grammar and static rules specify the supported constructs. References to Rust behavior apply to those constructs and the explicitly stated rules. Reference syntax records a referent type and mutability, while tests guarantee lifetime and borrowing validity. Internal calling conventions are implementation-defined.
+The grammar and static rules specify the supported constructs. References to Rust behavior apply to those constructs and the explicitly stated rules. Reference syntax records a referent type, mutability, and an optional lifetime annotation. Tests guarantee the validity of lifetime declarations, annotations, elision, and borrowing. Internal calling conventions are implementation-defined.
 
 Rust 2021 storage-scope rules serve as a reference for valid test construction. Runtime integer arithmetic uses the wrapping and shift rules in [Operators](expressions/operator-expr.md).
 

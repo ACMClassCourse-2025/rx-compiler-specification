@@ -22,7 +22,7 @@ ParenthesizedType -> `(` Type `)`
 | `bool` | Boolean value |
 | Named struct, `Self` in its struct definition or impl | Nominal product of named fields |
 | `[T; N]` | Fixed-length array; N is a restricted constant of type usize |
-| `&T`, `&mut T` | Shared or mutable reference, without a lifetime annotation |
+| `&T`, `&mut T`, `&'a T`, `&'a mut T` | Shared or mutable reference with an explicit or elided lifetime |
 | `()` | Function/control-flow result; ordinary zero-sized data uses are excluded |
 | Builtin [`Box<T>`, `Vec<T>`](types/heap.md) | Owned heap object and dynamic sequence; nesting and recursion through indirection are supported |
 
@@ -30,7 +30,9 @@ The table above defines the source-level types. Type checking also uses never in
 
 Type identity is structural for reference, array, Box, and Vec types and nominal for structs. Array lengths are compared by their resulting literal values, so `[i32; 4]` and `[i32; (4usize)]` are the same type. The four integer names remain distinct even though all have 32 bits.
 
-Box and Vec each take one concrete type argument: `Box<T>` and `Vec<T>`. Their syntax uses [TypePath] and [GenericArgs], with the composition described in [Box and Vec types](types/heap.md). They may contain structs, arrays, references, and other containers, subject to the type-validity and zero-sized-data rules. Copy and Clone become relevant when an operation requires them. Nested types use closing angle brackets as in `Vec<Vec<i32>>`; type paths may also use `::<...>`. Constructors are written `Box::<T>::new(value)` and `Vec::<T>::new()`, as specified in [Heap](heap.md). Each type argument is written explicitly at every nesting level.
+Lifetime annotations satisfy the [lifetime validity contract](references.md#lifetime-validity). For ordinary type identity, a reference is determined by its referent type and mutability, and a struct by its declaration. Lifetime arguments alone do not distinguish source types in the same-type equality rule. Type compatibility and operations must still satisfy the guaranteed lifetime and borrowing conditions.
+
+Box and Vec each take one concrete type argument: `Box<T>` and `Vec<T>`. Their syntax uses [TypePath] and [GenericArgs], with the composition described in [Box and Vec types](types/heap.md). They may contain structs, arrays, references, and other containers, subject to the type-validity and zero-sized-data rules. Copy and Clone become relevant when an operation requires them. Nested types use closing angle brackets as in `Vec<Vec<i32>>`; type paths may also use `::<...>`. Constructors are written `Box::<T>::new(value)` and `Vec::<T>::new()`, as specified in [Heap](heap.md). Each type argument is written explicitly at every nesting level. Lifetime arguments inside it follow Rust's elision rules; for example, `Vec::<View<'_>>::new()` supplies a concrete element type. The lifetime placeholder `'_` is a [Lifetime], distinct from type-position `_`.
 
 ## Inference
 
@@ -89,7 +91,7 @@ let moved = p;          // move, not an implicit Copy or unconditional reborrow
 
 After the final move, p cannot be used again without reinitialization; tests exclude such misuse. Passing p to a parameter whose type is &mut i32 can instead reborrow it, allowing successive calls with p. Later inference constraints do not turn an unannotated `let moved = p` into the annotated reborrow above.
 
-The receiver of a method call uses [method lookup and receiver adjustments](names.md#method-lookup), rather than ordinary argument coercion alone. Field access and indexing also apply their supported builtin dereferences. These adjustments do not extend the arithmetic operator table to arbitrary reference operands and do not broaden the numeric `as` cast table. There are no user Deref implementations, raw-pointer coercions, function-pointer coercions, or lifetime annotations.
+The receiver of a method call uses [method lookup and receiver adjustments](names.md#method-lookup), rather than ordinary argument coercion alone. Field access and indexing also apply their supported builtin dereferences. These adjustments do not extend the arithmetic operator table to arbitrary reference operands and do not broaden the numeric `as` cast table. Reference adjustments use the builtin reference and Box operations specified above.
 
 ## Recursive types
 

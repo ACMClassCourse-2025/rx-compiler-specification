@@ -159,3 +159,40 @@ page overflow. rustc independently accepted the parenthesized cast-type,
 grouped constructor-call, and parenthesized impl-target examples. These checks
 cover the documentation and selected Rust syntax; compiler and runtime
 integration remain publication work.
+
+## 2026-09-18 lifetime annotation syntax
+
+Lifetime tokens, reference annotations, function/struct/impl lifetime
+parameters, annotated shorthand receivers, path lifetime arguments, and
+outlives bounds are restored using the Reference productions. GenericArg now
+includes Lifetime and Type; GenericParam contains LifetimeParam. The active
+items/generics.md chapter collects the supported lifetime forms and where
+clauses. Box/Vec retain their explicit concrete type arguments, including
+element types that contain annotated references or lifetime-parameterized
+structs.
+
+Lifetime declarations, annotations, arguments, bounds, and elision must satisfy
+Rust 2021's rules. Incorrect lifetime declarations or uses are course UB,
+excluded from every test category and from unreachable code in tested programs.
+This supersedes the earlier acceptance of missing annotations on reference
+fields and ambiguous reference-returning signatures. Rust-permitted elision
+remains valid. Malformed tokens and syntax follow the ordinary parser rules,
+and ordinary type and place-mutability errors remain static errors. Storage
+duration, ownership, and program-end heap reclamation retain their existing
+contracts.
+
+The warning-denying mdBook build, active-source style check, and diff whitespace
+check passed. The rendered book has 116 grammar productions and 52
+active/generated HTML pages; all 5,429 local file, fragment, and SVG links
+resolve, with no duplicate page IDs. A temporary derivability audit passed 181
+syntax cases over 87 non-lexer productions. It checks grammar composition with
+supplied identifier/integer/lifetime token rules, not the course parser or
+semantic implementation.
+
+Six representative programs, including the new documented examples, compiled
+and ran with rustc 1.98.0-nightly (f428d123a), edition 2021. Lint warnings were
+allowed; compiler errors remained enabled. Ten deliberately invalid lifetime
+examples were rejected by rustc, confirming the described UB boundaries; these
+are documentation checks, not student-compiler negative tests. Browser checks
+covered seven changed grammar pages, five cross-page diagram links, visibility
+persistence, and four 390px layouts without horizontal page overflow.

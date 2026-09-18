@@ -8,7 +8,7 @@ selected frontend and execution environment.
 
 | Area | Validation | Reference |
 | --- | --- | --- |
-| Parser integration | Parse the documented type, item, expression, and statement forms, including nested containers, explicit turbofish, contextual punctuation, and condition/statement boundaries | [Grammar summary](grammar-summary.md), [Parser conventions](grammar.md) |
+| Parser integration | Parse the documented type, item, expression, and statement forms, including lifetime declarations/arguments/bounds, nested containers, explicit turbofish, contextual punctuation, and condition/statement boundaries | [Grammar summary](grammar-summary.md), [Parser conventions](grammar.md) |
 | Runtime integration | Execute Box/Vec construction, growth, non-Copy remove, nested and recursive Clone/equality, and per-execution heap reset with the published runtime and pinned REIMU commit | [Heap](heap.md), [Backend contract](backend.md) |
 
 The reference allocator ABI, Vec growth baseline, memory/stack settings, and
@@ -21,7 +21,7 @@ at program end; source ownership and reference validity follow the
 
 The active table of contents defines the course language. Its chapters specify
 identifier bindings, local type inference, literal constant contexts, value
-semantics, four builtin derives, references, container types and operations,
+semantics, four builtin derives, references with Rust-valid lifetime annotations, container types and operations,
 and the I/O and program-entry contract. The Syntax and Lexer blocks define the
 corresponding source forms. Documentation generation and grammar review check
 these definitions; the integration checks above validate their implementations.

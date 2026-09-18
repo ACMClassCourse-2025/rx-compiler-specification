@@ -26,14 +26,18 @@ ExpressionStatement ->
     | ExpressionWithBlock `;`?
 ```
 
-A semicolon after an expression discards its result while preserving its effects. An empty `;` statement has no effect.
+An expression statement evaluates an expression and discards its result while
+preserving its effects. An empty `;` statement has no effect.
 
-An expression with an outer block/control-flow form can be a statement without a semicolon. Such a statement must have unit type or diverge. A final [block tail](expressions/block-expr.md) is a value context instead. The expression-statement parsing rule below determines these boundaries.
+[ExpressionWithoutBlock] requires a semicolon. [ExpressionWithBlock]
+(`{ ... }`, `if`, `while`, or `loop`) may omit it. Without the semicolon, the
+expression must be compatible with `()`; a diverging expression is also valid.
+A block's final expression follows the [tail-expression rules](expressions/block-expr.md).
 
 ```rust,ignore
-fn select(flag: bool) -> i32 {
-    let base = if flag { 10 } else { 20 };
-    { base + 1 }
+fn show(flag: bool) {
+    if flag { printInt(1); }    // unit result: semicolon optional
+    if flag { 1 } else { 2 };   // integer result: semicolon discards it
 }
 ```
 

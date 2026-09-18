@@ -56,6 +56,7 @@ destination must denote a mutable place.
 | Expression-statement boundaries | [Statements](statements.md#statement-boundary) |
 | Block tails | [Block expressions](expressions/block-expr.md) |
 | Break/continue targets and loop results | [Loops](expressions/loop-expr.md#while-and-loop) |
+| Never and unreachable code | [Never type](types/never.md) |
 | Assignment places | [Assignment destinations](expressions/operator-expr.md#assignment-destinations) |
 
 </details>

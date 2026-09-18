@@ -16,7 +16,7 @@ expression, enclosed in braces. Statements execute in source order.
 A final expression without a semicolon is the block's tail expression. It
 determines the block's type and, when reached, its result value. A block
 without a tail produces `()` if it completes normally. Control flow that
-leaves earlier follows the [never rules](loop-expr.md#never-and-unreachable-code).
+leaves earlier follows the [never rules](../types/never.md).
 
 ```rust,ignore
 fn select(flag: bool) -> i32 {

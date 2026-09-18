@@ -27,7 +27,7 @@ A function definition consists of its name, optional lifetime parameters, value 
 
 Ordinary parameters use [IdentifierBinding] followed by an explicit type. Function signatures determine parameter and result types independently of their callers. A trailing comma is allowed after a receiver or the last ordinary parameter. An omitted result means `()`.
 
-An ordinary parameter binding that collides with a visible unqualified const name is course UB; see the [constant-name collision guarantee](../undefined-behavior.md#constant-name-collisions).
+An ordinary parameter binding that collides with a visible unqualified const name is undefined behavior; see the [constant-name collision guarantee](../undefined-behavior.md#constant-name-collisions).
 
 The [name lookup rules](../names.md#scope-rules) permit forward calls and mutual recursion. Function names serve as call targets rather than first-class values. [Call expressions](../expressions/call-expr.md) specify argument passing; [return expressions](../expressions/return-expr.md) specify function results. The executable entry is defined in [Program entry](../undefined-behavior/builtin.md#program-entry).
 

@@ -27,11 +27,11 @@ A named-field struct is not a callable value constructor. A struct and function 
 
 ## Name collisions
 
-Top-level names must be unique within their namespace. Fields within a struct and parameters within a function must also be unique. All inherent implementations of a struct share one associated-value namespace, so duplicate methods, associated functions, or associated constants are static errors regardless of signature or impl block. A field and method may share a name.
+Top-level names must be unique within their namespace. Fields within a struct and parameters within a function must also be unique. All inherent implementations of a struct share one associated-value namespace, so duplicate methods, associated functions, or associated constants are compile errors regardless of signature or impl block. A field and method may share a name.
 
-Successive `let` bindings may shadow earlier locals, parameters, and non-protected global functions. Lookup chooses the nearest binding; if it is not callable, a call is a static error rather than a retry with a hidden function. A `let` initializer sees the environment before the new binding.
+Successive `let` bindings may shadow earlier locals, parameters, and non-protected global functions. Lookup chooses the nearest binding; if it is not callable, a call is a compile error rather than a retry with a hidden function. A `let` initializer sees the environment before the new binding.
 
-A `let` or ordinary parameter that collides with a visible unqualified constant is course UB under the centralized [constant-name collision guarantee](undefined-behavior.md#constant-name-collisions).
+A `let` or ordinary parameter that collides with a visible unqualified constant is undefined behavior under the centralized [constant-name collision guarantee](undefined-behavior.md#constant-name-collisions).
 
 ## Protected builtin names
 
@@ -43,4 +43,4 @@ User declarations and bindings cannot replace these names in their protected nam
 | Value | `getInt`, `printInt`, `printlnInt` |
 | Derive entry | `Copy`, `Clone`, `PartialEq`, `Eq` |
 
-The spellings remain lexical identifiers. They may be used in another namespace or as field and associated-item names; for example, a field named `Vec` is valid. Inherent methods belong only to user-defined structs. Redeclaring a protected builtin in its namespace is a static error.
+The spellings remain lexical identifiers. They may be used in another namespace or as field and associated-item names; for example, a field named `Vec` is valid. Inherent methods belong only to user-defined structs. Redeclaring a protected builtin in its namespace is a compile error.

@@ -31,7 +31,7 @@ fn main() {
 Constant paths are evaluated recursively through their referenced constant
 items. A constant item may be declared before or after the item that uses it.
 The dependency graph must be acyclic: a self-reference or an indirect cycle
-such as `A -> B -> A` is a static error. The compiler must detect a cycle
+such as `A -> B -> A` is a compile error. The compiler must detect a cycle
 before attempting to evaluate the involved constants.
 
 ## Typing and range
@@ -40,9 +40,9 @@ A constant path has the declared type and value
 of its target item. Const-item initializers have the declared expected type;
 array lengths are constant values and have expected type `usize`.
 
-Literal typing and signed-minimum cases follow [integer literal rules](expressions/literal-expr.md#integer-typing-and-range). Out-of-range literals are course UB under the [integer literal range guarantee](undefined-behavior.md#integer-literal-range). Ordinary type and restricted-form errors remain static errors.
+Literal typing and signed-minimum cases follow [integer literal rules](expressions/literal-expr.md#integer-typing-and-range). Out-of-range literals are undefined behavior under the [integer literal range guarantee](undefined-behavior.md#integer-literal-range). Ordinary type and restricted-form errors remain compile errors.
 
-The [propagation exclusion](types.md#coercion-sites-and-expected-types) also applies here: `const N: isize = -1;` is course UB because it needs the expected type to pass through unary minus. Write `-1isize` instead. `const N: i32 = -1;` works with the ordinary `i32` default.
+The [propagation exclusion](types.md#coercion-sites-and-expected-types) also applies here: `const N: isize = -1;` is undefined behavior because it needs the expected type to pass through unary minus. Write `-1isize` instead. `const N: i32 = -1;` works with the ordinary `i32` default.
 
 The element expression in `[expr; 4]` is an ordinary expression governed by [array repetition](expressions/array-expr.md#array-expressions). Only its length is a constant context.
 

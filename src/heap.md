@@ -72,7 +72,7 @@ A `Vec` stores exactly its initialized sequence; spare capacity is not initializ
 
 Tests obey Rust's borrowing rules, including supported two-phase receiver borrowing such as `v.push(v.len())`. They never use an element reference across a conflicting mutable container operation, regardless of spare capacity. No borrow checker is required.
 
-Zero-sized heap objects are course UB under the [zero-sized-data guarantee](undefined-behavior.md#zero-sized-data). An empty `Vec<T>` for nonzero-sized `T` is valid and need not have a dereferenceable buffer. Valid tests fit the target size representation and do not depend on allocation failure.
+Zero-sized heap objects are undefined behavior under the [zero-sized-data guarantee](undefined-behavior.md#zero-sized-data). An empty `Vec<T>` for nonzero-sized `T` is valid and need not have a dereferenceable buffer. Valid tests fit the target size representation and do not depend on allocation failure.
 
 ## Heap cleanup
 

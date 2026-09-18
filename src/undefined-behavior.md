@@ -2,15 +2,15 @@
 
 ## Definition
 
-We distinguish between a Valid Program, a Static Error (or Invalid Program) and a Course UB (or Undefined Behavior):
+We distinguish between a Valid Program, a Compile Error and a Undefined behavior:
 
 | Category | Compiler requirement | Test policy |
 | --- | --- | --- |
 | Valid program | Compile and produce the specified behavior | May appear in any applicable test |
-| Static error | Reject normally; diagnostic wording is unspecified | May appear in negative tests |
-| Course UB | No required diagnostic or behavior | Excluded as stated by its defining rule |
+| Compile error | Reject normally; diagnostic wording is unspecified | May appear in negative tests |
+| Undefined behavior | No required diagnostic or behavior | Excluded as stated by its defining rule |
 
-Unsupported syntax may be rejected at the language-subset boundary even if the supplied parser recognizes it. Ordinary name, type, and place-mutability errors remain static errors, including in unreachable code. The compiler need not prove termination, borrow validity, or ownership validity. Runtime checks, panic handling, and stack unwinding are not required for excluded executions.
+Unsupported syntax may be rejected at the language-subset boundary even if the supplied parser recognizes it. Ordinary name, type, and place-mutability errors remain compile errors, including in unreachable code. The compiler need not prove termination, borrow validity, or ownership validity. Runtime checks, panic handling, and stack unwinding are not required for excluded executions.
 
 ## Language subset
 
@@ -40,9 +40,9 @@ The Rx subset excludes:
 
 ## Test guarantees
 
-The following source forms are course UB and never appear in tests, including in unreachable code and constant contexts where applicable:
+The following source forms are undefined behavior and never appear in tests, including in unreachable code and constant contexts where applicable:
 
-| Course UB | Defining rules |
+| Undefined behavior | Defining rules |
 | --- | --- |
 | Integer literal outside its determined type | [Integer literal range](#integer-literal-range) |
 | Integer inference requiring expected-type propagation through binary operations, unary operations, or shared/mutable borrows | [Expected-type propagation](types.md#coercion-sites-and-expected-types) |
@@ -58,17 +58,17 @@ These guarantees constrain source programs. Invalid memory access, incorrect ter
 
 ### Integer literal range
 
-An integer literal's type is selected by its suffix, its expected integer type, or the `i32` fallback, in that order. A non-i32 literal without expected type is course UB.
+An integer literal's type is selected by its suffix, its expected integer type, or the `i32` fallback, in that order. A non-i32 literal without expected type is undefined behavior.
 
-Integer literal overflow is course UB. The [literal rules](expressions/literal-expr.md#integer-typing-and-range) still permit signed minima such as `-2147483648i32` and `-(2147483648i32)`.
+Integer literal overflow is undefined behavior. The [literal rules](expressions/literal-expr.md#integer-typing-and-range) still permit signed minima such as `-2147483648i32` and `-(2147483648i32)`.
 
 ### Constant-name collisions
 
-A `let` or ordinary parameter that matches a visible unqualified constant is course UB, regardless of mutability or declaration order. No diagnostic or constant-pattern interpretation is required. An associated constant reachable only as `Type::NAME` does not exclude a local `NAME`. The [protected builtin](names.md#protected-builtin-names) prohibition still applies.
+A `let` or ordinary parameter that matches a visible unqualified constant is undefined behavior, regardless of mutability or declaration order. No diagnostic or constant-pattern interpretation is required. An associated constant reachable only as `Type::NAME` does not exclude a local `NAME`. The [protected builtin](names.md#protected-builtin-names) prohibition still applies.
 
 ### Cross-type equality
 
-Every `==` or `!=` whose inferred operands have different source types is course UB. No diagnostic, coercion, or cross-type `PartialEq` implementation is required. This includes shared versus mutable references, different array types, different container element types, and `Vec` versus array comparisons.
+Every `==` or `!=` whose inferred operands have different source types is undefined behavior. No diagnostic, coercion, or cross-type `PartialEq` implementation is required. This includes shared versus mutable references, different array types, different container element types, and `Vec` versus array comparisons.
 
 The [equality rules](builtin-traits.md#partialeq) define operand types, capability requirements, and same-type comparison. Lifetime arguments alone do not distinguish source types under [type identity](types.md#supported-types).
 
@@ -81,16 +81,16 @@ Any imported name used by the program denotes an Rx builtin under its existing
 spelling; unused imports and aliases are allowed. Tests never rely on a use
 declaration to introduce another type, value, module, or usable alias into Rx.
 
-Violations of these guarantees are course UB and appear in no positive,
+Violations of these guarantees are undefined behavior and appear in no positive,
 negative, or performance test. Students need not resolve imports or diagnose
 missing imported items, conflicting imports, or other import validity errors.
 Malformed use syntax retains ordinary parser behavior. After discarding use
 declarations, ordinary name, type, and place-mutability errors elsewhere in the
-program remain static errors.
+program remain compile errors.
 
 ### Lifetime validity
 
-Lifetime declarations, annotations, arguments, bounds, and elision follow the supported Rust 2021 rules described in [References](references.md#lifetime-validity). Tests guarantee their validity throughout the program. Invalid lifetime use is course UB and appears in no positive, negative, or performance test.
+Lifetime declarations, annotations, arguments, bounds, and elision follow the supported Rust 2021 rules described in [References](references.md#lifetime-validity). Tests guarantee their validity throughout the program. Invalid lifetime use is undefined behavior and appears in no positive, negative, or performance test.
 
 The compiler may discard this lifetime syntax after parsing and need not carry
 it through semantic analysis or LLVM IR generation. The
@@ -102,7 +102,7 @@ explain which information remains necessary.
 
 Tests exclude undeclared or duplicate lifetimes, invalid shadowing, incorrect argument counts or placement, forbidden explicit late-bound arguments, ambiguous missing annotations, unsatisfied outlives bounds, invalid `'static` claims, rejected unused parameters, and bodies or uses that fail to uphold their annotations.
 
-Malformed tokens and syntax retain their ordinary lexer and parser behavior. Other type and place-mutability errors remain static errors. No lifetime or ownership checker is required; actual references must still obey the [borrowing rules](references.md#borrowing-rules).
+Malformed tokens and syntax retain their ordinary lexer and parser behavior. Other type and place-mutability errors remain compile errors. No lifetime or ownership checker is required; actual references must still obey the [borrowing rules](references.md#borrowing-rules).
 
 </details>
 
@@ -113,7 +113,7 @@ Unit `()` is valid as a function or control-flow result.
 <details>
 <summary>Excluded zero-sized uses</summary>
 
-All other uses requiring observable zero-sized storage are course UB, including:
+All other uses requiring observable zero-sized storage are undefined behavior, including:
 
 - Zero-sized parameters, bindings, constants, statics, or assignment destinations.
 - Empty structs or zero-sized fields.

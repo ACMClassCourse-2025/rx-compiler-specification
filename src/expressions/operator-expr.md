@@ -47,9 +47,9 @@ Primitive arithmetic and bit operations support the scalar and reference operand
 | Arithmetic/bitwise compound assignment | A mutable place of primitive type T; right is T or &T for the corresponding operation | Unit |
 | Shift compound assignment | A mutable place of primitive integer type L; right is R or &R | Unit |
 
-Expected types do not propagate through binary or unary operators to their operands. Programs requiring that propagation for integer inference are [course UB](../types.md#coercion-sites-and-expected-types). For example, `let n: u32 = 1 + 2;` and `let n: isize = -1;` are course UB; writing `1u32 + 2u32` and `-1isize` supplies the types explicitly.
+Expected types do not propagate through binary or unary operators to their operands. Programs requiring that propagation for integer inference are [undefined behavior](../types.md#coercion-sites-and-expected-types). For example, `let n: u32 = 1 + 2;` and `let n: isize = -1;` are undefined behavior; writing `1u32 + 2u32` and `-1isize` supplies the types explicitly.
 
-Compound assignment likewise does not infer the right operand's integer type from the destination. For `n: u32`, `n += 1;` requires that inference and is course UB; `n += 1u32;` is valid when `n` is mutable. All operand requirements in the table still apply.
+Compound assignment likewise does not infer the right operand's integer type from the destination. For `n: u32`, `n += 1;` requires that inference and is undefined behavior; `n += 1u32;` is valid when `n` is mutable. All operand requirements in the table still apply.
 
 <details>
 <summary>Reference operand details</summary>
@@ -84,7 +84,7 @@ LazyBooleanExpression ->
     | Expression `&&` Expression
 ```
 
-Equality operators use the [PartialEq and equality rules](../builtin-traits.md#partialeq), including operand typing, implicit borrowing, and structural comparison. Equality between different source types is course UB; see the [cross-type equality guarantee](../undefined-behavior.md#cross-type-equality).
+Equality operators use the [PartialEq and equality rules](../builtin-traits.md#partialeq), including operand typing, implicit borrowing, and structural comparison. Equality between different source types is undefined behavior; see the [cross-type equality guarantee](../undefined-behavior.md#cross-type-equality).
 
 Scalar ordering uses `<`, `<=`, `>`, `>=` on matching integer types and bool (false precedes true). Reference operands compare target values, not addresses. Their reference layers must have matching mutability at each depth and end in the same supported scalar type. One additional operand combination is supported: a left operand of type `&T` allows a right operand of type `&mut T`, reborrowed as `&T`, with exactly the same referent type `T`. This operator-specific adjustment does not depend on an expected result type and does not rewrite inner reference layers.
 
@@ -107,7 +107,7 @@ TypeCastExpression -> Expression `as` TypeNoBounds
 
 The [operator precedence table](../expressions.md#precedence) governs expression nesting. After a type-path segment in a cast, `<` begins [GenericArgs] rather than a comparison. A leading `<` from `<<` likewise enters type-argument parsing. Parenthesizing the cast makes the intended operation explicit: `(x as usize) < y` and `(x as usize) << y`. A parenthesized type already closes the type syntax, so `x as (usize) < y` and `x as (usize) << y` also parse as comparison and shift. Operators such as `<=`, `>`, `>>`, and `==` follow ordinary precedence after the cast type.
 
-The parser checks the resulting syntax; name resolution checks its type arguments. Thus `x as usize<i32>` has a type-path syntax tree but is a static error because the primitive usize takes no type arguments.
+The parser checks the resulting syntax; name resolution checks its type arguments. Thus `x as usize<i32>` has a type-path syntax tree but is a compile error because the primitive usize takes no type arguments.
 
 </details>
 
@@ -143,7 +143,7 @@ Each explicit `*` performs one dereference. Dereferencing `&T` gives shared acce
 
 ## Assignment destinations
 
-An assignment destination is one mutable [place](../expressions.md#places-and-values). The assigned value must have a compatible type. A destination that fails these requirements is a static error.
+An assignment destination is one mutable [place](../expressions.md#places-and-values). The assigned value must have a compatible type. A destination that fails these requirements is a compile error.
 
 Assignments such as `s = other;` and `a = other_array;` store an entire struct or array in one place.
 

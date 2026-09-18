@@ -10,11 +10,11 @@ This book defines the syntax and semantics of Rx rigorously, and it, alongside t
 
 ## How to read the specification
 
-Start by reading [language scope and test guarantees](undefined-behavior.md), which distinguish valid programs, static errors, and excluded cases i.e. *course UB*. Get an idea of what features are required, and which are not.
+Start by reading [language scope and test guarantees](undefined-behavior.md), which distinguish valid programs, compile errors, and excluded cases i.e. *undefined behavior*. Get an idea of what features are required, and which are not.
 
 Then jump into the [lexical structure](lexical-structure.md), as well as [items](items.md), [types](types.md), and [expressions](expressions.md). These sections define the complete grammar of the Rx language. There is a quick lookup table in the [grammar summary](grammar-summary.md) section.
 
-While reading, we recommend doing experiments with the rust compiler. You may also do experiments on any online Rust compiler like [this](https://play.rust-lang.org/?version=stable&mode=debug&edition=2024) or [this](https://godbolt.org/) to see what compiles or what not. Note that we **do not treat compiler warnings as static errors**.
+While reading, we recommend doing experiments with the rust compiler. You may also do experiments on any online Rust compiler like [this](https://play.rust-lang.org/?version=stable&mode=debug&edition=2024) or [this](https://godbolt.org/) to see what compiles or what not. Note that we **do not treat compiler warnings as compile errors**.
 
 ## How to get started
 

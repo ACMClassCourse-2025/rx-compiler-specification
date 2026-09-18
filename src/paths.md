@@ -36,7 +36,7 @@ GenericArgList -> (GenericArg `,`)* GenericArg `,`?
 GenericArg -> Lifetime | Type
 ```
 
-Arguments are comma-separated, may have a trailing comma, and place lifetimes before types. `Box` and `Vec` require exactly one explicit concrete type argument. User functions and structs accept only their declared lifetime arguments; primitive types accept none. Type-argument arity and kind violations are static errors; lifetime correctness follows the [lifetime validity guarantee](undefined-behavior.md#lifetime-validity).
+Arguments are comma-separated, may have a trailing comma, and place lifetimes before types. `Box` and `Vec` require exactly one explicit concrete type argument. User functions and structs accept only their declared lifetime arguments; primitive types accept none. Type-argument arity and kind violations are compile errors; lifetime correctness follows the [lifetime validity guarantee](undefined-behavior.md#lifetime-validity).
 
 A type argument may recursively contain any supported concrete type. For example:
 
@@ -56,4 +56,4 @@ let borrowed = Vec::<&'a i32>::new();
 
 Functions and methods may use explicit lifetime arguments where Rust permits them. Omitted lifetimes use the supported Rust 2021 inference and elision rules. Tests guarantee that explicit lifetime arguments, including early-bound and late-bound uses, are valid.
 
-Unresolved names are static errors. After resolution, calls check value arguments and receiver rules. Incorrect lifetime arguments or elision are course UB under the [lifetime validity guarantee](undefined-behavior.md#lifetime-validity).
+Unresolved names are compile errors. After resolution, calls check value arguments and receiver rules. Incorrect lifetime arguments or elision are undefined behavior under the [lifetime validity guarantee](undefined-behavior.md#lifetime-validity).

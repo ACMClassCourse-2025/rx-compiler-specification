@@ -47,16 +47,16 @@ Expected types come from the [contexts and propagation rules below](#coercion-si
 ```rust,ignore
 let n = 1;                   // i32: no expected type
 let count: u32 = 1;          // u32: from the annotation
-let sum: u32 = 1 + 2;        // course UB: needs propagation through +
-let neg: isize = -1;         // course UB: needs propagation through unary -
-let r: &u32 = &1;            // course UB: needs propagation through &
+let sum: u32 = 1 + 2;        // undefined behavior: needs propagation through +
+let neg: isize = -1;         // undefined behavior: needs propagation through unary -
+let r: &u32 = &1;            // undefined behavior: needs propagation through &
 let values: [u32; 2] = [1, 2]; // u32 elements; usize length
-let bad: u32 = 1i32;         // static error: a suffix fixes the type
-let later: u32 = n;          // static error: n is already i32
-let mixed = 1 + 2u32;        // static error: no expected type for 1
+let bad: u32 = 1i32;         // compile error: a suffix fixes the type
+let later: u32 = n;          // compile error: n is already i32
+let mixed = 1 + 2u32;        // compile error: no expected type for 1
 ```
 
-Array lengths and indices have expected type `usize`, so `[i32; 4]`, `[0; 4]`, and `data[0]` are valid without suffixes. Range checking follows type selection: a literal outside the selected type's range is [course UB](undefined-behavior.md#integer-literal-range). Its magnitude does not select a different type.
+Array lengths and indices have expected type `usize`, so `[i32; 4]`, `[0; 4]`, and `data[0]` are valid without suffixes. Range checking follows type selection: a literal outside the selected type's range is [undefined behavior](undefined-behavior.md#integer-literal-range). Its magnitude does not select a different type.
 
 ## Conversions and coercions
 
@@ -81,11 +81,11 @@ These sites have a known expected type and use one-to-one coercion:
 | Function tail or `return` operand | Declared result |
 | Struct field initializer | Declared field |
 
-The expected type passes through parentheses and block tails, to both result branches of an `if`, and to all `break` values targeting a `loop`. An expected array type `[T; N]` supplies `T` to each listed or repeated element and requires length `N`. Each of these result expressions is checked against that target; failure is a static error except for the propagation exclusion below.
+The expected type passes through parentheses and block tails, to both result branches of an `if`, and to all `break` values targeting a `loop`. An expected array type `[T; N]` supplies `T` to each listed or repeated element and requires length `N`. Each of these result expressions is checked against that target; failure is a compile error except for the propagation exclusion below.
 
-Propagation repeats only through the forms listed above. It does not pass through binary operations, unary operations, or borrow expressions (`&e` and `&mut e`), and does not revisit earlier binding initializers. A program that needs propagation through an operator or borrow to determine an integer literal's type is **course UB**, rather than a required static error.
+Propagation repeats only through the forms listed above. It does not pass through binary operations, unary operations, or borrow expressions (`&e` and `&mut e`), and does not revisit earlier binding initializers. A program that needs propagation through an operator or borrow to determine an integer literal's type is **undefined behavior**, rather than a required compile error.
 
-This excludes reliance on propagation, not the operators or borrows themselves. For example, `let n: i32 = 1 + 2;` works by defaulting, and `let r: &u32 = &1u32;` works because the suffix fixes the type. Incompatible types fixed by suffixes or existing bindings remain static errors. Call arguments still get their declared expected types, even inside an operator or borrow.
+This excludes reliance on propagation, not the operators or borrows themselves. For example, `let n: i32 = 1 + 2;` works by defaulting, and `let r: &u32 = &1u32;` works because the suffix fixes the type. Incompatible types fixed by suffixes or existing bindings remain compile errors. Call arguments still get their declared expected types, even inside an operator or borrow.
 
 Conditions require `bool`, array lengths and indices have expected type `usize`, and loop bodies and an `if` without `else` require unit results. Operators follow their [operand rules](expressions/operator-expr.md). These requirements do not enable additional conversions.
 
@@ -145,7 +145,7 @@ For an unknown target, first determine each result's type independently, using `
 
 1. If `U` can coerce to `T`, keep `T`.
 2. Otherwise, if `T` can coerce to `U` and every earlier result can be adjusted to `U`, use `U` as the new target and adjust those results too.
-3. If not, the behavior is undefined ([course UB](undefined-behavior.md#test-guarantees)). No search for a third common type is required.
+3. If not, the behavior is undefined ([undefined behavior](undefined-behavior.md#test-guarantees)). No search for a third common type is required.
 
 If all results are never, the result type is never. Empty arrays follow the [zero-sized-data exclusion](undefined-behavior.md#zero-sized-data). A bare `break;` supplies `()`; breaks targeting nested loops do not participate.
 
@@ -156,17 +156,17 @@ Each row below is a separate example:
 | `let a = [&mut 1, &123];` | `[&i32; 2]`; the first element becomes shared |
 | `let a = [&123, &mut 1];` | The same type; the second element becomes shared |
 | `let a = [&mut 1u32, &123u32];` | `[&u32; 2]` |
-| `let a = [&mut 1u32, &123];` | Course UB: no expected type for `123`, so it is `i32` |
-| `let a: [&u32; 2] = [&mut 1, &123];` | Course UB: inferring `u32` would require propagation through both borrows |
+| `let a = [&mut 1u32, &123];` | Undefined behavior: no expected type for `123`, so it is `i32` |
+| `let a: [&u32; 2] = [&mut 1, &123];` | Undefined behavior: inferring `u32` would require propagation through both borrows |
 | `let a: [&u32; 2] = [&mut 1u32, &123u32];` | Valid: the literals are already `u32`; the first reference coerces to shared |
-| `let a = [&mut &1, &mut &mut 2];` | Course UB: inner reference mutability differs |
-| `let a: [&mut &i32; 2] = [&mut &1, &mut &mut 2];` | Static error: the second element cannot meet the fixed expected type |
+| `let a = [&mut &1, &mut &mut 2];` | Undefined behavior: inner reference mutability differs |
+| `let a: [&mut &i32; 2] = [&mut &1, &mut &mut 2];` | Compile error: the second element cannot meet the fixed expected type |
 
 These rules determine the types of expressions; they do not change evaluation order or the separate method and operator adjustment rules.
 
 ## Recursive types
 
-A by-value struct or array containment cycle has no finite size and is a static error. References, `Box`, and `Vec` provide indirection, so recursive and mutually recursive structs through those types are supported.
+A by-value struct or array containment cycle has no finite size and is a compile error. References, `Box`, and `Vec` provide indirection, so recursive and mutually recursive structs through those types are supported.
 
 ```rust,ignore
 struct Node {

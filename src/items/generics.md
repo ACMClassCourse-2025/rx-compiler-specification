@@ -39,7 +39,7 @@ fn choose<'a>(left: &'a i32, right: &'a i32, first: bool) -> &'a i32 {
 Lifetime parameters are in scope throughout their item. An impl's lifetimes
 also apply inside its associated items; a method may declare additional
 lifetimes. Lifetime names occupy their own namespace. Incorrect lifetime
-declarations, uses, or bounds are course UB; see the
+declarations, uses, or bounds are undefined behavior; see the
 [lifetime validity guarantee](../undefined-behavior.md#lifetime-validity).
 
 ## Lifetime forms and bounds

@@ -30,7 +30,7 @@ fn main() {
 
 **Functionality.** `Clone` provides `fn clone(&self) -> Self`. Derived clone recursively clones fields and elements into an independent value. Scalars and shared references are copied; a shared reference's target is not cloned. [Container cloning](heap.md#clone-and-equality) defines owned heap contents.
 
-An explicit `.clone()` uses [method lookup](expressions/method-call-expr.md#method-lookup). Multiple matching methods, including same-named inherent methods or clones at different dereference levels, make the call course UB. Compiler-generated field clones call the field's builtin operation directly.
+An explicit `.clone()` uses [method lookup](expressions/method-call-expr.md#method-lookup). Multiple matching methods, including same-named inherent methods or clones at different dereference levels, make the call undefined behavior. Compiler-generated field clones call the field's builtin operation directly.
 
 **Requirements.** Deriving `Clone` requires every field to be `Clone`. Mutable references are not `Clone`.
 
@@ -52,7 +52,7 @@ fn main() {
 
 **Functionality.** `PartialEq` enables `==` and `!=`, which borrow their operands. Scalars compare values; arrays compare corresponding elements; derived structs compare fields; references compare their targets, not their addresses. Padding is ignored, so whole-object `memcmp` is not generally valid. `Box` and `Vec` follow [container equality](heap.md#clone-and-equality).
 
-**Requirements.** Deriving `PartialEq` requires every field to be `PartialEq`. Both operands must have exactly the same source type with `PartialEq`; equality does not coerce them to a common type or supply an expected integer type to either operand. Thus `1 == 1i32` is valid, while `1 == 1u32` is course UB under the [cross-type equality guarantee](undefined-behavior.md#cross-type-equality).
+**Requirements.** Deriving `PartialEq` requires every field to be `PartialEq`. Both operands must have exactly the same source type with `PartialEq`; equality does not coerce them to a common type or supply an expected integer type to either operand. Thus `1 == 1i32` is valid, while `1 == 1u32` is undefined behavior under the [cross-type equality guarantee](undefined-behavior.md#cross-type-equality).
 
 **Example.** Compare records without consuming them.
 

@@ -25,10 +25,7 @@ Rx includes:
 - `if`, `while`, `loop`, `return`, `break`, and `continue` control flow.
 - Struct derives for `Copy`, `Clone`, `PartialEq`, and `Eq`.
 
-<details>
-<summary>Unsupported Rust features</summary>
-
-The course subset excludes:
+The Rx subset excludes:
 
 - User traits, trait bounds, and trait objects.
 - Enums, non-unit tuples, tuple structs, tuple variants, and unit variants.
@@ -39,21 +36,9 @@ The course subset excludes:
 - General constant evaluation beyond the restricted [constant contexts](const_eval.md), and const generics. Constant propagation remains an optional optimization.
 - Integer overflow checks.
 
-</details>
-
 [Types](types.md), [expressions](expressions.md), and the [grammar summary](grammar-summary.md) define the complete subset. Forms outside that grammar are unsupported.
 
 ## Test guarantees
-
-Valid executions obey these contracts:
-
-| Contract | Rules |
-| --- | --- |
-| Integer arithmetic and preconditions | [Operators](expressions/operator-expr.md#arithmetic-and-bits) |
-| Array indices | [Index expressions](expressions/array-expr.md#array-index-expressions) |
-| Container operations | [Box and Vec](heap.md) |
-| Initialization, copying, moves, and ownership | [Value semantics](builtin-traits.md#copy) |
-| Lifetimes, borrowing, and storage | [References](references.md) |
 
 The following source forms are course UB and never appear in tests, including in unreachable code and constant contexts where applicable:
 

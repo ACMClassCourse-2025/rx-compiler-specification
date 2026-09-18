@@ -1,15 +1,15 @@
 # Rx Compiler Specification
 
-This book defines the Rust subset used by the compiler course and its RV32IM execution target. Students implement the frontend, IR, optimizations, and code generation on top of the supplied lexer and parser.
+Welcome to the Rx Compiler course! In this course, you are required to write a compiler for a subset of [Rust](https://www.rust-lang.org/) we call *Rx*. The compiler will target the [RV32IM](https://en.wikipedia.org/wiki/RISC-V) instruction set architecture. To speed things up, we will provide you with the [ANTLR G4](https://www.antlr.org/) representation for this language, which automates the parsing process so you will start working with an AST tree.
 
-## Status and authority
-
-This is the **2026 working revision**. Every assessed interface must be specified before tests depend on it. [Publication validation](open-decisions.md) lists the remaining integration checks; assessment and scoring are separate course documents.
-
-Only chapters listed in this book's table of contents are normative. The grammar and static rules define the supported source language. A reference to Rust behavior applies only to supported constructs and the rules stated here.
+This book defines the syntax and semantics of Rx rigorously, and it, alongside the official Rust Compiler, serves as the source truth for this course. If you find any ambiguities or disagreements between the two, do not hesitate to reach out to your TA for clarification.
 
 ## How to read the specification
 
-Code blocks use the course language unless labeled otherwise. Grammar defines accepted forms, while [language scope and test guarantees](undefined-behavior.md) distinguish valid programs, static errors, and excluded cases called *course UB*.
+Before you start, we recommend taking a look into any beginner tutorial for Rust to get started. You do not need to dive deep since we are implementing a subset, but some basic familiarity with the Rust syntax is definitely recommended.
 
-A compiler error is not a runtime crash. Likewise, course UB does not excuse incorrect behavior for a valid program. Runtime integer behavior is defined by [Operators](expressions/operator-expr.md), and storage duration follows the supported Rust 2021 rules in [References](references.md).
+Start by reading [language scope and test guarantees](undefined-behavior.md), which distinguish valid programs, static errors, and excluded cases i.e. *course UB*. Get an idea of what features are required, and which are not.
+
+Then jump into the [lexical structure](lexical-structure.md), as well as [items](items.md), [types](types.md), and [expressions](expressions.md). These sections define the complete grammar of the Rx language. There is a quick lookup table in the [grammar summary](grammar-summary.md) section.
+
+While reading, we recommend doing experiments with the rust compiler. You may also do experiments on any online Rust compiler like [this](https://play.rust-lang.org/?version=stable&mode=debug&edition=2024) or [this](https://godbolt.org/) to see what compiles or what not. Note that we **do not treat compiler warnings as static errors**.

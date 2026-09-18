@@ -1,6 +1,8 @@
 # Language scope and test guarantees
 
-## Conformance categories
+## Definition
+
+We distinguish between a Valid Program, a Static Error (or Invalid Program) and a Course UB (or Undefined Behavior):
 
 | Category | Compiler requirement | Test policy |
 | --- | --- | --- |

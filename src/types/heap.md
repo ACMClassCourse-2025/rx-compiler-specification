@@ -6,8 +6,7 @@ container type and its single concrete type argument.
 
 ## Box types
 
-`Box<T>` is an owning container for one value of type T. Its [GenericArgs] must contain
-one explicitly written [Type], with an optional trailing comma. A Box has a
+`Box<T>` is an owning container for one value of type T. A Box has a
 fixed-size representation referring to separately allocated storage for its
 contents. Its source operations are described in [Box access and
 moves](../heap.md#box-access-and-moves).
@@ -15,7 +14,7 @@ moves](../heap.md#box-access-and-moves).
 ## Vec types
 
 `Vec<T>` is an owning sequence of T values with a runtime length. The type
-argument determines the element type. The sequence's elements occupy separate
+argument determines the element type. The sequence's elements occupy contiguous heap
 storage, while the Vec value has a fixed-size representation. Its operations
 are specified in [Vec operations](../heap.md#vec-operations).
 
@@ -42,48 +41,23 @@ govern the assessed element and referent types.
 | `Vec<Vec<i32,>,>` | Nested vectors with trailing type-argument commas |
 
 ```rust,ignore
-struct Node {
-    value: i32,
-    children: Vec<Self>,
-}
-
 struct Storage {
-    nodes: Vec<Box<Node>>,
+    values: Vec<Box<i32>>,
     counts: Box<[i32; 4]>,
 }
 
-fn wrap(value: Node) -> Box<Node> {
-    Box::<Node>::new(value)
-}
-
-fn append(nodes: &mut Vec<Box<Node>>, value: Box<Node>) {
-    nodes.push(value);
+fn append(values: &mut Vec<Box<i32>>, value: Box<i32>) {
+    values.push(value);
 }
 ```
 
-The container indirection supports recursive definitions such as Node above;
-the [recursive-type rules](../types.md#recursive-types) determine finite layout.
+The [recursive-type rules](../types.md#recursive-types) define how container indirection permits finite recursive layouts.
 Each example's element type is specified by its type syntax; lifetime arguments
 within that type follow the [lifetime elision rules](../references.md#lifetime-validity).
 Local binding annotations may be inferred from a constructor or other uses in
 the function.
 
-## Constructors
-
-Type paths accept `<T>` or `::<T>` after the name. Constructor expressions use
-`::<T>` and then `::new` with the value-argument list:
-
-| Type | Constructor expression | Initial value |
-| --- | --- | --- |
-| `Box<T>` | `Box::<T>::new(value)` | One owned value of T |
-| `Vec<T>` | `Vec::<T>::new()` | An empty sequence of T |
-
-Both constructors are [CallExpression] forms whose callee is a
-[PathExpression] with type arguments. Box new takes one expression and an
-optional trailing comma; Vec new takes an empty value-argument list. The
-constructor's result participates in ordinary field access, indexing, method
-calls, borrowing, and dereferencing according to its type.
-
-Nested closing brackets follow the [contextual token rules](../grammar.md#contextual-punctuation).
-For example, `let values: Vec<Vec<i32>>=Vec::<Vec<i32>>::new();` closes the nested
-types before parsing the assignment, with no space required before `=`.
+Container values are created by the [constructors](../heap.md#constructors-and-type-arguments).
+Path separators, turbofish, and trailing argument commas follow
+[Paths](../paths.md); combined closing brackets follow
+[contextual punctuation](../grammar.md#contextual-punctuation).

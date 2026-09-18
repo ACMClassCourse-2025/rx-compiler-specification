@@ -5,6 +5,11 @@ r[items.const.syntax]
 ConstantItem -> `const` IDENTIFIER `:` Type `=` ConstValue `;`
 ```
 
-A constant declaration gives a name, an explicit type, and an initializer. [ConstValue] specifies the integer, boolean, negative-integer, and parenthesized initializer forms.
+A constant declaration gives a name, an explicit type, and an initializer. The initializer follows the [constant-context rules](../const_eval.md) through [ConstValue]. Each ordinary expression use of a constant produces its value.
 
-Constants are declared at the top level or as associated items in an inherent impl. Declaration-order lookup and the distinction between ordinary expressions and constant contexts follow [Constants](../items.md#constants) and [Constant contexts](../const_eval.md).
+Constants are declared at the top level or as associated items in an inherent impl. The [name lookup rules](../names.md#settled-scope-rules) permit uses before the declaration.
+
+```rust,ignore
+const LIMIT: i32 = 100;
+const NEGATIVE: i32 = (-1);
+```

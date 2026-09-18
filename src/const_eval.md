@@ -31,8 +31,8 @@ Array lengths are written literally at each use. Constant names such as COUNT ca
 
 Const-item types are explicit. Array lengths have type `usize` and must fit that type; a bool, signed suffix, or negative value cannot serve as a length. Zero lengths are excluded by the zero-sized-data rules and do not require a diagnostic.
 
-A literal outside its determined type's range is course UB, including in const initializers and array lengths; tests exclude it and no range diagnostic is required. The signed minimum-value syntax is supported. An out-of-range literal does not acquire a defined wrapped value as if it were a runtime arithmetic operation. Ordinary type and restricted-form errors remain static errors.
+Literal range and signed-minimum cases follow [integer literal rules](expressions/literal-expr.md#integer-typing-and-range). Ordinary type and restricted-form errors remain static errors.
 
-The element expression in `[expr; 4]` is an ordinary expression. It is evaluated once; repetition with a length greater than one requires Copy.
+The element expression in `[expr; 4]` is an ordinary expression governed by [array repetition](expressions/array-expr.md#array-expressions). Only its length is a constant context.
 
 Constant propagation and folding of ordinary runtime expressions remain permitted optimizations. They do not turn those expressions into const contexts or change their arithmetic semantics.

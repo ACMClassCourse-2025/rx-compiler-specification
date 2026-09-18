@@ -18,9 +18,8 @@ In an expression, `::` introduces generic arguments. It distinguishes an argumen
 list from comparison operators. `Box::<i32>::new` consists of a Box segment
 with the argument i32 followed by the member segment new.
 
-Unqualified names and `self` resolve in the value namespace. A prefix such as
-`Point` or `Self` in `Point::new` or `Self::LIMIT` resolves in the type namespace;
-the final segment names an associated function, method, or constant.
+Expression paths follow the [namespace rules](names.md#settled-scope-rules). The
+final segment of `Point::new` or `Self::LIMIT` names an associated item.
 
 [CallExpression] applies an argument list to the resulting path expression.
 For example, `Box::<i32>::new(7)` and `Vec::<i32>::new()` are calls to the builtin
@@ -39,12 +38,9 @@ A type segment may introduce its arguments directly with `<` or with `::<`.
 `Vec::<T>` for a concrete T. The surrounding type context determines how the
 angle brackets are parsed.
 
-Type names resolve to primitive types, declared structs, or the builtin
-containers. `Self` denotes the surrounding struct in its declaration and impls.
-A Box or Vec segment has exactly one explicit concrete type argument. A
-user-defined struct may supply its declared lifetime arguments, as in
-`View<'a>` or `View<'_>`. Lifetime arguments may also be elided where Rust
-permits it. Primitive names denote their types directly.
+[Path resolution](#path-resolution) determines the named type. User-defined
+struct paths may supply lifetime arguments, as in `View<'a>` or `View<'_>`,
+or use the permitted lifetime elision.
 
 ## Generic arguments
 
@@ -103,16 +99,30 @@ Rust's inference and elision rules. Correct explicit lifetime arguments,
 including Rust's distinction between early-bound and late-bound function
 lifetimes, are guaranteed by tests. See [lifetime parameters](items/generics.md).
 
-A type argument belongs to a Box or Vec segment. A lifetime may appear inside
-that type, as in `Box::<&'a i32>::new(value)`, or on a user-defined struct path
-inside it, as in `Vec::<View<'a>>::new()`. The builtin Box and Vec declarations
-themselves have type parameters only.
+Lifetimes may also occur within a container's type argument, as in
+`Box::<&'a i32>::new(value)` or `Vec::<View<'a>>::new()`.
 
-Unresolved type, value, and member names are static errors. A constructor call
-must also match its value-argument signature: Box new takes one value of T,
-and Vec new takes an empty value-argument list. Lifetime-specific errors are
-covered by the lifetime validity guarantee.
+Unresolved type, value, and member names are static errors. After resolution,
+[call expressions](expressions/call-expr.md) check the callable's value-argument
+signature, including the [container constructors](heap.md#constructors-and-type-arguments).
+Lifetime-specific errors are covered by the lifetime validity guarantee.
 
 The parser can form a path tree before these checks. This separates the shared
 path syntax from the finite set of names and callable signatures supplied by
 the language.
+
+```rust,ignore
+struct Counter { value: i32 }
+
+impl Counter {
+    const LIMIT: i32 = 10;
+    fn new() -> Self { Self { value: 0 } }
+    fn read(&self) -> i32 { self.value }
+}
+
+fn main() {
+    let counter: Counter = Counter::new();
+    printlnInt(counter.read());
+    printlnInt(Counter::LIMIT);
+}
+```

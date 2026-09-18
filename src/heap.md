@@ -1,24 +1,13 @@
 # Box and Vec
 
-## Containers
-
-The language provides builtin `Box<T>` for one owned heap object and `Vec<T>` for an owned contiguous sequence with runtime length. Each takes one concrete element type T and provides the operations defined in this chapter.
-
-Both containers are non-Copy and use the established move semantics. A struct directly containing either cannot derive Copy. Moving a container transfers its owned value; it does not create two independent owners or deep-clone its contents. Shared references to containers retain the ordinary reference Copy rules.
-
-The compiler knows the concrete T, its layout, and the operations required for it. The runtime allocator operates on sizes and alignments, while the compiler supplies the type-dependent operations.
-
-## Type composition and recursion
-
-Box and Vec compose with the other supported concrete types, including named structs, arrays, references, and nested containers. The zero-sized-data exclusions apply to their element types.
-
-Recursive types such as `struct Node { children: Vec<Node> }` and mutually recursive structs through Box/Vec are supported. These containers provide indirection, so their stored representations do not require expanding all contained values inline. An empty Vec supplies a leaf for a tree. The [recursive-type rules](types.md#recursive-types) distinguish finite layouts from invalid inline containment cycles.
-
-The conditional Clone and equality operations below support recursive type graphs. Capability checking handles cycles while enforcing each field's requirements; execution applies the operation to a finite value. Heap storage is reclaimed together at program termination.
+[Box and Vec types](types/heap.md) defines the containers and their type
+composition. This chapter specifies their source operations and storage policy.
+Their Copy, Clone, and equality capabilities follow the
+[builtin capability table](builtin-traits.md#derive).
 
 ## Constructors and type arguments
 
-Constructors are written `Box::<T>::new(value)` and `Vec::<T>::new()`. The single type argument T is an explicit concrete type, including at every nesting level. References and structs inside T may carry lifetime arguments or use permitted lifetime elision, as in `Vec::<&'a i32>::new()` and `Vec::<View<'_>>::new()`. Type paths accept `Box<T>` / `Vec<T>` and the equivalent `Box::<T>` / `Vec::<T>` spellings. Expression paths introduce the arguments with `::<T>`, following the [path syntax](paths.md). Both constructors use [CallExpression] with a [PathExpression] callee.
+Constructors are written `Box::<T>::new(value)` and `Vec::<T>::new()`. They use [CallExpression] with a [PathExpression] callee and the explicit type argument required by [Paths](paths.md#generic-arguments). Each type argument is concrete at every nesting level. Lifetime arguments within it follow the [lifetime elision rules](references.md#lifetime-validity), as in `Vec::<&'a i32>::new()` and `Vec::<View<'_>>::new()`. The lifetime placeholder `'_` is distinct from type-position `_`.
 
 ```rust,ignore
 let b = Box::<i32>::new(7);
@@ -28,9 +17,9 @@ let mut nested: Vec<Vec<i32>> = Vec::<Vec<i32>>::new();
 nested.push(values);
 ```
 
-A local binding can omit its own annotation because the constructor's explicit element type supplies the information. Other expressions in the function participate in the ordinary local inference rules, including backward constraints.
+Constructor results participate in [ordinary inference](types.md#inference), field access, indexing, method calls, borrowing, and dereferencing according to their type.
 
-Box construction takes one argument of the stated T, allowing the specified argument coercions, and copies or moves it into owned heap storage. Vec construction takes no arguments and creates a sequence of length zero. Neither constructor imposes Copy, Clone, or equality bounds on T.
+Box construction takes one argument of the stated T, allowing the specified argument coercions, and copies or moves it into owned heap storage. An optional trailing comma follows that argument. Vec construction takes no arguments and creates a sequence of length zero. Neither constructor imposes Copy, Clone, or equality bounds on T.
 
 ## Box access and moves
 
@@ -64,20 +53,18 @@ if !stack.is_empty() {
 }
 ```
 
-Reading a Copy element through indexing copies it. Moving a non-Copy element directly out of `v[index]` is excluded; use remove to transfer ownership while maintaining the initialized sequence. Assignment to a mutable element place remains supported. Storage formerly owned by a replaced element may remain until program termination; no recursive destruction or immediate release is required.
+Reading a Copy element through indexing copies it. Moving a non-Copy element directly out of `v[index]` is excluded; use remove to transfer ownership while maintaining the initialized sequence. Assignment to a mutable element place remains supported. Storage formerly owned by a replaced element follows the [reclamation policy](#program-end-reclamation).
 
 Vec element access uses indexing and the operations in the table above. Dereferencing requires a reference or Box operand, so `*v` for `v: Vec<T>` is a static error. A reference to a Vec refers to the container itself; it does not coerce to a reference to T.
 
 ## Clone and equality
 
-| Container | Clone | PartialEq | Eq |
-| --- | --- | --- | --- |
-| Box<T> | When T is Clone | When T is PartialEq | When T is Eq |
-| Vec<T> | When T is Clone | When T is PartialEq | When T is Eq |
+The [capability table](builtin-traits.md#derive) determines whether these
+operations are available, including on recursive container graphs.
 
 Cloning a Box produces an independent owned clone of its T; cloning a Vec clones its elements in order into an independent sequence of the same length. Nested owned containers are cloned recursively. Shared-reference elements copy the references and continue to share their referents; deep cloning does not mean following shared references. Internal allocations may be optimized only when all observable behavior is preserved.
 
-Equality is tested between two Box<T> values with the same T, or two Vec<T> values with the same T. Box equality compares the stored values. Vec equality compares lengths and corresponding elements, independent of addresses, spare capacity, and padding. Containers with different element types, and a Vec compared with an array, are cross-type equality cases excluded as course UB. Eq marks equality as an equivalence relation. These conditional capabilities compose with struct derives, including `#[derive(Clone, PartialEq, Eq)] struct Node { children: Vec<Node> }`.
+Under the [equality operand rules](builtin-traits.md#equality), Box equality compares the stored values. Vec equality compares lengths and corresponding elements, independent of addresses, spare capacity, and padding. These operations compose with struct derives and execute on finite values of recursive types.
 
 ## Storage and references
 
@@ -91,18 +78,11 @@ Zero-sized heap objects are excluded. An empty Vec with nonzero-sized T is a val
 
 Heap allocations may remain for the entire execution and are reclaimed together when that execution ends. This policy applies across scope exit, overwrite, move-out, return, break, continue, and Vec buffer replacement.
 
-Reclaiming the execution's heap arena or resetting its memory in the runtime or execution environment completes cleanup. Generated code may leave that work entirely to the execution environment. A bump allocator is an acceptable implementation strategy.
+Reclaiming the execution's heap arena or resetting its memory in the runtime or execution environment completes cleanup. Generated code may leave that work entirely to the execution environment. A bump allocator is an acceptable implementation strategy. No per-value automatic cleanup, final object-graph traversal, object registry, or cleanup ownership flags are required.
 
 Source-level ownership and reference validity are unchanged. Moving a value still transfers ownership, Clone still creates independent owned contents, and expired or invalidated references remain unusable even if their bytes remain allocated. Stack storage continues to follow the separate reference and storage-duration rules.
 
 Implementations may eliminate allocations or reclaim provably unused storage earlier when observable behavior and valid references are preserved, including old Vec buffers after growth. Such reclamation is an optional optimization. Tests must be runnable without reclamation during execution; they account for cumulative allocation, buffer growth and allocator overhead, rather than only the maximum simultaneously live payload. The [backend resource baseline](backend.md#42-参考-vec-策略与资源保证) fixes the reference growth strategy, runtime allocation interface, REIMU memory setting and test headroom without making capacity source-observable.
 
-## Implementation workload
-
-Neither an ownership checker nor code generation for automatic per-value cleanup is required. Valid moves, branch-dependent transfers, partial moves, and early returns must still preserve source value semantics; they do not require cleanup flags under the program-end policy.
-
-Vec growth must move initialized elements rather than clone them. The old buffer may remain allocated until program termination and no longer owns the moved values. remove must maintain the initialized sequence and transfer the removed value to its caller. Reallocation and mutation still obey the reference-validity rules above.
-
-The reference runtime uses `__rx_alloc` over REIMU malloc, and the backend contract gives the cumulative-allocation baseline. Release validation must execute the specified container scenarios on the pinned REIMU commit.
-
-The [backend contract](backend.md#41-box--vec-与内存辅助接口) specifies the reference allocator ABI and the division of responsibilities. `__rx_alloc` is a generated-code/runtime interface, not a source builtin. The bundled runtime example provides this allocator wrapper together with I/O.
+The [backend contract](backend.md#41-box--vec-与内存辅助接口) specifies the
+reference allocator ABI, raw-memory helpers, and runtime responsibilities.

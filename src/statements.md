@@ -1,4 +1,4 @@
-# Bindings, statements, and blocks
+# Statements and bindings
 
 ```grammar,statements
 Statement -> `;` | LetStatement | ExpressionStatement
@@ -14,13 +14,11 @@ IdentifierBinding -> `mut`? IDENTIFIER
 
 Every let binds a single identifier to an initializer. An optional `mut` makes the binding mutable. The initializer may produce any supported value, including a reference formed by a borrow expression.
 
-Let and ordinary parameter bindings that collide with a visible unqualified const name are course UB and absent from all tests, as specified in [Names](names.md#settled-scope-rules). No constant-pattern handling or collision diagnostic is required.
+Binding visibility, shadowing, and const-name collisions follow [Names](names.md#settled-scope-rules).
 
-A local type annotation may be omitted. Type constraints from later uses in the same function can determine an earlier binding's type. An annotation fixes the type; it does not request an implicit numeric conversion. An immutable binding cannot be assigned after initialization. Assignment to a mutable place must preserve its type.
+The optional annotation and initializer follow [local type inference](types.md#inference) and [coercion rules](types.md#conversions-and-references). Subsequent writes follow [assignment destinations](expressions/operator-expr.md#assignment-destinations).
 
-A binding's name is visible after its let statement through the rest of the enclosing block, subject to shadowing. The initializer sees the previous environment. Shadowing introduces a distinct binding and does not overwrite an older object's storage merely because the names match.
-
-## Blocks and statements
+## Expression statements
 
 ```grammar,statements
 ExpressionStatement ->
@@ -28,11 +26,9 @@ ExpressionStatement ->
     | ExpressionWithBlock `;`?
 ```
 
-A block executes its statements in order and may end with a tail expression. Its result is the tail expression's value, or `()` when there is no tail. Control flow which does not reach the end follows the [never rules](expressions/loop-expr.md#never-and-unreachable-code).
+A semicolon after an expression discards its result while preserving its effects. An empty `;` statement has no effect.
 
-Statements are initialized lets, expression statements, and empty `;` statements. A semicolon after an expression discards its result while preserving its effects.
-
-An expression with an outer block/control-flow form can be a statement without a semicolon. Such a statement must have unit type or diverge. A final expression used as the enclosing block's tail can have a non-unit type. The expression-statement parsing rule below determines these boundaries.
+An expression with an outer block/control-flow form can be a statement without a semicolon. Such a statement must have unit type or diverge. A final [block tail](expressions/block-expr.md) is a value context instead. The expression-statement parsing rule below determines these boundaries.
 
 ```rust,ignore
 fn select(flag: bool) -> i32 {
@@ -54,9 +50,3 @@ if true {} else {} -1;                      // if statement, then -1 expression 
 ```
 
 The supplied parser must implement these statement boundaries and the grammar above.
-
-## Assignment destinations
-
-An assignment destination is a single mutable place: a variable, field, array or Vec element, or dereference, possibly parenthesized. The assigned value must have a compatible type. A destination that fails these requirements is a static error.
-
-Assignments such as `s = other;` and `a = other_array;` store an entire struct or array in one place.

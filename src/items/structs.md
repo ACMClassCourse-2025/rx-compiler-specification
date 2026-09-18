@@ -15,4 +15,14 @@ A struct declaration gives a name, optional lifetime parameters and bounds, and 
 
 Lifetime parameters describe references stored in the struct, as in `struct View<'a> { value: &'a i32 }`. A type path supplies the corresponding arguments with `View<'a>` or uses Rust's permitted lifetime elision. See [lifetime parameters](generics.md) and [lifetime validity](../references.md#lifetime-validity).
 
-Every field has an explicit type. `Self` is valid in its own struct definition. Empty braces are parsed, but zero-sized data uses remain excluded. See [struct semantics](../items.md#structs) and [recursive layouts](../types.md#recursive-types).
+A struct is a nominal type with explicitly typed, named fields. Its fields are accessible throughout the source compilation unit. [Name rules](../names.md#settled-scope-rules) define field uniqueness and the meaning of `Self` in its declaration. For example, `struct Node { children: Vec<Self> }` refers to the Node being defined.
+
+Struct definitions must have [finite layouts](../types.md#recursive-types). Empty braces are parsed, while data uses follow the [zero-sized-data exclusions](../undefined-behavior.md#zero-sized-data). The [backend contract](../backend.md#2-数据布局) governs implementation layout. Values are created with [struct expressions](../expressions/struct-expr.md) and accessed with [field expressions](../expressions/field-expr.md).
+
+```rust,ignore
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+```

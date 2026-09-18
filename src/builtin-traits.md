@@ -6,11 +6,11 @@ The compiler recognizes four builtin traits: Copy, Clone, PartialEq, and Eq. The
 
 When a place produces a value, a Copy type is copied; otherwise it is moved. This applies uniformly to let initialization, assignment, by-value arguments and receivers, returns, and field reads. Non-Copy bindings do not become implicit aliases.
 
-A move makes the source value unavailable until it is initialized again. Tests exclude use-after-move, double move, invalid partial moves, and moves from borrowed contents or non-Copy indexed array elements. The compiler need not diagnose these ownership violations. It must still implement correct value semantics on valid programs.
+A move makes the source value unavailable until it is initialized again. Tests exclude reads of uninitialized values, use-after-move, double move, invalid partial moves, and moves from borrowed contents or non-Copy indexed array elements. The compiler need not diagnose these ownership violations. Valid moves, including branch-dependent transfers, partial moves, and early returns, must preserve value semantics.
 
 Copy produces a semantically independent value. Copying a shared reference copies that reference, not its referent. Passing an array/struct by an address at machine level must not let the callee modify a Copy value which the caller can still observe. Move may reuse storage when observationally equivalent; it does not require clearing source memory.
 
-Box and Vec are non-Copy. Their operations, including Box move-out and Vec remove, are specified in [Heap](heap.md). Heap storage may remain until program termination; generating recursive per-value cleanup is not required.
+Container move-out operations are specified in [Heap](heap.md), and allocation lifetime follows [program-end reclamation](heap.md#program-end-reclamation).
 
 ## Derive
 
@@ -38,7 +38,7 @@ Write `#[derive(...)]` before a top-level named-field struct. Zero or more such 
 | PartialEq | Every field is PartialEq; no Copy/Clone requirement |
 | Eq | The struct also has PartialEq and every field is Eq |
 
-A struct obtains each capability through an explicit derive request. Requesting Copy requires also requesting Clone; requesting Eq requires also requesting PartialEq. Each request must satisfy its field requirements. Invalid requests are static errors.
+A struct obtains each capability through an explicit derive request satisfying the table above. Invalid requests are static errors.
 
 | Type | Copy | Clone | PartialEq / Eq with the identical source type |
 | --- | --- | --- | --- |
@@ -66,9 +66,9 @@ fn main() {
 }
 ```
 
-An explicit method call uses the [method candidate order](names.md#method-lookup). For a Clone struct S without an inherent clone, `r.clone()` on `r: &S` selects S's clone and returns S. Same-named inherent methods participate under that ordering. Generated field clones use the field's builtin Clone operation directly.
+An explicit `.clone()` call uses [method lookup](expressions/method-call-expr.md#method-lookup), including receiver adjustments and same-named inherent methods. Generated field clones use the field's builtin Clone operation directly.
 
-With no owned-resource fields, copying bytes may implement the required clone result when equivalent. Copy remains a separately requested capability. Box/Vec clone recursively clones the owned contents into independent storage. Shared-reference contents continue to share their referents.
+With no owned-resource fields, copying bytes may implement the required clone result when equivalent. Copy remains a separately requested capability. [Container cloning](heap.md#clone-and-equality) defines the treatment of owned heap contents.
 
 ## Equality
 
@@ -76,4 +76,4 @@ With no owned-resource fields, copying bytes may implement the required clone re
 
 For identical operand types, equality borrows its operands and does not consume non-Copy values. Scalars compare values, arrays of the same type compare elements, and two values of the same derived struct type compare fields. References of the same reference type compare their targets, not their addresses. These operations ignore padding; whole-object memcmp is not generally a correct implementation.
 
-Two Box<T> values compare their contents, and two Vec<T> values compare lengths and corresponding elements under the conditional rules above. Eq marks equality as an equivalence relation. The builtin trait operations are `.clone()`, `==`, and `!=`. Scalar ordering, arithmetic, and bit operations have their own finite operand rules in [Operators](expressions/operator-expr.md).
+[Container equality](heap.md#clone-and-equality) defines comparison of Box and Vec contents. Eq marks equality as an equivalence relation. The builtin trait operations are `.clone()`, `==`, and `!=`. Scalar ordering, arithmetic, and bit operations have their own finite operand rules in [Operators](expressions/operator-expr.md).

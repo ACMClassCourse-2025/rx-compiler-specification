@@ -75,11 +75,11 @@ LazyBooleanExpression ->
     | Expression `&&` Expression
 ```
 
-`==` and `!=` are defined only for operands with exactly the same source type after ordinary local inference and the supported PartialEq capability. Equality can constrain an unresolved operand type, including an unsuffixed integer literal, to the other operand's type; it does not coerce already determined, different types. They borrow operands and do not move non-Copy values. Struct/array comparison is structural and same-typed references compare their targets, as specified in [Builtin traits](../builtin-traits.md). Cross-type equality expressions are course UB and absent from all tests; they do not request an implicit coercion or a general two-type trait implementation.
+Equality operators use the [PartialEq and equality rules](../builtin-traits.md#equality),
+including operand typing, implicit borrowing, structural comparison, and the
+course UB boundary for cross-type comparisons.
 
 Scalar ordering uses `<`, `<=`, `>`, `>=` on matching integer types and bool (false precedes true). Their Rust reference variants are supported and compare target values, not addresses. The underlying ordering implementations compare matching shared-reference layers or matching mutable-reference layers, recursively ending in the same supported scalar type. At the expression boundary, Rust's permitted right-operand reborrow can convert a mutable reference to a shared one; it does not convert shared to mutable or automatically rewrite nested reference layers. For example, `&a < &b`, `&mut a < &mut b`, and `&a < &mut b` work for matching ordered scalars; `&mut a < &b` and `&&a < &&mut b` do not. There is no automatic value/reference comparison such as `a < &b`.
-
-Same-typed reference equality follows the PartialEq rules recursively through reference layers. Shared and mutable references have different source types, so mixed-mutability equality is excluded by the same-type test-domain rule. Scalar ordering follows the separate operand rules above.
 
 `&&` and `||` require bool values, return bool, and short-circuit from left to right. They have no reference-operand variants: `&true && true` is invalid. There is no integer truthiness. Comparison chains such as `a < b < c` require parentheses and compatible intermediate types.
 
@@ -92,6 +92,21 @@ TypeCastExpression -> Expression `as` TypeNoBounds
 `as` supports integer-to-integer casts and bool-to-integer casts. Since all integers are 32 bits, integer casts preserve the 32-bit pattern and interpret it in the destination signedness. False becomes 0 and true becomes 1. Integer-to-bool and reference-to-integer casts are not supported.
 
 Reference borrowing and reborrowing adjustments follow the [reference coercion rules](../types.md#conversions-and-references).
+
+### Cast parsing
+
+The [operator precedence table](../expressions.md#precedence) governs expression
+nesting. After a type-path segment in a cast, `<` begins [GenericArgs] rather
+than a comparison. A leading `<` from `<<` likewise enters type-argument
+parsing. Parenthesizing the cast makes the intended operation explicit:
+`(x as usize) < y` and `(x as usize) << y`. A parenthesized type already closes
+the type syntax, so `x as (usize) < y` and `x as (usize) << y` also parse as
+comparison and shift. Operators such as `<=`, `>`, `>>`, and `==` follow
+ordinary precedence after the cast type.
+
+The parser checks the resulting syntax; name resolution checks its type
+arguments. Thus `x as usize<i32>` has a type-path syntax tree but is a static
+error because the primitive usize takes no type arguments.
 
 ## Borrow, dereference, and assignment
 
@@ -120,6 +135,12 @@ CompoundAssignmentExpression ->
 `&place` forms a shared reference; `&mut place` requires a mutable place. Applied to a value expression, borrowing materializes a temporary. `*reference` accesses its target, and `*box` accesses the owned T under the [Box rules](../heap.md#box-access-and-moves). Other types, including Vec, are not dereference operands. In prefix borrow position, `&&x` means `&(&x)`; infix `left && right` is short-circuit boolean and.
 
 `place = value` stores with the required copy/move behavior. Compound assignment applies the corresponding operation to the current scalar value at the destination. Both forms produce unit. The following order rules apply even if reference-operation lowering ultimately uses the same scalar instructions.
+
+## Assignment destinations
+
+An assignment destination is one mutable [place](../expressions.md#places-and-values). The assigned value must have a compatible type. A destination that fails these requirements is a static error.
+
+Assignments such as `s = other;` and `a = other_array;` store an entire struct or array in one place.
 
 ## Evaluation order
 

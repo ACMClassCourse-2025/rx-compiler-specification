@@ -32,11 +32,13 @@ Type identity is structural for reference, array, Box, and Vec types and nominal
 
 Lifetime annotations satisfy the [lifetime validity contract](references.md#lifetime-validity). For ordinary type identity, a reference is determined by its referent type and mutability, and a struct by its declaration. Lifetime arguments alone do not distinguish source types in the same-type equality rule. Type compatibility and operations must still satisfy the guaranteed lifetime and borrowing conditions.
 
-Box and Vec each take one concrete type argument: `Box<T>` and `Vec<T>`. Their syntax uses [TypePath] and [GenericArgs], with the composition described in [Box and Vec types](types/heap.md). They may contain structs, arrays, references, and other containers, subject to the type-validity and zero-sized-data rules. Copy and Clone become relevant when an operation requires them. Nested types use closing angle brackets as in `Vec<Vec<i32>>`; type paths may also use `::<...>`. Constructors are written `Box::<T>::new(value)` and `Vec::<T>::new()`, as specified in [Heap](heap.md). Each type argument is written explicitly at every nesting level. Lifetime arguments inside it follow Rust's elision rules; for example, `Vec::<View<'_>>::new()` supplies a concrete element type. The lifetime placeholder `'_` is a [Lifetime], distinct from type-position `_`.
+Container type composition is defined in [Box and Vec types](types/heap.md).
+Their [constructors](heap.md#constructors-and-type-arguments) use the
+[generic path syntax](paths.md#generic-arguments).
 
 ## Inference
 
-Inference is monomorphic and local to a function body. Function parameters and results, struct fields, and const declarations have explicit types; omitted function return annotations mean unit. Local lets may omit the type. The initializer and later uses constrain the same binding.
+Inference is monomorphic and local to a function body. Item signatures follow their declaration chapters. For a local let, the initializer and later uses constrain the same binding, whether or not it has an explicit annotation.
 
 ```rust,ignore
 fn take(value: u32) {}
@@ -55,7 +57,7 @@ Function calls, returns, field initialization, array elements, operators, and co
 
 Field and method lookup require the receiver's relevant type to be known at the lookup point. An unresolved receiver or element type can require an earlier annotation, even when later uses contribute backward constraints to other expressions. Lookup uses the known receiver type's fields and method candidates.
 
-Container constructors require an explicit concrete element type, so `let mut v = Vec::<Node>::new();` determines the binding's type immediately. Local annotations may be omitted, and backward constraints apply elsewhere in the function subject to the receiver-lookup rule above.
+A [container constructor's](heap.md#constructors-and-type-arguments) explicit type argument supplies its result type to inference. For example, `let mut v = Vec::<Node>::new();` determines the binding's type immediately.
 
 ## Conversions and references
 
@@ -91,7 +93,7 @@ let moved = p;          // move, not an implicit Copy or unconditional reborrow
 
 After the final move, p cannot be used again without reinitialization; tests exclude such misuse. Passing p to a parameter whose type is &mut i32 can instead reborrow it, allowing successive calls with p. Later inference constraints do not turn an unannotated `let moved = p` into the annotated reborrow above.
 
-The receiver of a method call uses [method lookup and receiver adjustments](names.md#method-lookup), rather than ordinary argument coercion alone. Field access and indexing also apply their supported builtin dereferences. These adjustments do not extend the arithmetic operator table to arbitrary reference operands and do not broaden the numeric `as` cast table. Reference adjustments use the builtin reference and Box operations specified above.
+The receiver of a method call uses [method lookup and receiver adjustments](expressions/method-call-expr.md#method-lookup), rather than ordinary argument coercion alone. Field access and indexing also apply their supported builtin dereferences. These adjustments do not extend the arithmetic operator table to arbitrary reference operands and do not broaden the numeric `as` cast table. Reference adjustments use the builtin reference and Box operations specified above.
 
 ## Recursive types
 

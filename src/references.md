@@ -2,7 +2,7 @@
 
 ## Reference annotations
 
-Reference types are written `&T`, `&mut T`, `&'a T`, or `&'a mut T`, where T is a supported concrete type. The optional lifetime states how long the reference is valid. Lifetime names, `'static`, `'_`, parameter declarations, and bounds follow [Lifetime parameters and bounds](items/generics.md).
+[Reference types](types/pointer.md) specify the referent type, mutability, and optional lifetime. Lifetime declarations and bounds use [Lifetime parameters and bounds](items/generics.md); this chapter defines their validity and storage-duration contract.
 
 Reference types may appear in fields, arrays, parameters, and results. For example:
 

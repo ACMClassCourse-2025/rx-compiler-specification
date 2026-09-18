@@ -1,4 +1,4 @@
-# Names and paths
+# Names and scopes
 
 ## Settled scope rules
 
@@ -18,28 +18,6 @@ A let or ordinary parameter binding with the same name as a const visible as an 
 
 All inherent impl blocks for one struct share one associated-value namespace. Duplicate method, associated-function, or associated-constant names are static errors, including across different impl blocks and regardless of signatures. There is no signature overloading. A field and a method may have the same name because field lookup and method lookup are distinct.
 
-## Supported paths
-
-The supported forms are unqualified names, `self`, struct paths followed by `::member`, and `Self::member`, plus the two explicit heap constructors `Box::<T>::new(value)` and `Vec::<T>::new()`. Associated functions and constants are accessed through a type; ordinary methods can also be invoked with method-call syntax. Type::method may be called with its receiver as an explicit first argument and ordinary argument coercions, without method-call autoref. For example:
-
-```rust,ignore
-struct Counter { value: i32 }
-
-impl Counter {
-    const LIMIT: i32 = 10;
-    fn new() -> Self { Self { value: 0 } }
-    fn read(&self) -> i32 { self.value }
-}
-
-fn main() {
-    let counter: Counter = Counter::new();
-    printlnInt(counter.read());
-    printlnInt(Counter::LIMIT);
-}
-```
-
-Struct paths may carry lifetime arguments, as in `View::<'a>::new(value)` and `View<'a>` in a type context. Functions and methods may use explicit lifetime arguments where Rust permits them. Box and Vec constructors specify their concrete type argument in the turbofish. Builtin Clone uses `.clone()`, and builtin equality uses `==` and `!=`. Inherent methods named eq or ne follow the ordinary method rules. The grammar in [Paths](paths.md) defines the path forms.
-
 ## Protected builtin names
 
 User declarations and bindings cannot replace a builtin in its protected namespace:
@@ -53,20 +31,3 @@ User declarations and bindings cannot replace a builtin in its protected namespa
 These names are lexically identifiers whose protection is checked in the stated namespace. A spelling may be used in another namespace, or as a field or associated item name. For example, a field named Vec is permitted. An inherent method named clone participates in the ordinary method candidate order. Inherent impls belong to user-defined named-field structs.
 
 Redeclaring a protected builtin in its namespace is a static error. Ordinary local shadowing, type/value separation, and cross-impl duplicate checks follow the rules above.
-
-## Method lookup
-
-Method calls resolve using the following candidate order:
-
-1. Start with the receiver expression's type and repeatedly apply supported dereferencing, recording each type in order.
-2. Immediately after each recorded type T, insert &T and &mut T as candidate receiver types.
-3. Visit candidates in that order. At each candidate, first search inherent methods whose receiver matches it, then available builtin trait methods whose receiver matches it. Select the first matching method at the first successful priority level; ambiguity at that level is a static error.
-4. Check that the selected call satisfies the ordinary argument and receiver-mutability rules. An invalid call is not retried with a later candidate. Ownership and lifetime validity remain guaranteed by tests rather than checked by the compiler.
-
-The priority between inherent and trait methods applies within each candidate, not across the whole list. For a receiver of type S, an available builtin clone with receiver &S can therefore be selected before an inherent clone with receiver &mut S. If both have receiver &S, the inherent method takes priority. Expected return types do not select a different method.
-
-For an ordinary derived-Clone struct S with no inherent clone, calling `r.clone()` on `r: &S` selects S's clone and returns S. If S is not Clone, the shared reference itself still has Clone; the method search can instead select the reference clone with receiver &&S. This distinction follows from the same candidate sequence.
-
-The builtin Clone method participates for types with that capability. Copy and Eq are marker capabilities. Builtin array methods participate under their specified receiver signatures.
-
-References and Box provide builtin dereferencing candidates. Vec provides its specified methods and indexing. See [Builtin traits](builtin-traits.md#clone) and [Heap](heap.md) for the supported operations.

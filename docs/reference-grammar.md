@@ -65,6 +65,38 @@ forms. ReferenceType and ShorthandSelf include their optional Lifetime, and
 Function, StructStruct, and InherentImpl include GenericParams and WhereClause.
 The syntax diagrams use the same renderer as the other Reference productions.
 
+## Rule locations
+
+Overview chapters provide production categories, navigation, and rules shared
+by their children. Detailed rules have one defining chapter; other chapters
+link to it. The generated grammar summary is a view of those same productions.
+
+| Rules | Defining source |
+| --- | --- |
+| Function signatures and receivers | src/items/functions.md |
+| Struct declarations | src/items/structs.md |
+| Constants and inherent impls | src/items/constant-items.md, src/items/implementations.md |
+| Token spelling and boundaries | src/tokens.md and the other lexical subchapters |
+| Integer literal typing and range | src/expressions/literal-expr.md |
+| Ordinary evaluation order and places | src/expressions.md |
+| Arrays, calls, blocks, and other expression forms | Their src/expressions/ chapters |
+| Method lookup | src/expressions/method-call-expr.md |
+| Cast parsing and assignment destinations | src/expressions/operator-expr.md |
+| Statement boundaries | src/statements.md |
+| Contextual punctuation | src/grammar.md |
+| Container type composition | src/types/heap.md |
+| Container operations and reclamation | src/heap.md |
+| Derive capabilities and equality operand rules | src/builtin-traits.md |
+| Namespaces and protected names | src/names.md |
+| Path syntax and resolution | src/paths.md |
+| Source I/O and entry | src/undefined-behavior/builtin.md |
+| Machine ABI, runtime interfaces, and resource limits | src/backend.md |
+| Reference runtime implementation | src/runtime-example.c, included by the backend chapter |
+
+The language-scope chapter indexes the guarantees and defines the course UB
+categories and zero-sized-data boundary. It links to the detailed rules for
+literal range, lifetime validity, equality, and name collisions.
+
 ## Verification
 
 Build with SPEC_RELATIVE=0 and SPEC_DENY_WARNINGS=1. Validate the active chapter

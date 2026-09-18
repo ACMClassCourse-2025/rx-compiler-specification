@@ -32,4 +32,4 @@ These three functions form the source-visible I/O interface. Students may use th
 
 ## Other builtin facilities
 
-The [Copy, Clone, PartialEq, and Eq](../builtin-traits.md) capabilities, fixed-array len, and [Box/Vec facilities](../heap.md) are described in their own chapters. Heap storage may remain until program termination and be reclaimed together. The reference C runtime implements I/O and the `__rx_alloc` wrapper used by generated code.
+The [builtin traits](../builtin-traits.md), [array methods](../expressions/array-expr.md#array-methods), and [Box/Vec operations](../heap.md) are defined in their own chapters. The [runtime contract](../backend.md#41-box--vec-与内存辅助接口) defines the generated-code allocation interface.

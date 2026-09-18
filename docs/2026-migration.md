@@ -196,3 +196,35 @@ examples were rejected by rustc, confirming the described UB boundaries; these
 are documentation checks, not student-compiler negative tests. Browser checks
 covered seven changed grammar pages, five cross-page diagram links, visibility
 persistence, and four 390px layouts without horizontal page overflow.
+
+## 2026-09-18 consolidate repeated definitions
+
+Items is now an overview containing the Item production and chapter navigation.
+Function signatures and receivers, struct semantics, constant values, and impl
+rules are consolidated into their declaration chapters. Expressions retains
+the shared expression grammar, evaluation order, places, and precedence;
+array, call, field, and block behavior is defined in the corresponding
+expression chapters. Statement boundaries remain in Statements, assignment
+destinations and cast disambiguation are in Operators, and method lookup is in
+Method-call expressions.
+
+Lexical structure is a chapter index. Token spelling and boundaries are in the
+lexical subchapters; literal typing and range are in Literal expressions.
+Parser conventions contains rule navigation and contextual punctuation rather
+than repeated declaration, type, condition, and statement rules. Names owns
+namespace and scope rules, while Paths owns path syntax and resolution.
+
+Container types and composition are defined in types/heap.md, and container
+operations and reclamation in heap.md. The builtin-trait chapter owns the
+capability table and equality operand rules. The backend links to source I/O,
+ZST, and heap contracts while defining their machine interfaces. Its C runtime
+example now includes runtime-example.c directly. The source runtime itself is
+unchanged. reference-grammar.md records the rule locations for future edits.
+
+All 51 grammar blocks are unchanged from the preceding revision, containing
+the same 116 unique productions. The strict documentation build, active-source
+style check, and diff whitespace check passed. All 5,471 local HTML/SVG links
+on the 52 active/generated pages resolve, with no duplicate page IDs. Browser
+checks verified the Items overview, relocated rule sections, diagram and prose
+navigation, direct runtime inclusion, and four narrow layouts. No compiler,
+runtime, or testcase implementation was changed by this editorial revision.

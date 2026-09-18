@@ -97,22 +97,9 @@ machine word，而不是 slice fat pointer。若以后加入能观察布局的�
 
 ### 2.1 零大小类型
 
-核心语言只使用 `()` 表示函数或控制流没有结果。unit 返回值没有机器级表示，也不
-占用返回寄存器。返回 `()` 的函数调用可以正常作为 expression statement 使用，
-例如 `printlnInt(1);`。
-
-零大小类型不作为普通数据类型使用。包含下列任一情况的程序具有未定义行为，编译器
-不需要诊断，官方测试保证不包含这些情况：
-
-- 使用零大小类型作为函数或方法的参数类型；
-- 将零大小值绑定到局部变量、常量或静态变量，或者对这样的 place 赋值；
-- 在 struct 中声明零大小字段，或者声明空 struct；
-- 使用零长度数组，或者使用零大小类型作为数组元素；
-- 对零大小值取引用，或者解引用一个指向零大小类型的引用；
-- 以其他方式要求零大小值具有可观察的存储位置或地址。
-
-函数省略返回类型、显式返回 `()`、自然执行到函数末尾以及 `return;` 不属于上述
-情况。
+源语言中允许的 unit 用法及零大小数据的 UB 边界见
+[零大小数据规则](undefined-behavior.md#zero-sized-data)。unit 返回值没有机器级表示，
+不占用返回寄存器。
 
 ## 3. 函数 ABI
 
@@ -142,30 +129,11 @@ Clang 编译的 C 函数时，仍需正确适配其 psABI。
 除 `main` 和官方 runtime 符号外，普通函数及方法的 symbol mangling 由编译器自行
 决定，但必须避免同一编译单元内的冲突。调用约定按第 3 节由实际边界决定。
 
-源语言入口为：
+[源语言入口](undefined-behavior/builtin.md#program-entry)对应最终汇编中的全局符号
+`main`。机器级入口按 `int main(void)` 处理；源程序正常结束后返回状态 `0`。
 
-```rust,ignore
-fn main() -> () {
-    // ...
-}
-```
-
-省略返回类型等同于返回 `()`。最终汇编必须定义全局符号 `main`。机器级入口按
-`int main(void)` 处理；源语言 `main` 自然结束或执行 `return;` 后均返回状态
-`0`。源程序不能调用 `main`。
-
-runtime 包括源语言可直接调用的 builtin，以及编译器生成代码时使用的内存管理等
-辅助接口。下面三个函数是当前 I/O 部分，不代表最终 runtime 的全部接口。
-
-当前 I/O 接口为：
-
-```rust,ignore
-fn getInt() -> i32;
-fn printInt(value: i32) -> ();
-fn printlnInt(value: i32) -> ();
-```
-
-其对应机器级接口与下面的 C declarations ABI-compatible：
+runtime 包括源语言 builtin，以及编译器生成代码使用的内存管理等辅助接口。
+[源码 I/O 接口](undefined-behavior/builtin.md#io-functions)对应以下 C ABI：
 
 ```c
 int32_t getInt(void);
@@ -173,10 +141,7 @@ void printInt(int32_t value);
 void printlnInt(int32_t value);
 ```
 
-`printInt` 输出参数的有符号十进制表示，不输出额外字符；`printlnInt` 在相同内容后
-输出一个 LF byte (`0x0a`)。测试输入只包含能够被 `getInt` 读取的、位于 `i32`
-范围内的十进制整数，整数之间以 ASCII whitespace 分隔。非法输入和输入提前结束
-不在程序定义域内。
+输入域和输出字节序列由 [I/O 语义](undefined-behavior/builtin.md#io-functions)规定。
 
 课程提供一份可选 runtime 实现并参与链接或 REIMU 加载。课程 C runtime 和
 REIMU libc 只承诺其接口规定的寄存器保持关系；自定义 runtime 的内部约定由
@@ -186,26 +151,7 @@ REIMU libc 只承诺其接口规定的寄存器保持关系；自定义 runtime 
 <a href="runtime-example.c">runtime-example.c</a>：
 
 ```c
-typedef int int32_t;
-typedef unsigned int uint32_t;
-
-extern int printf(const char *format, ...);
-extern int scanf(const char *format, ...);
-extern void *malloc(uint32_t size);
-
-void *__rx_alloc(uint32_t size, uint32_t align) {
-  (void)align;
-  return malloc(size);
-}
-
-int32_t getInt(void) {
-  int32_t value;
-  (void)scanf("%d", &value);
-  return value;
-}
-
-void printInt(int32_t value) { (void)printf("%d", value); }
-void printlnInt(int32_t value) { (void)printf("%d\n", value); }
+{{#include runtime-example.c}}
 ```
 
 参考 runtime 使用 Clang 22 按如下方式生成汇编：
@@ -225,11 +171,7 @@ runtime 解释执行源程序或 IR 代替目标代码生成。每个符号只�
 
 ### 4.1 Box / Vec 与内存辅助接口
 
-源语言已选定内建 `Box<T>` / `Vec<T>` 作为堆方案，不因此开放源语言 unsafe 或
-原始指针分配接口。容器可组合支持的合法具体类型，包括嵌套容器和经间接存储的
-递归类型。构造必须显式写 `Box::<T>::new(value)` / `Vec::<T>::new()`；最小操作集
-和条件 Clone / PartialEq / Eq 已在 [堆章节](heap.md) 规定。堆内存在程序结束时统一
-回收，不要求在作用域退出、覆盖赋值、move-out 或 Vec 扩容时立即释放。
+[堆章节](heap.md)定义 Box / Vec 的操作、引用有效性和程序结束时的回收策略。
 使用课程参考 runtime 时，生成代码通过下面的固定 C ABI 接口分配存储；它不是
 源语言 builtin：
 
@@ -261,23 +203,10 @@ size 非零，align 为 1 或 4，size 与整个执行的累计分配均满足�
 | Box / Vec 的 Clone | 按具体 T 递归克隆，构造独立拥有存储；共享引用仍只复制引用 | 分配结果所需的原始存储 |
 | 程序结束时回收堆 | 无需生成按类型递归析构或逐对象清理代码 | runtime 或执行环境统一回收该次执行的堆存储 |
 
-`Vec` 扩容可由“分配新缓冲区、搬移有效元素、保留旧缓冲区到程序结束”实现，无需必做
-`realloc`。搬移非 Copy 元素不等于调用 `.clone()`；原位置不再拥有该值。
-允许使用 bump allocator。程序结束时由 runtime 或执行环境统一释放 arena、
-重置该次执行的内存即可，无需遍历 Box / Vec 对象图、登记每个拥有对象或维护
-析构用的所有权标记。可证明不影响可观察行为与合法引用的提前回收仍可作为优化。
-
-即使不引入堆，数组和 struct 的复制或初始化也可能使用 `memcpy`、`memmove`、
-`memset`。建议允许生成代码使用它们的标准 C ABI，或自行生成等价的访存代码。
-这些操作只处理字节，不代替类型层面的 Clone。
-
-容器内部布局、零容量表示和扩容因子由实现自行决定，不提供 capacity/reserve
-等观察或控制接口；有效元素、move、Clone 和引用失效规则见堆章节。保留堆存储
-不延长源码值或引用的有效期。测试必须能够在执行期间不回收的参考实现上完成，
-按累计分配量、扩容和 allocator 开销核对资源，不能只按同时存活的数据量设计。
-沿用有效测试不发生分配失败的前提，不要求分配大小的动态溢出检查或 panic。
-零大小堆对象仍不在测试范围内；空 `Vec<T>`（其中 T 非零大小）是合法容器，
-不得访问未初始化或不存在的元素存储。
+参考 Vec 的扩容步骤见第 4.2 节；容器元素和引用的有效性见
+[堆存储规则](heap.md#storage-and-references)。回收时机及允许的提前回收优化由
+[程序结束回收策略](heap.md#program-end-reclamation)规定。
+有效测试的分配大小与累计分配量满足下节保证，无需动态溢出检查或 panic。
 
 REIMU 还提供标准 C ABI 的 `memcpy`、`memmove` 和 `memset`。生成代码可以调用它们，
 也可以自行生成等价访存。`memcpy` 只用于已知不重叠区域，可能重叠时使用
@@ -315,23 +244,17 @@ REIMU 配置构建并执行。源码入口正常结束时返回状态 0，输出
 字节序列；额外空白和换行也是可观察输出。
 
 课程规范不限制单个源程序大小、编译时间、编译器峰值内存或生成汇编大小。
-REIMU 使用 `--memory=256M --stack=1M`；不为 `.data`、
-`.rodata` 和 `.bss` 另设静态数据限额。合法程序可以包含超出 12-bit immediate 的
+执行内存参数和各数据区的资源关系见第 4.2 节。合法程序可以包含超出 12-bit immediate 的
 常量和栈 offset，以及超出单条条件分支范围的控制流。
 
 提交命令、阶段交付物和成绩计算由课程安排另行规定，不属于本语言与执行契约。
 
 ## 6. 代码生成与优化语义
 
-合法执行的源码不会除零、计算 signed MIN / -1 或 MIN % -1、数组越界，或发生
-已排除的引用／所有权违规。编译器不需要生成相应动态检查，也不要求实现 panic
-或栈展开。普通整数回绕仍按已定义语义执行；整数 literal 超出最终类型范围、
-let / 参数与可见的非限定 const 名称冲突均为课程 UB，所有测试均排除，不要求诊断。
-最小负整数的合法 literal 形式仍受支持；普通静态类型错误仍按前端规则诊断。
-
-上述前提针对源码语义。合法源码因错误翻译而非法访存、异常终止或输出错误，
-仍不符合本契约。存储规模遵循允许的保守栈分配方案，不以精确栈槽复用或临时值
-提前回收作为语言要求。
+代码生成与优化以 [语言范围和测试保证](undefined-behavior.md)为前提。
+源码的运行时整数行为由 [运算符规则](expressions/operator-expr.md#arithmetic-and-bits)规定，
+引用及栈存储的有效性由 [存储期限规则](references.md#storage-and-implementation)规定。
+合法源码因错误翻译而非法访存、异常终止或输出错误，仍不符合本契约。
 
 本规范不要求指定的优化算法。把所有局部值放在 stack slot 中是允许的实现；
 实现仍须正确处理函数调用、有限的物理寄存器和合法控制流。寄存器分配、内联、

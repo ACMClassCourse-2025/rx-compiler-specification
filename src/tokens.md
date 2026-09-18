@@ -12,6 +12,8 @@ r[lex.token.syntax]
 
 Tokens are identifiers or keywords, integer literals, lifetime tokens, and punctuation. Keywords, including `true` and `false`, have identifier-like spellings. Their syntactic roles are determined by the keyword rules and [LiteralExpression].
 
+Tokenization selects the longest token subject to the numeric and lifetime boundaries below. The parser may consume prefixes of combined punctuation according to [contextual punctuation](grammar.md#contextual-punctuation).
+
 ## Integer literals
 
 r[lex.token.literal.int.syntax]
@@ -51,9 +53,9 @@ Integer literals use decimal digits or a binary, octal, or hexadecimal prefix, w
 
 The lexer consumes the complete Rust-style numeric token. An invalid suffix or radix digit cannot be repaired by splitting the spelling into a valid integer followed by another token: `123i32foo`, `123bad`, `0b102`, and `0x` are invalid spellings. A supplied Rust lexer may retain a general suffix and reject unsupported suffixes at the language-subset boundary.
 
-There is no token-length or numeric-magnitude limit. Preserve the digits and suffix without requiring the magnitude to fit a host integer. After type determination, out-of-range literals are course UB, as specified in [Lexical structure](lexical-structure.md#literals).
+There is no token-length or numeric-magnitude limit. Preserve the digits and suffix without requiring the magnitude to fit a host integer. Type determination and range validity follow [literal expressions](expressions/literal-expr.md#integer-typing-and-range).
 
-A minus is a separate token. `-2147483648i32` and `-(2147483648i32)` are valid signed-minimum forms. `0x01_f32` is a hexadecimal integer magnitude with no suffix, not a floating-point literal.
+A minus is a separate operator token. `0x01_f32` is a hexadecimal integer magnitude with no suffix, not a floating-point literal.
 
 ## Lifetimes
 
@@ -81,6 +83,6 @@ PUNCTUATION ->
     | `{` | `}` | `[` | `]` | `(` | `)`
 ```
 
-Comments take priority over `/` punctuation; combined operators are recognized before shorter prefixes. The parser may split `&&`, `>>`, `>=`, and `>>=` in the specified reference/type contexts. See [contextual token interpretation](lexical-structure.md#punctuation).
+Comments take priority over `/` punctuation. Combined operators follow the longest-token rule; their contextual splits are specified in [Parser conventions](grammar.md#contextual-punctuation).
 
 An integer is not followed by a supported fractional or exponent part. The absence of floating-point expressions does not make a malformed Rust numeric token valid. Brackets and braces remain paired delimiters; `#` is used only in the supported outer derive attribute.

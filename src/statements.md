@@ -46,7 +46,7 @@ An attached else/else-if remains part of its if expression, and field/method pos
 ```rust,ignore
 let value = if true { 10 } else { 20 } - 1; // initializer is the whole subtraction
 if true {} else {} -1;                      // if statement, then -1 expression statement
-(if true { 10 } else { 20 }) - 1;            // one expression statement
+(if true { 10 } else { 20 }) - 1;           // one expression statement
 ```
 
 The supplied parser must implement these statement boundaries and the grammar above.

@@ -49,7 +49,7 @@ A struct obtains each capability through an explicit derive request satisfying t
 | Struct | By valid explicit derive | By valid explicit derive | By valid explicit derive |
 | Box<T> / Vec<T> | No | If T is Clone | Require the respective capability of T |
 
-Zero-sized data remains excluded. Capability requirements form a finite graph of declared types and builtin operations. References and recursive container types can create cycles in this graph. Checking terminates by handling cycles while enforcing every explicit derive and field requirement. For example, a Node deriving Clone/PartialEq/Eq with a Vec<Node> field has those capabilities when its other fields meet the requirements.
+Zero-sized data remains excluded under the [zero-sized-data guarantee](undefined-behavior.md#zero-sized-data). Capability requirements form a finite graph of declared types and builtin operations. References and recursive container types can create cycles in this graph. Checking terminates by handling cycles while enforcing every explicit derive and field requirement. For example, a Node deriving Clone/PartialEq/Eq with a Vec<Node> field has those capabilities when its other fields meet the requirements.
 
 ## Clone
 
@@ -72,7 +72,7 @@ With no owned-resource fields, copying bytes may implement the required clone re
 
 ## Equality
 
-`==` / `!=` compare operands with exactly the same source type after ordinary local type inference, and that type must have PartialEq. Equality constrains two still-inferred operand types to agree, so an unsuffixed literal may acquire the other operand's integer type. Already determined types retain their identities. Tests exclude every cross-type equality expression as course UB; no diagnostic, coercion, or cross-type PartialEq implementation is required. Excluded cases include shared versus mutable references, different array lengths or element types, different Box/Vec element types, and Vec versus array comparisons.
+`==` / `!=` compare operands with exactly the same source type after ordinary local type inference, and that type must have PartialEq. Equality constrains two still-inferred operand types to agree, so an unsuffixed literal may acquire the other operand's integer type. Already determined types retain their identities. Equality between different source types is course UB; see the centralized [cross-type equality guarantee](undefined-behavior.md#cross-type-equality).
 
 For identical operand types, equality borrows its operands and does not consume non-Copy values. Scalars compare values, arrays of the same type compare elements, and two values of the same derived struct type compare fields. References of the same reference type compare their targets, not their addresses. These operations ignore padding; whole-object memcmp is not generally a correct implementation.
 

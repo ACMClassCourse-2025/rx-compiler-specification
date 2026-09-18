@@ -8,13 +8,13 @@ Top-level function, struct, and constant names can be resolved independently of 
 
 `self` denotes a method receiver. `Self` denotes the type being defined inside a struct definition, and the implementing type inside an inherent impl, including its methods and associated constants. `Self` is not available in unrelated top-level functions. Neither `self` nor `Self` is an ordinary user-declared identifier.
 
-Lifetime names have a separate namespace with the scopes specified by [lifetime parameters](items/generics.md). Their validity is covered by the lifetime test guarantee.
+Lifetime names have a separate namespace with the scopes specified by [lifetime parameters](items/generics.md). Their validity is covered by the [lifetime test guarantee](undefined-behavior.md#lifetime-validity).
 
 Types and values occupy separate namespaces. Named-field structs introduce a type name; functions and constants introduce value names. Struct field names are local to their struct. Type annotations, struct construction names, and the prefix of Type::member resolve in the type namespace; an unqualified expression name resolves in the value namespace. A named-field struct name is not a callable value constructor. A struct and a function can therefore have the same spelling without conflict.
 
 Top-level items must be unique within each namespace. Fields must have distinct names within a struct, and parameters within a function must have distinct names. Successive local lets may shadow earlier locals, parameters, and non-protected global function names. Lookup selects the nearest binding; calling a selected non-callable value is a static error, without retrying a hidden function. A let initializer uses the environment before that new binding.
 
-A let or ordinary parameter binding with the same name as a const visible as an unqualified value name at that position is course UB. This applies to both mutable and immutable bindings, regardless of the const's textual definition order. Tests contain no such collision, including in unreachable code, and no diagnostic or constant-pattern interpretation is required. For example, with a visible `const LIMIT: i32 = 1;`, both `let LIMIT = 2;` and a parameter `LIMIT: i32` are excluded. An associated constant accessible only as Type::LIMIT does not by itself exclude a local LIMIT. The static prohibition on shadowing protected builtins below still applies.
+A let or ordinary parameter binding that collides with a visible unqualified const name is course UB; see the centralized [constant-name collision guarantee](undefined-behavior.md#constant-name-collisions).
 
 All inherent impl blocks for one struct share one associated-value namespace. Duplicate method, associated-function, or associated-constant names are static errors, including across different impl blocks and regardless of signatures. There is no signature overloading. A field and a method may have the same name because field lookup and method lookup are distinct.
 

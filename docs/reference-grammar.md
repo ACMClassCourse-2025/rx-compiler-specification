@@ -93,9 +93,10 @@ link to it. The generated grammar summary is a view of those same productions.
 | Machine ABI, runtime interfaces, and resource limits | src/backend.md |
 | Reference runtime implementation | src/runtime-example.c, included by the backend chapter |
 
-The language-scope chapter indexes the guarantees and defines the course UB
-categories and zero-sized-data boundary. It links to the detailed rules for
-literal range, lifetime validity, equality, and name collisions.
+The [language-scope chapter](../src/undefined-behavior.md#test-guarantees) indexes
+and defines the course UB details for literal range, name collisions, equality,
+lifetime validity, and zero-sized data. The corresponding language chapters
+mention each UB category and link to its centralized definition.
 
 ## Verification
 

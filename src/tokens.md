@@ -55,6 +55,8 @@ The lexer consumes the complete Rust-style numeric token. An invalid suffix or r
 
 There is no token-length or numeric-magnitude limit. Preserve the digits and suffix without requiring the magnitude to fit a host integer. Type determination and range validity follow [literal expressions](expressions/literal-expr.md#integer-typing-and-range).
 
+A literal outside its determined type's range is course UB; see the [integer literal range guarantee](undefined-behavior.md#integer-literal-range).
+
 A minus is a separate operator token. `0x01_f32` is a hexadecimal integer magnitude with no suffix, not a floating-point literal.
 
 ## Lifetimes

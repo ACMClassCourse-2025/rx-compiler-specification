@@ -29,9 +29,9 @@ Array lengths are written literally at each use. Constant names such as COUNT ca
 
 ## Typing and range
 
-Const-item types are explicit. Array lengths have type `usize` and must fit that type; a bool, signed suffix, or negative value cannot serve as a length. Zero lengths are excluded by the zero-sized-data rules and do not require a diagnostic.
+Const-item types are explicit. Array lengths have type `usize` and must fit that type; a bool, signed suffix, or negative value cannot serve as a length. Zero lengths are course UB under the [zero-sized-data guarantee](undefined-behavior.md#zero-sized-data).
 
-Literal range and signed-minimum cases follow [integer literal rules](expressions/literal-expr.md#integer-typing-and-range). Ordinary type and restricted-form errors remain static errors.
+Literal typing and signed-minimum cases follow [integer literal rules](expressions/literal-expr.md#integer-typing-and-range). Out-of-range literals are course UB under the [integer literal range guarantee](undefined-behavior.md#integer-literal-range). Ordinary type and restricted-form errors remain static errors.
 
 The element expression in `[expr; 4]` is an ordinary expression governed by [array repetition](expressions/array-expr.md#array-expressions). Only its length is a constant context.
 

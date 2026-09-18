@@ -72,7 +72,7 @@ Vec must maintain its initialized element sequence; spare storage cannot be read
 
 Valid tests obey Rust's borrowing restrictions for the supported container operations, including implicit two-phase receiver borrowing where applicable, such as `v.push(v.len())` for a Vec<usize>. A reference into a Vec is not kept and used across a conflicting mutable container operation, even when a particular implementation has spare capacity or does not move an address. Tests must not rely on a chosen capacity policy to justify such a reference. No borrow checker is required.
 
-Zero-sized heap objects are excluded. An empty Vec with nonzero-sized T is a valid nonzero-sized container. Its internal zero-capacity pointer representation is implementation-defined; it must not access nonexistent elements or require a dereferenceable buffer for length zero. Allocation sizes and valid element indices fit the target representation; valid test executions do not depend on allocation failure.
+Zero-sized heap objects are course UB under the [zero-sized-data guarantee](undefined-behavior.md#zero-sized-data). An empty Vec with nonzero-sized T is a valid nonzero-sized container. Its internal zero-capacity pointer representation is implementation-defined; it must not access nonexistent elements or require a dereferenceable buffer for length zero. Allocation sizes and valid element indices fit the target representation; valid test executions do not depend on allocation failure.
 
 ## Program-end reclamation
 

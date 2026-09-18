@@ -56,7 +56,7 @@ A generic argument is a [Lifetime] or a [Type]. The list grammar permits
 comma-separated arguments and an optional trailing comma. Lifetime arguments
 precede type arguments, following Rust's ordering. The named item's declaration
 determines its lifetime arguments, and their correct use is part of the
-[lifetime validity guarantee](references.md#lifetime-validity).
+[lifetime validity guarantee](undefined-behavior.md#lifetime-validity).
 
 Box and Vec each take exactly one explicit concrete type argument. `Box<>` and
 `Vec<i32, u32>` are static type-argument arity errors even though their generic
@@ -105,7 +105,8 @@ Lifetimes may also occur within a container's type argument, as in
 Unresolved type, value, and member names are static errors. After resolution,
 [call expressions](expressions/call-expr.md) check the callable's value-argument
 signature, including the [container constructors](heap.md#constructors-and-type-arguments).
-Lifetime-specific errors are covered by the lifetime validity guarantee.
+Incorrect lifetime arguments or elision are course UB under the
+[lifetime validity guarantee](undefined-behavior.md#lifetime-validity).
 
 The parser can form a path tree before these checks. This separates the shared
 path syntax from the finite set of names and callable signatures supplied by

@@ -75,9 +75,7 @@ LazyBooleanExpression ->
     | Expression `&&` Expression
 ```
 
-Equality operators use the [PartialEq and equality rules](../builtin-traits.md#equality),
-including operand typing, implicit borrowing, structural comparison, and the
-course UB boundary for cross-type comparisons.
+Equality operators use the [PartialEq and equality rules](../builtin-traits.md#equality), including operand typing, implicit borrowing, and structural comparison. Equality between different source types is course UB; see the [cross-type equality guarantee](../undefined-behavior.md#cross-type-equality).
 
 Scalar ordering uses `<`, `<=`, `>`, `>=` on matching integer types and bool (false precedes true). Their Rust reference variants are supported and compare target values, not addresses. The underlying ordering implementations compare matching shared-reference layers or matching mutable-reference layers, recursively ending in the same supported scalar type. At the expression boundary, Rust's permitted right-operand reborrow can convert a mutable reference to a shared one; it does not convert shared to mutable or automatically rewrite nested reference layers. For example, `&a < &b`, `&mut a < &mut b`, and `&a < &mut b` work for matching ordered scalars; `&mut a < &b` and `&&a < &&mut b` do not. There is no automatic value/reference comparison such as `a < &b`.
 
@@ -95,18 +93,9 @@ Reference borrowing and reborrowing adjustments follow the [reference coercion r
 
 ### Cast parsing
 
-The [operator precedence table](../expressions.md#precedence) governs expression
-nesting. After a type-path segment in a cast, `<` begins [GenericArgs] rather
-than a comparison. A leading `<` from `<<` likewise enters type-argument
-parsing. Parenthesizing the cast makes the intended operation explicit:
-`(x as usize) < y` and `(x as usize) << y`. A parenthesized type already closes
-the type syntax, so `x as (usize) < y` and `x as (usize) << y` also parse as
-comparison and shift. Operators such as `<=`, `>`, `>>`, and `==` follow
-ordinary precedence after the cast type.
+The [operator precedence table](../expressions.md#precedence) governs expression nesting. After a type-path segment in a cast, `<` begins [GenericArgs] rather than a comparison. A leading `<` from `<<` likewise enters type-argument parsing. Parenthesizing the cast makes the intended operation explicit: `(x as usize) < y` and `(x as usize) << y`. A parenthesized type already closes the type syntax, so `x as (usize) < y` and `x as (usize) << y` also parse as comparison and shift. Operators such as `<=`, `>`, `>>`, and `==` follow ordinary precedence after the cast type.
 
-The parser checks the resulting syntax; name resolution checks its type
-arguments. Thus `x as usize<i32>` has a type-path syntax tree but is a static
-error because the primitive usize takes no type arguments.
+The parser checks the resulting syntax; name resolution checks its type arguments. Thus `x as usize<i32>` has a type-path syntax tree but is a static error because the primitive usize takes no type arguments.
 
 ## Borrow, dereference, and assignment
 

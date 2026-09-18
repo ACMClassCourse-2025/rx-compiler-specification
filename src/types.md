@@ -30,7 +30,7 @@ The table above defines the source-level types. Type checking also uses never in
 
 Type identity is structural for reference, array, Box, and Vec types and nominal for structs. Array lengths are compared by their resulting literal values, so `[i32; 4]` and `[i32; (4usize)]` are the same type. The four integer names remain distinct even though all have 32 bits.
 
-Lifetime annotations satisfy the [lifetime validity contract](references.md#lifetime-validity). For ordinary type identity, a reference is determined by its referent type and mutability, and a struct by its declaration. Lifetime arguments alone do not distinguish source types in the same-type equality rule. Type compatibility and operations must still satisfy the guaranteed lifetime and borrowing conditions.
+Lifetime annotations satisfy the [lifetime validity contract](undefined-behavior.md#lifetime-validity). For ordinary type identity, a reference is determined by its referent type and mutability, and a struct by its declaration. Lifetime arguments alone do not distinguish source types in the same-type equality rule. Type compatibility and operations must still satisfy the guaranteed lifetime and borrowing conditions.
 
 Container type composition is defined in [Box and Vec types](types/heap.md).
 Their [constructors](heap.md#constructors-and-type-arguments) use the

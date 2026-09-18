@@ -21,8 +21,5 @@ permits the signed minimum: `-2147483648i32` uses an integer token of magnitude
 as `-(2147483648i32)` have the same rule.
 
 After suffix resolution and type inference, an integer literal outside its
-determined type's range is course UB. For example, positive `2147483648i32` and
-`4294967296u32` are excluded. Tests contain no such literal, including in
-constant contexts and unreachable code; no overflow diagnostic or wrapped
-result is required. This does not change ordinary static type errors or the
-[wrapping behavior of integer arithmetic](operator-expr.md#arithmetic-and-bits).
+determined type's range is course UB; see the centralized
+[integer literal range guarantee](../undefined-behavior.md#integer-literal-range).

@@ -29,21 +29,26 @@ Expressions form integer, boolean, and unit values; resolve names and associated
 
 ## Evaluation order
 
-Operands of ordinary expressions are evaluated left to right as written before the enclosing operation. This includes call arguments, array elements, struct field initializers, comparisons, arithmetic, and indexing. Struct field evaluation follows source order rather than declaration/layout order.
+Ordinary operands evaluate left to right before the enclosing operation. This includes call arguments, array elements, struct field initializers, comparisons, arithmetic, and indexing. Struct fields evaluate in source order rather than declaration or layout order.
 
 The specialized rules for [assignment](expressions/operator-expr.md#evaluation-order), [short-circuit logic](expressions/operator-expr.md#comparison-and-logic), [array repetition](expressions/array-expr.md#array-expressions), and control flow specify which operands execute and their order.
 
-These rules constrain optimizations whenever evaluation has observable effects, including I/O and writes through references. Removing unused values does not authorize removing effects that are still observable.
+Optimizations must preserve observable effects, including I/O and writes through references.
 
 ## Places and values
 
-A place denotes storage: a variable, dereference, field expression, indexed array or Vec element, or parenthesized place. A field or index base may itself be a value expression. In that case, the base is evaluated once and materialized in temporary storage. The same applies to a value borrowed explicitly or by a method receiver adjustment. Using a place as a value copies or moves according to its type. Assignment requires a mutable place, and borrowing uses the place's address.
+A place denotes storage: a variable, dereference, field, indexed array or `Vec` element, or parenthesized place. Reading it copies or moves according to its type. Assignment requires a mutable place, and borrowing uses the place's address.
 
-A mutable local can be assigned. Dereferencing `&mut T` gives a mutable place; dereferencing `&T` does not. In particular, `let p = &mut x;` need not make the binding p mutable to permit `*p = value`; reassignment of p itself does require a mutable binding.
+A mutable local can be assigned. Dereferencing `&mut T` yields a mutable place; dereferencing `&T` does not. The binding in `let p = &mut x;` need not be mutable for `*p = value`, but reassigning `p` itself requires `let mut p`.
 
-Materialized temporary values can be mutable places even though they have no named mutable binding. For example, `make().value = 4` is supported when make returns a struct with a compatible field; `let p = &mut make().value;` can extend the relevant temporary's storage duration under the supported Rust rules. A temporary can also be the receiver of an `&mut self` method. These cases do not make an ordinary immutable variable mutable.
+<details>
+<summary>Temporary places</summary>
+
+A value used as a field or index base is evaluated once and materialized when a place is needed. The same applies to an explicitly borrowed value or adjusted method receiver. A materialized value can be mutable despite having no named mutable binding. For example, `make().value = 4`, borrowing `make().value`, and an `&mut self` call on a temporary are supported when their types allow them.
 
 Temporary lifetime and allowed implementations are described in [References](references.md). Assignment requires an actual place expression: `1 = 2` and `1 += 2` are invalid. Blocks produce values with the ordinary copy/move semantics.
+
+</details>
 
 ## Precedence
 

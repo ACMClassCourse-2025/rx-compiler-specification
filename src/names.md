@@ -2,32 +2,43 @@
 
 ## Settled scope rules
 
-Top-level functions, structs, constants, and inherent associated items introduce names. Parameters and identifier lets introduce local bindings. A let binding is visible after its initializer through the rest of its block, subject to shadowing. Fields are looked up on the receiver's struct type rather than in the local variable scope.
+Top-level functions, structs, constants, and inherent associated items introduce names. Parameters and `let` statements introduce local bindings. Fields belong to their struct and are found through the receiver type.
 
-Top-level function, struct, and constant names can be resolved independently of textual definition order. Associated item lookup through the supported paths likewise does not require an earlier textual declaration. Local let bindings still become visible only after their initializer. Constant forward lookup does not permit names in restricted constant initializers or array lengths.
+Top-level and associated-item lookup is independent of declaration order. A local binding is visible only after its initializer and until the end of its block, subject to shadowing. Restricted constant initializers and array lengths cannot use constant names.
 
-`self` denotes a method receiver. `Self` denotes the type being defined inside a struct definition, and the implementing type inside an inherent impl, including its methods and associated constants. `Self` is not available in unrelated top-level functions. Neither `self` nor `Self` is an ordinary user-declared identifier.
+`self` denotes a method receiver. `Self` denotes the struct being declared or the type of the current inherent implementation, including inside its associated items. Neither is an ordinary user-defined identifier, and `Self` is unavailable in unrelated top-level functions.
 
-Lifetime names have a separate namespace with the scopes specified by [lifetime parameters](items/generics.md). Their validity is covered by the [lifetime test guarantee](undefined-behavior.md#lifetime-validity).
+Lifetime names occupy a separate namespace governed by [lifetime parameters](items/generics.md) and the [lifetime validity guarantee](undefined-behavior.md#lifetime-validity).
 
-Types and values occupy separate namespaces. Named-field structs introduce a type name; functions and constants introduce value names. Struct field names are local to their struct. Type annotations, struct construction names, and the prefix of Type::member resolve in the type namespace; an unqualified expression name resolves in the value namespace. A named-field struct name is not a callable value constructor. A struct and a function can therefore have the same spelling without conflict.
+### Type and value namespaces
 
-Top-level items must be unique within each namespace. Fields must have distinct names within a struct, and parameters within a function must have distinct names. Successive local lets may shadow earlier locals, parameters, and non-protected global function names. Lookup selects the nearest binding; calling a selected non-callable value is a static error, without retrying a hidden function. A let initializer uses the environment before that new binding.
+Types and values use separate namespaces:
 
-A let or ordinary parameter binding that collides with a visible unqualified const name is course UB; see the centralized [constant-name collision guarantee](undefined-behavior.md#constant-name-collisions).
+| Context | Namespace |
+| --- | --- |
+| Struct name, primitive type, `Box`, `Vec`, or `Self` in a type position | Type |
+| Function, constant, local binding, or `self` in an expression | Value |
+| Prefix of `Type::member` | Type |
+| Struct field | That struct's field namespace |
 
-All inherent impl blocks for one struct share one associated-value namespace. Duplicate method, associated-function, or associated-constant names are static errors, including across different impl blocks and regardless of signatures. There is no signature overloading. A field and a method may have the same name because field lookup and method lookup are distinct.
+A named-field struct is not a callable value constructor. A struct and function may therefore share a spelling.
+
+## Name collisions
+
+Top-level names must be unique within their namespace. Fields within a struct and parameters within a function must also be unique. All inherent implementations of a struct share one associated-value namespace, so duplicate methods, associated functions, or associated constants are static errors regardless of signature or impl block. A field and method may share a name.
+
+Successive `let` bindings may shadow earlier locals, parameters, and non-protected global functions. Lookup chooses the nearest binding; if it is not callable, a call is a static error rather than a retry with a hidden function. A `let` initializer sees the environment before the new binding.
+
+A `let` or ordinary parameter that collides with a visible unqualified constant is course UB under the centralized [constant-name collision guarantee](undefined-behavior.md#constant-name-collisions).
 
 ## Protected builtin names
 
-User declarations and bindings cannot replace a builtin in its protected namespace:
+User declarations and bindings cannot replace these names in their protected namespace:
 
 | Namespace | Protected names |
 | --- | --- |
-| Type | i32, u32, isize, usize, bool, Box, Vec, Copy, Clone, PartialEq, Eq |
-| Value | getInt, printInt, printlnInt |
-| Derive attribute entries | Copy, Clone, PartialEq, Eq always denote the supported builtin derives |
+| Type | `i32`, `u32`, `isize`, `usize`, `bool`, `Box`, `Vec`, `Copy`, `Clone`, `PartialEq`, `Eq` |
+| Value | `getInt`, `printInt`, `printlnInt` |
+| Derive entry | `Copy`, `Clone`, `PartialEq`, `Eq` |
 
-These names are lexically identifiers whose protection is checked in the stated namespace. A spelling may be used in another namespace, or as a field or associated item name. For example, a field named Vec is permitted. An inherent method named clone participates in the ordinary method candidate order. Inherent impls belong to user-defined named-field structs.
-
-Redeclaring a protected builtin in its namespace is a static error. Ordinary local shadowing, type/value separation, and cross-impl duplicate checks follow the rules above.
+The spellings remain lexical identifiers. They may be used in another namespace or as field and associated-item names; for example, a field named `Vec` is valid. Inherent methods belong only to user-defined structs. Redeclaring a protected builtin in its namespace is a static error.

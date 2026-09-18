@@ -20,7 +20,12 @@ Method calls resolve using the following candidate order:
 
 The priority between inherent and trait methods applies within each candidate, not across the whole list. For a receiver of type S, an available builtin clone with receiver &S can therefore be selected before an inherent clone with receiver &mut S. If both have receiver &S, the inherent method takes priority. Expected return types do not select a different method.
 
+<details>
+<summary>Clone lookup examples</summary>
+
 For an ordinary derived-Clone struct S with no inherent clone, calling `r.clone()` on `r: &S` selects S's clone and returns S. If S is not Clone, the shared reference itself still has Clone; the method search can instead select the reference clone with receiver &&S. This distinction follows from the same candidate sequence.
+
+</details>
 
 The builtin Clone method participates for types with that capability. Copy and Eq are marker capabilities. Builtin array methods participate under their specified receiver signatures.
 

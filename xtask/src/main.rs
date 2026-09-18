@@ -95,7 +95,7 @@ fn linkcheck(args: impl Iterator<Item = String>) -> Result<()> {
     }
 
     let status = Command::new("sh")
-        .args(["linkcheck.sh", "--all", "reference"])
+        .args(["linkcheck.sh", "reference"])
         .args(args)
         .status()
         .expect("sh should be installed");

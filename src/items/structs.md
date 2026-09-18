@@ -17,7 +17,7 @@ Lifetime parameters describe references stored in the struct, as in `struct View
 
 A struct is a nominal type with explicitly typed, named fields. Its fields are accessible throughout the source compilation unit. [Name rules](../names.md#settled-scope-rules) define field uniqueness and the meaning of `Self` in its declaration. For example, `struct Node { children: Vec<Self> }` refers to the Node being defined.
 
-Struct definitions must have [finite layouts](../types.md#recursive-types). Empty braces are parsed, while data uses follow the [zero-sized-data exclusions](../undefined-behavior.md#zero-sized-data). The [backend contract](../backend.md#2-数据布局) governs implementation layout. Values are created with [struct expressions](../expressions/struct-expr.md) and accessed with [field expressions](../expressions/field-expr.md).
+Struct definitions must have [finite layouts](../types.md#recursive-types). Empty braces are parsed, while data uses follow the [zero-sized-data rules](../undefined-behavior.md#zero-sized-data). The [backend contract](../backend.md#data-layout) governs implementation layout. Values are created with [struct expressions](../expressions/struct-expr.md) and accessed with [field expressions](../expressions/field-expr.md).
 
 ```rust,ignore
 #[derive(Clone, Copy, PartialEq, Eq)]

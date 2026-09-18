@@ -7,7 +7,7 @@
 //!    Look at one of the other admonitions as a guide.
 //! 3. Update `src/introduction.md` and describe what this new block is for
 //!    with an example.
-//! 4. Update `docs/authoring.md` to show an example of your new admonition.
+//! 4. Update the contributor documentation to show an example of your new admonition.
 
 use crate::{Diagnostics, warn_or_err};
 use mdbook::book::Chapter;

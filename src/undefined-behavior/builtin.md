@@ -10,7 +10,7 @@ fn main() -> () {
 }
 ```
 
-The return annotation may be omitted. Main has an empty value-parameter list and no generic parameters. Reaching its end or executing `return;` ends the source program normally. The generated machine entry returns status 0 as specified by the [backend contract](../backend.md#4-符号入口和-runtime). Source programs cannot call main.
+The return annotation may be omitted. Main has an empty value-parameter list and no generic parameters. Reaching its end or executing `return;` ends the source program normally. The generated machine entry returns status 0 as specified by the [backend contract](../backend.md#symbols-entry-and-runtime). Source programs cannot call main.
 
 Programs print their answers using the I/O functions below.
 
@@ -32,4 +32,4 @@ These three functions form the source-visible I/O interface. Students may use th
 
 ## Other builtin facilities
 
-The [builtin traits](../builtin-traits.md), [array methods](../expressions/array-expr.md#array-methods), and [Box/Vec operations](../heap.md) are defined in their own chapters. The [runtime contract](../backend.md#41-box--vec-与内存辅助接口) defines the generated-code allocation interface.
+The [builtin traits](../builtin-traits.md), [array methods](../expressions/array-expr.md#array-methods), and [Box/Vec operations](../heap.md) are defined in their own chapters. The [runtime contract](../backend.md#heap-allocation-interface) defines the generated-code allocation interface.

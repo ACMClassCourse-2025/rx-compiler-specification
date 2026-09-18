@@ -20,12 +20,10 @@ are specified in [Vec operations](../heap.md#vec-operations).
 
 ## Type arguments and composition
 
-The type argument may be any supported concrete type, including another
-container, an array, a reference, or a named struct. Each occurrence of [Type]
-in the grammar admits Box and Vec types: local annotations, parameters,
-function results, struct fields, array elements, reference targets, and nested
-container arguments. The [zero-sized-data rules](../undefined-behavior.md#zero-sized-data)
-govern the assessed element and referent types.
+The type argument may be any supported concrete type, including another container, array, reference, or named struct. `Box` and `Vec` may occur anywhere [Type] is accepted. The [zero-sized-data rules](../undefined-behavior.md#zero-sized-data) govern element and referent types.
+
+<details>
+<summary>Composition examples</summary>
 
 | Type spelling | Meaning |
 | --- | --- |
@@ -51,11 +49,9 @@ fn append(values: &mut Vec<Box<i32>>, value: Box<i32>) {
 }
 ```
 
-The [recursive-type rules](../types.md#recursive-types) define how container indirection permits finite recursive layouts.
-Each example's element type is specified by its type syntax; lifetime arguments
-within that type follow the [lifetime elision rules](../references.md#lifetime-validity).
-Local binding annotations may be inferred from a constructor or other uses in
-the function.
+</details>
+
+The [recursive-type rules](../types.md#recursive-types) define how container indirection permits finite recursive layouts. Lifetime arguments follow the [lifetime rules](../references.md#lifetime-validity), and local annotations may be inferred from constructors or other uses.
 
 Container values are created by the [constructors](../heap.md#constructors-and-type-arguments).
 Path separators, turbofish, and trailing argument commas follow

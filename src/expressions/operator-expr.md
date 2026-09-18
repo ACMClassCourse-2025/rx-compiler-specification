@@ -47,11 +47,16 @@ Primitive arithmetic and bit operations support the scalar and reference operand
 | Arithmetic/bitwise compound assignment | A mutable place of primitive type T; right is T or &T for the corresponding operation | Unit |
 | Shift compound assignment | A mutable place of primitive integer type L; right is R or &R | Unit |
 
+<details>
+<summary>Reference operand details</summary>
+
 These arithmetic/bitwise reference variants accept one shared-reference layer, not arbitrary automatic dereferencing. For example, `&a + &b`, `-&a`, and `x += &y` are supported for compatible primitives; `&&a + &b`, `-&mut a`, and `x += &mut y` are not. A mutable-reference operand can be explicitly dereferenced to obtain the scalar value. A reference-valued assignment destination is not automatically dereferenced: use `*p += rhs` to update the primitive behind p.
 
 The operations compute scalar results; they do not change a referent merely because an operand is a reference. Evaluating a reference operand produces its reference value; the scalar load needed by the operation occurs when that operation is performed, after its operands have been evaluated. Compound-assignment ordering is specified below.
 
 The table defines the complete builtin operand combinations for these operations.
+
+</details>
 
 All supported integers have 32 bits. Runtime addition, subtraction, multiplication, and signed negation wrap using two's-complement arithmetic, as with Rust overflow checks disabled. Optimized and unoptimized code have the same behavior. LLVM overflow flags must not assert non-overflow unless the compiler has proved it for the particular operation.
 
@@ -93,9 +98,14 @@ Reference borrowing and reborrowing adjustments follow the [reference coercion r
 
 ### Cast parsing
 
+<details>
+<summary>Disambiguating generic arguments from operators</summary>
+
 The [operator precedence table](../expressions.md#precedence) governs expression nesting. After a type-path segment in a cast, `<` begins [GenericArgs] rather than a comparison. A leading `<` from `<<` likewise enters type-argument parsing. Parenthesizing the cast makes the intended operation explicit: `(x as usize) < y` and `(x as usize) << y`. A parenthesized type already closes the type syntax, so `x as (usize) < y` and `x as (usize) << y` also parse as comparison and shift. Operators such as `<=`, `>`, `>>`, and `==` follow ordinary precedence after the cast type.
 
 The parser checks the resulting syntax; name resolution checks its type arguments. Thus `x as usize<i32>` has a type-path syntax tree but is a static error because the primitive usize takes no type arguments.
+
+</details>
 
 ## Borrow, dereference, and assignment
 
@@ -143,7 +153,10 @@ Assignments such as `s = other;` and `a = other_array;` store an entire struct o
 
 All supported compound assignments use the same right-first order, independently of whether the right operand is a scalar or a shared reference. Each operand expression and destination-address computation is evaluated once. The destination's old value is read after operand evaluation. A reference right operand is evaluated to its reference value first; its target is read when the scalar operation is performed. Borrow validity continues to be guaranteed by tests, not checked by a required borrow checker.
 
-For example, under the course rules:
+<details>
+<summary>Compound-assignment order example</summary>
+
+Under the course rules:
 
 ```rust,ignore
 fn destination(p: &mut i32) -> &mut i32 {
@@ -170,5 +183,7 @@ fn main() {
 ```
 
 Official tests are independent of the relative evaluation order of the two operands of compound assignment. The example above illustrates the specified behavior and is outside that assessment domain.
+
+</details>
 
 Ending or replacing an old value does not imply clearing its bytes. Replacing a container does not require recursive destruction or immediate deallocation; its old heap storage may remain until [program-end reclamation](../heap.md#program-end-reclamation).

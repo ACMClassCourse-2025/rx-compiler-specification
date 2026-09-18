@@ -1,9 +1,12 @@
 # Rx Compiler Specification
 
-[Introduction and revision status](introduction.md)
+[Introduction](introduction.md)
+
+- [Language scope and test guarantees](undefined-behavior.md)
+
+# Source language
 
 - [Notation](notation.md)
-- [Language scope and test guarantees](undefined-behavior.md)
 - [Lexical structure](lexical-structure.md)
     - [Input format](input-format.md)
     - [Keywords](keywords.md)
@@ -11,7 +14,10 @@
     - [Comments](comments.md)
     - [Whitespace](whitespace.md)
     - [Tokens](tokens.md)
+- [Parser conventions](grammar.md)
 - [Crates and source files](crates-and-source-files.md)
+- [Names and scopes](names.md)
+    - [Paths](paths.md)
 - [Items](items.md)
     - [Functions](items/functions.md)
     - [Structs](items/structs.md)
@@ -41,13 +47,16 @@
     - [If expressions](expressions/if-expr.md)
     - [Return expressions](expressions/return-expr.md)
 - [Constant contexts](const_eval.md)
+
+# Values and execution
+
 - [Copy, move, and builtin traits](builtin-traits.md)
 - [References and storage duration](references.md)
-- [Names and scopes](names.md)
-    - [Paths](paths.md)
-- [Builtin I/O and program entry](undefined-behavior/builtin.md)
 - [Box and Vec](heap.md)
+- [Builtin I/O and program entry](undefined-behavior/builtin.md)
 - [Backend and execution contract](backend.md)
-- [Parser conventions](grammar.md)
+
+# Appendices
+
 - [Grammar summary](grammar-summary.md)
 - [Publication validation](open-decisions.md)

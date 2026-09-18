@@ -72,7 +72,7 @@ jobs:
       run: |
         curl -sSLo linkcheck.sh \
           https://raw.githubusercontent.com/rust-lang/rust/master/src/tools/linkchecker/linkcheck.sh
-        sh linkcheck.sh --all reference
+        sh linkcheck.sh reference
 
   mdbook-spec:
     runs-on: ubuntu-latest

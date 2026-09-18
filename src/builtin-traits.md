@@ -1,16 +1,14 @@
 # Copy, move, and builtin traits
 
-The compiler recognizes four builtin traits: Copy, Clone, PartialEq, and Eq. Their capabilities and operations are defined below. Struct declarations request these capabilities with derive attributes, and builtin types obtain them according to the capability table.
+The compiler recognizes four builtin traits: `Copy`, `Clone`, `PartialEq`, and `Eq`.
 
 ## Value semantics
 
-When a place produces a value, a Copy type is copied; otherwise it is moved. This applies uniformly to let initialization, assignment, by-value arguments and receivers, returns, and field reads. Non-Copy bindings do not become implicit aliases.
+Reading a place copies a `Copy` value and moves any other value. The same rule applies to initialization, assignment, by-value arguments and receivers, returns, and field reads. A move makes its source unavailable until reinitialized; it never creates an implicit alias.
 
-A move makes the source value unavailable until it is initialized again. Tests exclude reads of uninitialized values, use-after-move, double move, invalid partial moves, and moves from borrowed contents or non-Copy indexed array elements. The compiler need not diagnose these ownership violations. Valid moves, including branch-dependent transfers, partial moves, and early returns, must preserve value semantics.
+Tests exclude ownership violations such as reading uninitialized values, use after move, double move, invalid partial move, and moving non-`Copy` values from borrowed contents or array indices. The compiler need not diagnose them, but valid moves across branches, fields, and early returns must work.
 
-Copy produces a semantically independent value. Copying a shared reference copies that reference, not its referent. Passing an array/struct by an address at machine level must not let the callee modify a Copy value which the caller can still observe. Move may reuse storage when observationally equivalent; it does not require clearing source memory.
-
-Container move-out operations are specified in [Heap](heap.md), and allocation lifetime follows [program-end reclamation](heap.md#program-end-reclamation).
+Copies are semantically independent. Copying a shared reference copies the reference, not its target. A machine-level address-passing convention must still preserve by-value semantics. Moves may reuse storage when no observable behavior changes.
 
 ## Derive
 
@@ -22,58 +20,36 @@ DeriveAttribute -> `derive` `(` (DeriveName (`,` DeriveName)* `,`?)? `)`
 DeriveName -> `Copy` | `Clone` | `PartialEq` | `Eq`
 ```
 
-```rust,ignore
-#[derive(Clone, PartialEq, Eq)]
-struct Record {
-    value: i32,
-}
-```
+Zero or more `#[derive(...)]` attributes may precede a top-level named-field struct. Lists may be empty or end with a comma. Repeating a capability, within or across attributes, is a static error.
 
-Write `#[derive(...)]` before a top-level named-field struct. Zero or more such attributes may occur, and their lists are combined. Each list contains unqualified names from Copy, Clone, PartialEq, Eq in any order, with an optional trailing comma; an empty `#[derive()]` has no effect. Requesting the same capability twice, within one list or across attributes, is a static error.
-
-| Requested capability | Requirements |
+| Requested capability | Requirement |
 | --- | --- |
-| Clone | Every field is Clone; Copy is not required |
-| Copy | The struct also has Clone and every field is Copy |
-| PartialEq | Every field is PartialEq; no Copy/Clone requirement |
-| Eq | The struct also has PartialEq and every field is Eq |
+| `Clone` | Every field is `Clone` |
+| `Copy` | `Clone` is also requested and every field is `Copy` |
+| `PartialEq` | Every field is `PartialEq` |
+| `Eq` | `PartialEq` is also requested and every field is `Eq` |
 
-A struct obtains each capability through an explicit derive request satisfying the table above. Invalid requests are static errors.
-
-| Type | Copy | Clone | PartialEq / Eq with the identical source type |
+| Type | `Copy` | `Clone` | `PartialEq` / `Eq` with the same source type |
 | --- | --- | --- | --- |
-| Supported integers, bool | Yes | Yes | Both |
-| `&T` | Yes, regardless of T | Yes, regardless of T | Require the respective capability of T |
-| `&mut T` | No | No | Require the respective capability of T |
-| `[T; N]` | If T is Copy | If T is Clone | Require the respective capability of T |
-| Struct | By valid explicit derive | By valid explicit derive | By valid explicit derive |
-| Box<T> / Vec<T> | No | If T is Clone | Require the respective capability of T |
+| Integers, `bool` | Yes | Yes | Both |
+| `&T` | Yes | Yes | Requires the corresponding capability of `T` |
+| `&mut T` | No | No | Requires the corresponding capability of `T` |
+| `[T; N]` | If `T` is `Copy` | If `T` is `Clone` | Requires the corresponding capability of `T` |
+| Struct | Valid explicit derive | Valid explicit derive | Valid explicit derive |
+| `Box<T>`, `Vec<T>` | No | If `T` is `Clone` | Requires the corresponding capability of `T` |
 
-Zero-sized data remains excluded under the [zero-sized-data guarantee](undefined-behavior.md#zero-sized-data). Capability requirements form a finite graph of declared types and builtin operations. References and recursive container types can create cycles in this graph. Checking terminates by handling cycles while enforcing every explicit derive and field requirement. For example, a Node deriving Clone/PartialEq/Eq with a Vec<Node> field has those capabilities when its other fields meet the requirements.
+Zero-sized data follows the [zero-sized-data guarantee](undefined-behavior.md#zero-sized-data). Capability checking must terminate across recursive type graphs while enforcing every field requirement. For example, `struct Node { children: Vec<Node> }` may derive `Clone`, `PartialEq`, and `Eq` when all other fields qualify.
 
 ## Clone
 
-A Clone value supports `.clone()`, with the builtin signature `fn clone(&self) -> Self`. Derivation recursively clones fields/elements, producing a new value. It copies scalar values and shared references, without cloning the objects behind shared references. A mutable reference itself has no Clone capability.
+A `Clone` value supports `fn clone(&self) -> Self`. Derived clone recursively clones fields and elements into an independent value. Scalars and shared references are copied; a shared reference's target is not cloned. Mutable references are not `Clone`.
 
-```rust,ignore
-fn main() {
-    let a = Record { value: 1 };
-    let mut b = a.clone();
-    b.value = 2;
-    printlnInt(a.value); // 1
-    let c = a;          // move: Record was not derived Copy
-    if c != b { printlnInt(3); }
-}
-```
-
-An explicit `.clone()` call uses [method lookup](expressions/method-call-expr.md#method-lookup), including receiver adjustments and same-named inherent methods. Generated field clones use the field's builtin Clone operation directly.
-
-With no owned-resource fields, copying bytes may implement the required clone result when equivalent. Copy remains a separately requested capability. [Container cloning](heap.md#clone-and-equality) defines the treatment of owned heap contents.
+An explicit `.clone()` uses normal [method lookup](expressions/method-call-expr.md#method-lookup), including same-named inherent methods. Compiler-generated field clones call the field's builtin operation directly. `Copy` remains a separate requested capability even when byte copying can implement a clone. [Container cloning](heap.md#clone-and-equality) defines owned heap contents.
 
 ## Equality
 
-`==` / `!=` compare operands with exactly the same source type after ordinary local type inference, and that type must have PartialEq. Equality constrains two still-inferred operand types to agree, so an unsuffixed literal may acquire the other operand's integer type. Already determined types retain their identities. Equality between different source types is course UB; see the centralized [cross-type equality guarantee](undefined-behavior.md#cross-type-equality).
+`==` and `!=` require operands with exactly the same inferred source type and that type's `PartialEq` capability. The operands constrain one another while still unresolved, so an unsuffixed literal may acquire the other operand's integer type; already determined types do not convert. Different source types are course UB under the centralized [cross-type equality guarantee](undefined-behavior.md#cross-type-equality).
 
-For identical operand types, equality borrows its operands and does not consume non-Copy values. Scalars compare values, arrays of the same type compare elements, and two values of the same derived struct type compare fields. References of the same reference type compare their targets, not their addresses. These operations ignore padding; whole-object memcmp is not generally a correct implementation.
+Equality borrows rather than consumes its operands. Scalars compare values; arrays compare corresponding elements; derived structs compare fields; references compare their targets, not their addresses. Padding is ignored, so whole-object `memcmp` is not generally valid. `Box` and `Vec` equality is defined by [container equality](heap.md#clone-and-equality).
 
-[Container equality](heap.md#clone-and-equality) defines comparison of Box and Vec contents. Eq marks equality as an equivalence relation. The builtin trait operations are `.clone()`, `==`, and `!=`. Scalar ordering, arithmetic, and bit operations have their own finite operand rules in [Operators](expressions/operator-expr.md).
+`Eq` marks equality as an equivalence relation. The only builtin trait operations are `.clone()`, `==`, and `!=`; ordering and arithmetic use [Operators](expressions/operator-expr.md).

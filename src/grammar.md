@@ -5,7 +5,8 @@ The [grammar summary](grammar-summary.md) collects those same productions in
 one place. This guide locates the rules for precedence and expression boundaries, and
 specifies contextual token interpretation.
 
-## Syntax coverage
+<details>
+<summary>Grammar coverage by source form</summary>
 
 Each occurrence of [Type] and [Expression] admits the alternatives in their
 respective productions. This composition applies recursively: a struct field
@@ -39,7 +40,10 @@ programs are valid. For example, the identifier in a struct construction must
 name a struct, a method receiver belongs to an inherent impl, and an assignment
 destination must denote a mutable place.
 
-## Rule locations
+</details>
+
+<details>
+<summary>Rule locations</summary>
 
 | Topic | Defining chapter |
 | --- | --- |
@@ -53,6 +57,8 @@ destination must denote a mutable place.
 | Block tails | [Block expressions](expressions/block-expr.md) |
 | Break/continue targets and loop results | [Loops](expressions/loop-expr.md#while-and-loop) |
 | Assignment places | [Assignment destinations](expressions/operator-expr.md#assignment-destinations) |
+
+</details>
 
 ## Contextual punctuation
 

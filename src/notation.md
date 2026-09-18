@@ -15,9 +15,9 @@ The following notations are used by the *Lexer* and *Syntax* grammar snippets:
 | x<sup>a..b</sup>  | HEX_DIGIT<sup>1..6</sup>      | a to b repetitions of x                   |
 | Rule1 Rule2       | `fn` _Name_ _Parameters_      | Sequence of rules in order                |
 | \|                | `i32` \| `u32`, Block \| Item  | Either one or another                     |
-| \[ ]               | \[`b` `B`]                     | Any of the characters listed              |
-| \[ - ]             | \[`a`-`z`]                     | Any of the characters in the range        |
-| ~\[ ]              | ~\[`b` `B`]                    | Any characters, except those listed       |
+| `[ ]`              | `[b B]`                       | Any of the characters listed              |
+| `[ - ]`            | `[a-z]`                       | Any of the characters in the range        |
+| `~[ ]`             | `~[b B]`                      | Any characters, except those listed       |
 | ~`string`         | ~`\n`, ~`*/`                  | Any characters, except this sequence      |
 | ( )               | (`,` _Parameter_)<sup>?</sup> | Groups items                              |
 | U+xxxx            | U+0060                        | A single unicode character                |
@@ -26,25 +26,18 @@ The following notations are used by the *Lexer* and *Syntax* grammar snippets:
 
 Sequences have a higher precedence than `|` alternation.
 
-## String table productions
+<details>
+<summary>String-table productions</summary>
 
-Some rules in the grammar &mdash; notably [unary operators], [binary
-operators], and [keywords] &mdash; are given in a simplified form: as a listing
-of printable strings. These cases form a subset of the rules regarding the
-[token][tokens] rule, and are assumed to be the result of a lexical-analysis
-phase feeding the parser, driven by a <abbr title="Deterministic Finite
-Automaton">DFA</abbr>, operating over the disjunction of all such string table
-entries.
+## String-table productions
 
-When such a string in `monospace` font occurs inside the grammar,
-it is an implicit reference to a single member of such a string table
-production. See [tokens] for more information.
+Some rules, including [unary operators], [binary operators], and [keywords], are lists of printable strings. Each string represents one token produced by lexical analysis and is an implicit reference to a member of that string-table production. See [Tokens][tokens].
+
+</details>
 
 ## Grammar visualizations
 
-Grammar productions appear in the chapters that define their features. Lexer rules use uppercase names; syntax rules use mixed-case names. Each rule has a text form and a syntax diagram.
-
-Below each grammar block is a button to toggle the display of a [syntax diagram]. A square element is a non-terminal rule, and a rounded rectangle is a terminal.
+Grammar productions appear in the chapters that define them. Lexer rules use uppercase names; syntax rules use mixed-case names. The button below each grammar block shows its [syntax diagram], where squares are nonterminals and rounded rectangles are terminals.
 
 [syntax diagram]: https://en.wikipedia.org/wiki/Syntax_diagram
 

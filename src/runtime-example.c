@@ -11,8 +11,7 @@ extern void *malloc(uint32_t size);
 
 /*
  * Valid course allocations have nonzero size and alignment 1 or 4. REIMU's
- * malloc result satisfies both alignments. Objects are not individually freed;
- * the execution environment reclaims the whole heap when the program ends.
+ * malloc result satisfies both alignments. Objects are not individually freed.
  */
 void *__rx_alloc(uint32_t size, uint32_t align) {
   (void)align;

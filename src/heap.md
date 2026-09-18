@@ -86,7 +86,6 @@ transfer ownership, clones still create independent owned contents, and a
 reference invalidated by reallocation or removal remains invalid even if the
 old bytes are still present.
 
-The execution environment reclaims the program's memory after each execution.
 An implementation may reclaim or reuse storage earlier when it preserves
 program behavior and valid references. Tests fit the cumulative heap budget
 defined by the [backend resource guarantees](backend.md#resource-guarantees).

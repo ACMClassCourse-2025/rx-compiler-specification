@@ -11,7 +11,7 @@ selected frontend and execution environment.
 | Parser integration | Parse the documented type, item, expression, and statement forms, including lifetime declarations/arguments/bounds, nested containers, explicit turbofish, contextual punctuation, and condition/statement boundaries | [Grammar summary](grammar-summary.md), [Parser conventions](grammar.md) |
 | Runtime integration | Execute Box/Vec construction, growth, non-Copy remove, nested and recursive Clone/equality, and fresh heap state for each execution with the published runtime and pinned REIMU commit | [Heap](heap.md), [Backend contract](backend.md) |
 
-The allocator ABI, reference `Vec` growth policy, memory and stack settings, and cumulative heap budget are specified by the [backend resource guarantees](backend.md#resource-guarantees). The execution environment reclaims heap storage after each execution; source ownership and reference validity follow the [heap cleanup rules](heap.md#heap-cleanup).
+The allocator ABI, reference `Vec` growth policy, memory and stack settings, and cumulative heap budget are specified by the [backend resource guarantees](backend.md#resource-guarantees). Source ownership and reference validity follow the [heap cleanup rules](heap.md#heap-cleanup).
 
 ## Specification status
 

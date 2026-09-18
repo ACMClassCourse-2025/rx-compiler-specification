@@ -1,5 +1,7 @@
 # Rx Compiler Specification
 
+Read the [specification online](https://acmclasscourse-2025.github.io/rx-compiler-specification/).
+
 This repository contains the 2026 working specification for the compiler course's Rust subset and RV32IM target.
 
 The chapters in [`src/SUMMARY.md`](src/SUMMARY.md) are the complete normative specification. Start with the [introduction](src/introduction.md), [language scope](src/undefined-behavior.md), and [publication validation](src/open-decisions.md).

@@ -35,7 +35,7 @@ A `let` or ordinary parameter that collides with a visible unqualified constant 
 
 ## Protected builtin names
 
-User declarations and bindings cannot replace these names in their protected namespace:
+The following names are protected in their respective namespaces:
 
 | Namespace | Protected names |
 | --- | --- |
@@ -43,4 +43,11 @@ User declarations and bindings cannot replace these names in their protected nam
 | Value | `get_i32`, `print_i32`, `println_i32` |
 | Derive entry | `Copy`, `Clone`, `PartialEq`, `Eq` |
 
-The spellings remain lexical identifiers. They may be used in another namespace or as field and associated-item names; for example, a field named `Vec` is valid. Inherent methods belong only to user-defined structs. Redeclaring a protected builtin in its namespace is a compile error.
+The spellings remain lexical identifiers. They may be used in another namespace or as field and associated-item names; for example, a field named `Vec` is valid. Inherent methods belong only to user-defined structs.
+
+The following collisions are undefined behavior under the [test guarantees](undefined-behavior.md#test-guarantees), with no required diagnostic or behavior:
+
+- Declaring a struct named `u32`, `isize`, `usize`, `bool`, `Box`, `Vec`, `Copy`, `Clone`, `PartialEq`, or `Eq`.
+- Declaring a local binding (`let` or ordinary parameter) named `get_i32`, `print_i32`, or `println_i32`.
+
+Other redeclarations of protected builtins in their namespace remain compile errors, including a struct named `i32` or a top-level function or constant with a protected I/O name.

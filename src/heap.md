@@ -20,7 +20,7 @@ None of the operations in this table requires a builtin trait capability of
 | `Vec<T>` | `fn push(&mut self, value: T) -> ()` | Appends one element by copy or move. |
 | `Vec<T>` | `fn remove(&mut self, index: usize) -> T` | Moves out and returns the indexed element, shifting later elements left. |
 
-Constructors require explicit concrete type arguments:
+In valid programs, constructors have explicit concrete type arguments:
 
 ```rust,ignore
 let boxed = Box::<i32>::new(7);
@@ -28,6 +28,8 @@ let mut values = Vec::<i32>::new();
 ```
 
 Every nested container constructor has its own explicit concrete type argument.
+Omitting this argument, as in `Box::new(7)` or `Vec::new()`, is undefined
+behavior under the [test guarantees](undefined-behavior.md#test-guarantees). 
 Lifetime arguments inside `T` follow the [lifetime rules](references.md#lifetime-validity);
 type-position `_` is unsupported.
 

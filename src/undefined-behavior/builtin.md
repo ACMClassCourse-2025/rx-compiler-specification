@@ -10,7 +10,9 @@ fn main() -> () {
 }
 ```
 
-The return annotation may be omitted. Main has an empty value-parameter list and no generic parameters. Reaching its end or executing `return;` ends the source program normally. The generated machine entry returns status 0 as specified by the [backend contract](../backend.md#symbols-entry-and-runtime). Source programs cannot call main.
+The return annotation may be omitted. Main has an empty value-parameter list and no generic parameters. 
+
+Program entry invokes this source function and returns status 0 after that initial invocation completes. The recommended implementation gives the source function a unique mangled internal symbol and exports a C ABI wrapper as `main`. The wrapper calls the source function and returns the signed 32-bit value 0. Equivalent lowering must preserve these behaviors, as specified by the [backend contract](../backend.md#symbols-entry-and-runtime).
 
 Programs print their answers using the I/O functions below.
 

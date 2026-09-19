@@ -39,9 +39,22 @@ condition is always true.
 
 ## Unreachable code
 
-Unreachable code is accepted subject to ordinary name/type rules. Control flow
-must preserve the behavior of diverging expressions, including skipping the
-remainder of a block after a return.
+Unreachable code is accepted subject to ordinary name, type, and
+place-mutability rules, except for source forms explicitly classified as
+undefined behavior. Control flow must preserve the behavior of diverging
+expressions, including skipping the remainder of a block after a return.
+
+Assigning to an immutable local in unreachable code is undefined behavior under the
+[test guarantees](../undefined-behavior.md#test-guarantees). This includes
+ordinary and compound assignment. No diagnostic is required. For example:
+
+```rust,ignore
+fn example() {
+    let value = 1;
+    return;
+    value = 2; // undefined behavior: immutable local assignment after return
+}
+```
 
 The implementation need not expose a particular never representation in its
 AST/IR or prove termination.

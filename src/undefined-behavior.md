@@ -10,7 +10,7 @@ We distinguish between a Valid Program, a Compile Error and a Undefined behavior
 | Compile error | Reject normally; diagnostic wording is unspecified | May appear in negative tests |
 | Undefined behavior | No required diagnostic or behavior | Excluded as stated by its defining rule |
 
-Unsupported syntax may be rejected at the language-subset boundary even if the supplied parser recognizes it. Ordinary name, type, and place-mutability errors remain compile errors, including in unreachable code. The compiler need not prove termination, borrow validity, or ownership validity. Runtime checks, panic handling, and stack unwinding are not required for excluded executions.
+Unsupported syntax may be rejected at the language-subset boundary even if the supplied parser recognizes it. Unless a source form is explicitly classified as undefined behavior, ordinary name, type, and place-mutability errors remain compile errors, including in unreachable code. The compiler need not prove termination, borrow validity, or ownership validity. Runtime checks, panic handling, and stack unwinding are not required for excluded executions.
 
 ## Language subset
 
@@ -46,6 +46,11 @@ The following source forms are undefined behavior and never appear in tests, inc
 | --- | --- |
 | Integer literal outside its determined type | [Integer literal range](#integer-literal-range) |
 | Integer inference requiring expected-type propagation through binary operations, unary operations, or shared/mutable borrows | [Expected-type propagation](types.md#coercion-sites-and-expected-types) |
+| Omitting the explicit concrete type argument in a `Box::new(...)` or `Vec::new()` constructor call | [Builtin constructors](heap.md#builtin-signatures) |
+| Using a function as a value | [Function values](expressions/path-expr.md#function-values) |
+| Declaring a struct named `u32`, `isize`, `usize`, `bool`, `Box`, `Vec`, `Copy`, `Clone`, `PartialEq`, or `Eq` | [Protected builtin names](names.md#protected-builtin-names) |
+| Local binding named `get_i32`, `print_i32`, or `println_i32` | [Protected builtin names](names.md#protected-builtin-names) |
+| Assigning to an immutable local in unreachable code | [Unreachable code](types/never.md#unreachable-code) |
 | Let or parameter name colliding with a visible unqualified constant | [Constant-name collisions](#constant-name-collisions) |
 | Equality between different source types | [Cross-type equality](#cross-type-equality) |
 | LUB coercion for which neither type can become the common target | [Least upper bound coercions](types.md#least-upper-bound-coercions) |
@@ -64,7 +69,7 @@ Integer literal overflow is undefined behavior. The [literal rules](expressions/
 
 ### Constant-name collisions
 
-A `let` or ordinary parameter that matches a visible unqualified constant is undefined behavior, regardless of mutability or declaration order. No diagnostic or constant-pattern interpretation is required. An associated constant reachable only as `Type::NAME` does not exclude a local `NAME`. The [protected builtin](names.md#protected-builtin-names) prohibition still applies.
+A `let` or ordinary parameter that matches a visible unqualified constant is undefined behavior, regardless of mutability or declaration order. No diagnostic or constant-pattern interpretation is required. An associated constant reachable only as `Type::NAME` does not exclude a local `NAME`. Collisions with builtin names follow the [protected builtin rules](names.md#protected-builtin-names).
 
 ### Cross-type equality
 

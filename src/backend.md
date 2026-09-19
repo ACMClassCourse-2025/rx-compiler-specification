@@ -84,7 +84,24 @@ Methods may lower the receiver to an explicit parameter. Fixed arrays remain sou
 
 ## Symbols, entry, and runtime
 
-The source [entry function](undefined-behavior/builtin.md#program-entry) becomes the global machine symbol `main`, with behavior equivalent to `int main(void)`. Normal completion returns status 0. All other source and helper symbol names are implementation-defined but must be unique within the program.
+The global machine symbol `main` must provide a C ABI entry point with behavior equivalent to `int main(void)`. It invokes the source [entry function](undefined-behavior/builtin.md#program-entry) and, after that invocation returns, returns the signed 32-bit value 0 in `a0`. It must obey the psABI, including stack alignment and register preservation.
+
+The recommended lowering gives the source `main` a unique mangled internal symbol and generates a wrapper exporting the machine symbol `main`. Source calls to `main`, including recursive calls, target the internal source function and use its ordinary unit-returning calling convention. Returning from that function resumes its caller; returning from the wrapper ends the program normally. The source signature remains `fn main() -> ()`.
+
+For example, the following C-like sketch illustrates the split:
+
+```c
+static void __rx_source_main(void) {
+    /* Lowered source main body. */
+}
+
+int main(void) {
+    __rx_source_main();
+    return 0;
+}
+```
+
+The internal symbol spelling is illustrative. Source and helper symbol names are implementation-defined but must be unique and must not collide with the machine entry or runtime symbols. The source function may use any supported internal calling convention. Equivalent lowering is permitted if it preserves both ordinary unit-returning source calls and the machine entry contract; a separate wrapper and internal function need not remain in the emitted code.
 
 The source I/O builtins use this C ABI:
 

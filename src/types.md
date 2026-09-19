@@ -32,7 +32,7 @@ Struct types are nominal. References, arrays, `Box`, and `Vec` are structural. T
 
 ## Inference
 
-Type inference fills in omitted local binding types from their initializers. Function and item signatures are explicit. Each binding has one fixed type; later uses do not change it. `Box` and `Vec` constructors require explicit concrete type arguments, and a receiver's type must be known before field or method lookup.
+Type inference fills in omitted local binding types from their initializers. Function and item signatures are explicit. Each binding has one fixed type; later uses do not change it. Omitting explicit concrete type arguments in `Box` and `Vec` constructor calls is [undefined behavior](heap.md#builtin-signatures). A receiver's type must be known before field or method lookup.
 
 ### Integer literals
 
@@ -77,7 +77,7 @@ These sites have a known expected type and use one-to-one coercion:
 | Annotated `let` initializer | Annotation |
 | Constant initializer | Declared constant type, subject to the restricted [constant forms](const_eval.md) |
 | Assignment right operand | Destination |
-| Function, method, or container constructor argument | Declared parameter; method receivers follow [receiver adjustments](expressions/method-call-expr.md#receiver-adjustments) |
+| Function, method, or container constructor argument | Declared parameter; method receivers follow [receiver adjustments](expressions/method-call-expr.md#method-lookup) |
 | Function tail or `return` operand | Declared result |
 | Struct field initializer | Declared field |
 

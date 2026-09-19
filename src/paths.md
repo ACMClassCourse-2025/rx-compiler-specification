@@ -36,7 +36,7 @@ GenericArgList -> (GenericArg `,`)* GenericArg `,`?
 GenericArg -> Lifetime | Type
 ```
 
-Arguments are comma-separated, may have a trailing comma, and place lifetimes before types. `Box` and `Vec` require exactly one explicit concrete type argument. User functions and structs accept only their declared lifetime arguments; primitive types accept none. Type-argument arity and kind violations are compile errors; lifetime correctness follows the [lifetime validity guarantee](undefined-behavior.md#lifetime-validity).
+Arguments are comma-separated, may have a trailing comma, and place lifetimes before types. In valid programs, `Box` and `Vec` have exactly one explicit concrete type argument. Omitting it in a `Box::new(...)` or `Vec::new()` constructor call is [undefined behavior](heap.md#builtin-signatures). User functions and structs accept only their declared lifetime arguments; primitive types accept none. Other type-argument arity and kind violations are compile errors; lifetime correctness follows the [lifetime validity guarantee](undefined-behavior.md#lifetime-validity).
 
 A type argument may recursively contain any supported concrete type. For example:
 

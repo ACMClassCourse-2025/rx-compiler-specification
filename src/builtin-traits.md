@@ -30,7 +30,7 @@ fn main() {
 
 **Functionality.** `Clone` provides `fn clone(&self) -> Self`. A derived `Clone` implementation recursively clones all fields and array elements to produce an independent value. Scalars and shared references are copied; the target of a shared reference is not cloned. Cloning semantics for owned heap containers are defined in [Container cloning](heap.md#clone-and-equality).
 
-An explicit `.clone()` uses [method lookup](expressions/method-call-expr.md#method-lookup). If multiple candidate methods match (such as identically named inherent methods or `clone` methods at different dereference levels), the method call results in undefined behavior. Compiler-generated field clones call the field's builtin operation directly.
+An explicit `.clone()` uses [method lookup](expressions/method-call-expr.md#method-lookup). If multiple candidate methods match (such as identically named inherent methods or `clone` methods at different dereference levels), the method call results in undefined behavior.
 
 **Requirements.** Deriving `Clone` requires every field to be `Clone`. Mutable references are not `Clone`.
 

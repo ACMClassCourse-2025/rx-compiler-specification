@@ -13,11 +13,11 @@ Statements ->
 A block contains [statements](../statements.md) and an optional final
 expression, enclosed in braces. Statements execute in source order.
 
-A final expression without a semicolon is the block's tail expression. It
-determines the block's type and, when reached, its result value. A block
-without a tail expression evaluates to `()` if it completes normally. Control-flow
-transfers (such as `return`, `break`, or `continue`) that exit the block early
-follow the [never rules](../types/never.md).
+A block's type and result value are determined as follows:
+
+- If the block has a tail expression (a final expression without a semicolon), that expression determines the block's type and, when reached, its result value.
+- If the block has no tail expression and completes normally, its type is `()` and it evaluates to `()`.
+- If every execution path in the block exits early via a control-flow transfer (`return`, `break`, or `continue`), the block does not complete normally and has the [never type](../types/never.md) `!`. If some paths exit early while another path reaches the end without a tail expression, the block completes normally with type `()`.
 
 ```rust,ignore
 fn select(flag: bool) -> i32 {

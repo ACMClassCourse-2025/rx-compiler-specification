@@ -5,7 +5,7 @@ complete normally. It is used internally; `!` is not a valid source type
 annotation.
 
 `return`, `break`, and `continue` expressions have the never type: they transfer
-control instead of producing a value where they appear.
+control instead of producing a value where they appear. A [block expression](../expressions/block-expr.md) whose execution paths all exit early through these transfers likewise has the never type.
 
 The never type can coerce to any expected result type in the supported [coercion contexts](../types.md#conversions-and-coercions).
 Without an expected type, never results do not constrain the other results' common type; if all results are never, that common type is never. This permits an if branch to return early while another branch yields a value, including a reference or container.

@@ -145,7 +145,7 @@ void *__rx_alloc(uint32_t size, uint32_t align);
 
 There is no required `__rx_dealloc`. A custom runtime may instead use a private allocator, call REIMU `malloc`, or inline equivalent behavior. In every case, the compiler computes type size, alignment, element stride, and container capacity while the runtime manages untyped storage. Valid allocation calculations fit `usize`, so dynamic overflow checks and panic support are unnecessary.
 
-REIMU also provides psABI-compatible `memcpy`, `memmove`, and `memset`. Use `memcpy` only for known-disjoint ranges and `memmove` when ranges may overlap. Generated code must not use byte helpers to compare padding or uninitialized bytes as values, and raw memory copying must not duplicate non-Copy data into multiple owners.
+REIMU also provides psABI-compatible `memcpy`, `memmove`, and `memset`. Use `memcpy` only for known-disjoint ranges and `memmove` when ranges may overlap.
 
 <details>
 <summary>Suggested compiler/runtime split</summary>

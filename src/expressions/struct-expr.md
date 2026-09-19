@@ -17,6 +17,6 @@ Each declared field must appear exactly once with a value compatible with its de
 struct Point { x: i32, y: i32 }
 fn main() {
     let point = Point { y: 2, x: 1 };
-    printlnInt(point.x);
+    println_i32(point.x);
 }
 ```

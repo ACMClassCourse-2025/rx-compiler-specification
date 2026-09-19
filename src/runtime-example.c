@@ -19,12 +19,12 @@ void *__rx_alloc(uint32_t size, uint32_t align) {
   return malloc(size);
 }
 
-int32_t getInt(void) {
+int32_t get_i32(void) {
   int32_t value;
   (void)scanf("%d", &value);
   return value;
 }
 
-void printInt(int32_t value) { (void)printf("%d", value); }
+void print_i32(int32_t value) { (void)printf("%d", value); }
 
-void printlnInt(int32_t value) { (void)printf("%d\n", value); }
+void println_i32(int32_t value) { (void)printf("%d\n", value); }

@@ -6,7 +6,7 @@ Every executable program has one top-level entry function:
 
 ```rust,ignore
 fn main() -> () {
-    printlnInt(42);
+    println_i32(42);
 }
 ```
 
@@ -19,12 +19,12 @@ Programs print their answers using the I/O functions below.
 The following interface notation describes the builtin signatures:
 
 ```rust,ignore
-fn getInt() -> i32;
-fn printInt(value: i32) -> ();
-fn printlnInt(value: i32) -> ();
+fn get_i32() -> i32;
+fn print_i32(value: i32) -> ();
+fn println_i32(value: i32) -> ();
 ```
 
-getInt reads a signed decimal i32 from standard input. Official inputs contain enough valid, in-range integers separated by ASCII whitespace; malformed input and premature end of input are excluded. printInt writes the signed decimal representation with no additional characters. printlnInt writes the same representation followed by one LF byte, 0x0a.
+get_i32 reads a signed decimal i32 from standard input. Official inputs contain enough valid, in-range integers separated by ASCII whitespace; malformed input and premature end of input are excluded. print_i32 writes the signed decimal representation with no additional characters. println_i32 writes the same representation followed by one LF byte, 0x0a.
 
 Arguments are ordinary i32 values. A value of another integer type needs an explicit cast. Unit results can be discarded as expression statements; they do not permit ordinary zero-sized bindings.
 

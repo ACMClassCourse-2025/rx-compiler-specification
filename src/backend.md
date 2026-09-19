@@ -89,9 +89,9 @@ The source [entry function](undefined-behavior/builtin.md#program-entry) becomes
 The source I/O builtins use this C ABI:
 
 ```c
-int32_t getInt(void);
-void printInt(int32_t value);
-void printlnInt(int32_t value);
+int32_t get_i32(void);
+void print_i32(int32_t value);
+void println_i32(int32_t value);
 ```
 
 Their input and output behavior is defined by [Builtin I/O](undefined-behavior/builtin.md#io-functions). Students may use the course runtime or provide a compatible implementation. A runtime symbol is linked exactly once.

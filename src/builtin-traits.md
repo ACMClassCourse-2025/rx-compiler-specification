@@ -22,7 +22,7 @@ fn main() {
     let original = Point { x: 1, y: 2 };
     let mut copied = original;
     copied.x = 9;
-    printInt(original.x); // 1
+    print_i32(original.x); // 1
 }
 ```
 
@@ -44,7 +44,7 @@ fn main() {
     let original = Buffer { value: Box::<i32>::new(7) };
     let mut cloned = original.clone();
     *cloned.value = 9;
-    printInt(*original.value); // 7
+    print_i32(*original.value); // 7
 }
 ```
 

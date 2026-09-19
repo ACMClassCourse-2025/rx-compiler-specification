@@ -166,17 +166,17 @@ Under the course rules:
 
 ```rust,ignore
 fn destination(p: &mut i32) -> &mut i32 {
-    printlnInt(2);
+    println_i32(2);
     p
 }
 
 fn right_value() -> i32 {
-    printlnInt(1);
+    println_i32(1);
     3
 }
 
 fn right_reference(p: &i32) -> &i32 {
-    printlnInt(1);
+    println_i32(1);
     p
 }
 

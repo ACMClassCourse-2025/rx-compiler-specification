@@ -29,7 +29,7 @@ Array indexing must stay within its fixed length in valid executions. Runtime bo
 ```rust,ignore
 let mut data: [i32; 4] = [0; 4];
 data[2] = 7;
-printlnInt(data[2]);
+println_i32(data[2]);
 ```
 
 ## Array methods

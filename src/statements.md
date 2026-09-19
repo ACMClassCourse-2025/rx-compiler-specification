@@ -36,7 +36,7 @@ A block's final expression follows the [tail-expression rules](expressions/block
 
 ```rust,ignore
 fn show(flag: bool) {
-    if flag { printInt(1); }    // unit result: semicolon optional
+    if flag { print_i32(1); }    // unit result: semicolon optional
     if flag { 1 } else { 2 };   // integer result: semicolon discards it
 }
 ```

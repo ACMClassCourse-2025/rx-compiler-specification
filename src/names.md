@@ -40,7 +40,7 @@ User declarations and bindings cannot replace these names in their protected nam
 | Namespace | Protected names |
 | --- | --- |
 | Type | `i32`, `u32`, `isize`, `usize`, `bool`, `Box`, `Vec`, `Copy`, `Clone`, `PartialEq`, `Eq` |
-| Value | `getInt`, `printInt`, `printlnInt` |
+| Value | `get_i32`, `print_i32`, `println_i32` |
 | Derive entry | `Copy`, `Clone`, `PartialEq`, `Eq` |
 
 The spellings remain lexical identifiers. They may be used in another namespace or as field and associated-item names; for example, a field named `Vec` is valid. Inherent methods belong only to user-defined structs. Redeclaring a protected builtin in its namespace is a compile error.

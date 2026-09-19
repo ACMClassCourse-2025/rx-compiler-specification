@@ -19,7 +19,7 @@ constructor result may be followed by indexing or a method call.
 | Lifetime tokens and forms | [LIFETIME_TOKEN], [Lifetime] | `'a`, `'static`, `'_` |
 | Lifetime parameters and bounds | [GenericParams], [LifetimeParam], [WhereClause] | `fn f<'a>(x: &'a i32)`, `where 'a: 'b` |
 | Source compilation unit | [Crate], [Item] | Top-level use declarations, functions, structs, constants, impls |
-| Use declarations | [UseDeclaration], [UseTree], [UsePath] | `use rx::core::*;`, `use rx::core::{getInt, printlnInt};` |
+| Use declarations | [UseDeclaration], [UseTree], [UsePath] | `use rx::core::*;`, `use rx::core::{get_i32, println_i32};` |
 | Functions and receivers | [Function], [FunctionParameters], [ShorthandSelf] | `fn f(v: Vec<i32>) -> Box<i32> { ... }`, `&mut self` |
 | Struct declarations and construction | [StructStruct], [StructExpression] | `struct S { x: i32 }`, `S { x: 1 }`, `Self { x: 1 }` |
 | Associated items | [InherentImpl], [AssociatedItem] | `impl S { fn new() -> Self { ... } }` |

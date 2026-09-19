@@ -19,20 +19,20 @@ can be compiled with Rust and the course support crate. For example:
 use rx::core::*;
 
 fn main() {
-    printlnInt(42);
+    println_i32(42);
 }
 ```
 
 The syntax accepts individual paths, `*` globs, nested brace groups with optional
-trailing commas, and `as` aliases. For example, `use rx::core::printlnInt;` and
-`use rx::core::{getInt, printlnInt};` are also accepted. Use declarations cannot
+trailing commas, and `as` aliases. For example, `use rx::core::println_i32;` and
+`use rx::core::{get_i32, println_i32};` are also accepted. Use declarations cannot
 appear in expression blocks or impls, and have no visibility modifier or
 attributes.
 
 After parsing, the compiler may discard the whole declaration. It does not
 resolve the import path, load a crate or module, introduce names or aliases,
 check import conflicts, or emit LLVM IR for the declaration. Builtins such as
-`printlnInt` are already available in Rx, with or without a `use` declaration.
+`println_i32` are already available in Rx, with or without a `use` declaration.
 
 The [use compatibility guarantee](../undefined-behavior.md#use-compatibility)
 ensures that tests do not depend on additional import semantics. The longer

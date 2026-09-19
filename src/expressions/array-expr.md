@@ -62,4 +62,4 @@ println_i32(data[2]);
 
 ## Array methods
 
-A fixed array's builtin `.len()` has receiver `&self` and returns its length as usize. Arrays passed by value retain the [value semantics](../builtin-traits.md#copy) of the entire array; array arguments never decay or convert to pointers.
+A fixed array's builtin `.len()` has receiver `&self` and returns its length as usize. When an array is passed by value, the entire array is copied (if [`Copy`](../builtin-traits.md#copy)) or moved as a single aggregate; array arguments never decay or convert to pointers.

@@ -29,7 +29,7 @@ let mut values = Vec::<i32>::new();
 
 Every nested container constructor has its own explicit concrete type argument.
 Omitting this argument, as in `Box::new(7)` or `Vec::new()`, is undefined
-behavior under the [test guarantees](undefined-behavior.md#test-guarantees). 
+behavior under the [test guarantees](undefined-behavior.md#test-guarantees).
 Lifetime arguments inside `T` follow the [lifetime rules](references.md#lifetime-validity);
 type-position `_` is unsupported.
 
@@ -40,18 +40,87 @@ It is mutable through a mutable owner or mutable reference and
 read-only through shared access. Normal field, index, method, and borrow
 operations apply after supported `Box` and reference dereferences.
 
+Dereferencing an owned `Box` does not insert a shared borrow. An immutable owner
+prevents replacing its contents, but an `&mut U` stored in those contents can
+still provide mutable access to `U`. Access through `&Box<T>` crosses a shared
+reference and cannot provide this mutable access.
+
 Reading `Copy` contents copies them. Reading non-`Copy` contents from an owned `Box` moves them; moving through a borrowed `Box` is excluded by the ownership guarantee. An allocation whose contents were moved may remain allocated until program end.
 
 ## Vec operations
 
 For `v: Vec<T>` and `index: usize`, the builtin index expression `v[index]`
-is a `T` place. It is mutable through mutable access and read-only through
-shared access.
+is a `T` place.
 
 Indexing and removal require `index < len`; out-of-bounds execution is excluded with no required check or panic. `remove` preserves order and supports non-`Copy`, non-`Clone` elements. Reading a `Copy` indexed element copies it; directly moving a non-`Copy` indexed element is excluded, so use `remove` instead. Assignment to a mutable indexed place is supported.
 
 `Vec` itself is not dereferenceable and never coerces to an element or slice
 reference.
+
+### Indexing and mutable access
+
+Vec indexing implicitly borrows the vector. Shared reads and
+[`&mut T` to `&T` coercions](types.md#coercion-types) need only shared access.
+Assignment, compound assignment, mutable borrowing or
+reborrowing, and an `&mut self` receiver require mutable access to the vector
+at that indexing step.
+
+The requirement persists through fields, further indexing, `Box` dereferences,
+and mutable references stored in the element. An `&mut T` inside a vector does
+not make an immutable vector mutable:
+
+```rust,ignore
+fn shared_access(values: Vec<&mut i32>) {
+    let r: &i32 = values[0]; // valid: &mut i32 coerces to &i32
+}
+
+fn immutable_vector(values: Vec<&mut i32>) {
+    *values[0] = 2; // compile error: add mut to the values parameter
+}
+
+fn mutable_vector(mut values: Vec<&mut i32>) {
+    *values[0] = 2; // valid: the vector can be borrowed mutably
+}
+
+fn mutable_reference(values: &mut Vec<&mut i32>) {
+    *values[0] = 2; // valid: the reference supplies mutable access
+}
+```
+
+Mutable reborrows and method receivers need the same access even without an
+explicit assignment to the element. Both functions below need `mut values`:
+
+```rust,ignore
+fn mutable_reborrow(values: Vec<&mut i32>) {
+    let r: &mut i32 = values[0]; // compile error
+}
+
+fn nested_method(values: Vec<Vec<i32>>) {
+    values[0].push(2); // compile error: push needs a mutable receiver
+}
+```
+
+Fixed-array indexing and owned Box dereferencing do not insert a container
+borrow. A mutable reference stored there can therefore remain usable through
+an immutable owner. The position of the mutable reference matters:
+
+```rust,ignore
+fn array_reference(values: [&mut i32; 1]) {
+    *values[0] = 2; // valid, unlike immutable_vector above
+}
+
+fn boxed_reference(value: Box<&mut i32>) {
+    **value = 2; // valid: dereferencing the stored mutable reference
+}
+
+fn boxed_vector(values: Box<Vec<&mut i32>>) {
+    *values[0] = 2; // compile error: the vector has an immutable owner
+}
+
+fn boxed_vector_reference(values: Box<&mut Vec<&mut i32>>) {
+    *values[0] = 2; // valid: mutable access is obtained before Vec indexing
+}
+```
 
 ## Clone and equality
 

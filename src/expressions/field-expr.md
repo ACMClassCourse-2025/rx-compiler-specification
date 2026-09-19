@@ -13,4 +13,7 @@ The result is a place whose mutability follows its base. A value base is evaluat
 
 Field access repeatedly dereferences references and `Box` until it reaches the first type which has any field. These are the builtin dereference steps listed under [coercion types](../types.md#coercion-types). For `boxed: Box<S>`, `boxed.field` accesses the field of the contained `S`. Field access does not insert a borrow.
 
-Crossing a shared reference makes the field read-only. An immutable binding holding `&mut S` can still give mutable access to `S`'s fields; access through a `Box` follows the box's mutability. The base is evaluated only once, regardless of the number of dereferences.
+Crossing a shared reference makes the field read-only. An immutable binding
+holding `&mut S` can still give mutable access to `S`'s fields. Further
+adjustments follow the [dereference rules](operator-expr.md#borrow-dereference-and-assignment).
+The base is evaluated only once, regardless of the number of dereferences.

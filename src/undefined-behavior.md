@@ -50,7 +50,9 @@ The following source forms are undefined behavior and never appear in tests, inc
 | Using a function as a value | [Function values](expressions/path-expr.md#function-values) |
 | Declaring a struct named `u32`, `isize`, `usize`, `bool`, `Box`, `Vec`, `Copy`, `Clone`, `PartialEq`, or `Eq` | [Protected builtin names](names.md#protected-builtin-names) |
 | Local binding named `get_i32`, `print_i32`, or `println_i32` | [Protected builtin names](names.md#protected-builtin-names) |
-| Assigning to an immutable local in unreachable code | [Unreachable code](types/never.md#unreachable-code) |
+| Place-mutability violation in unreachable code, including assignment, mutable borrowing, or mutable receiver adjustment | [Unreachable code](types/never.md#unreachable-code) |
+| Array or Vec index operand with never type | [Index operand types](expressions/array-expr.md#index-operand-types) |
+| Documentation comment | [Documentation comments](comments.md#documentation-comments) |
 | Let or parameter name colliding with a visible unqualified constant | [Constant-name collisions](#constant-name-collisions) |
 | Equality between different source types | [Cross-type equality](#cross-type-equality) |
 | LUB coercion for which neither type can become the common target | [Least upper bound coercions](types.md#least-upper-bound-coercions) |

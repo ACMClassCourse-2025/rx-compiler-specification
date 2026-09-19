@@ -48,17 +48,27 @@ control-flow transfers. A `return` exits the current function, a `break` exits
 its target loop, and a `continue` proceeds to the next iteration. Code bypassed
 by these transfers must not execute.
 
-Assigning to an immutable local in unreachable code is undefined behavior under the
-[test guarantees](../undefined-behavior.md#test-guarantees). This includes
-ordinary and compound assignment. No diagnostic is required. For example:
+Place-mutability violations in unreachable code are undefined behavior under the
+[test guarantees](../undefined-behavior.md#test-guarantees). This includes ordinary
+and compound assignment to immutable places, mutable borrowing of an immutable
+place, and method or indexing adjustments that require unavailable mutable access.
+The rule covers locals, fields, indexed elements, and dereferenced places. No
+diagnostic is required for these violations. For example:
 
 ```rust,ignore
 fn example() {
     let value = 1;
+    let shared = &value;
     return;
     value = 2; // undefined behavior: immutable local assignment after return
+    let borrowed = &mut *shared; // undefined behavior: mutable borrow after return
+    *shared = 3; // undefined behavior: write through a shared reference after return
 }
 ```
+
+This exclusion concerns place mutability. Name and type errors, and assignment
+destinations that are not place expressions, remain compile errors even in
+unreachable code.
 
 The implementation need not expose a particular never representation in its
 AST/IR or prove termination.

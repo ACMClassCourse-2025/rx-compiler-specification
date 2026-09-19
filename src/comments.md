@@ -16,8 +16,6 @@ Comments have line (`//`) and nestable block (`/* ... */`) forms and act as whit
 
 At each position in a block comment, `/*` opens a nested comment and `*/` closes the current one. Otherwise, one character is consumed as [BLOCK_CHAR]. Delimiters take priority over ordinary content, and each opening delimiter requires a matching closing delimiter. Unterminated comments are invalid.
 
-Spellings such as `///`, `//!`, `/** ... */`, and `/*! ... */` are ordinary comments.
-
 ```rust,ignore
 // A line comment.
 /* outer /* inner */ outer again */
@@ -25,3 +23,9 @@ Spellings such as `///`, `//!`, `/** ... */`, and `/*! ... */` are ordinary comm
 /* a trailing slash / */
 fn main() {}
 ```
+
+## Documentation comments
+
+Rust documentation-comment spellings such as `///`, `//!`, `/** ... */`, and
+`/*! ... */` are undefined behavior under the
+[test guarantees](undefined-behavior.md#test-guarantees).

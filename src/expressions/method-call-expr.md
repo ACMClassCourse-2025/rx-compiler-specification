@@ -24,7 +24,7 @@ Tests exclude competing methods; the compiler need not detect them or implement 
 <details>
 <summary>Receiver and clone examples</summary>
 
-For `Box<S>`, the candidate receiver types are `Box<S>`, `&Box<S>`, `&mut Box<S>`, `S`, `&S`, and `&mut S`. For a unique method on `S` taking `&self`, calling it on the box dereferences to `S` and borrows that place. An `&mut self` method also requires mutable access along this path.
+For `Box<S>`, the candidate receiver types are `Box<S>`, `&Box<S>`, `&mut Box<S>`, `S`, `&S`, and `&mut S`. For a unique method on `S` taking `&self`, calling it on the box dereferences to `S` and borrows that place. An `&mut self` method requires mutable access to the reached `S` place under the [place rules](../expressions.md#places-and-values).
 
 If `S` derives `Clone` and has no inherent `clone`, `s.clone()` for `s: S` has one method and returns `S`. For `r: &S`, both `S`'s clone (receiver `&S`) and the reference's clone (receiver `&&S`) match, so `r.clone()` is undefined behavior. Write `S::clone(r)` to select `S`'s builtin clone explicitly. If `S` is not `Clone` and has no inherent `clone`, `r.clone()` instead has only the reference clone and returns `&S`.
 

@@ -22,7 +22,30 @@ r[expr.array.index.syntax]
 IndexExpression -> Expression `[` Expression `]`
 ```
 
-An index has expected type `usize`, so an unsuffixed literal index is inferred as `usize`. An already typed index must have type `usize`. Indexing repeatedly dereferences references and `Box` until it reaches the first array or `Vec`, using the builtin steps under [coercion types](../types.md#coercion-types). Shared access yields a shared element place; mutable access yields a mutable one. Crossing a shared reference prevents mutable access. An immutable binding holding `&mut T` still allows mutable access to `T`; a `Box` preserves its access. The base is evaluated once, and a value base follows the [temporary-place rules](../expressions.md#places-and-values).
+### Index operand types
+
+An index has expected type `usize`, so an unsuffixed literal index is inferred as
+`usize`. An already typed index must have type `usize`.
+
+An index operand with never type, is
+undefined behavior under the [test guarantees](../undefined-behavior.md#test-guarantees).
+This applies to both arrays and `Vec`, including `data[return]` and
+`data[loop {}]`.
+
+### Indexed places
+
+Indexing repeatedly dereferences references and `Box` until it reaches the first
+array or `Vec`, using the builtin steps under
+[coercion types](../types.md#coercion-types).
+
+The base is the expression before `[index]`. Evaluate it exactly once. If it
+produces a value, such as an array returned by a function call, materialize that
+value in temporary storage when needed to access its element. The temporary's
+mutability and lifetime follow the [temporary-place rules](../expressions.md#temporary-places).
+
+Array indexing projects an element place without inserting a borrow of the
+array. Its mutability follows the [place rules](../expressions.md#places-and-values).
+Vec indexing follows the separate [mutable-access rule and examples](../heap.md#indexing-and-mutable-access).
 
 Array indexing must stay within its fixed length in valid executions. Runtime bounds checks and panic handling are not required. Reading an element follows [copy/move semantics](../builtin-traits.md#copy), including the test exclusion for non-Copy moves through an array index. Vec access and removal follow the [Vec operation rules](../heap.md#vec-operations).
 

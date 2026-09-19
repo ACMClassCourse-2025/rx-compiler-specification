@@ -86,7 +86,7 @@ LazyBooleanExpression ->
 
 Equality operators use the [PartialEq and equality rules](../builtin-traits.md#partialeq), including operand typing, implicit borrowing, and structural comparison. Equality between different source types is undefined behavior; see the [cross-type equality guarantee](../undefined-behavior.md#cross-type-equality).
 
-Scalar ordering uses `<`, `<=`, `>`, `>=` on matching integer types and bool (false precedes true). Reference operands compare target values, not addresses. Their reference layers must have matching mutability at each depth and end in the same supported scalar type. One additional operand combination is supported: a left operand of type `&T` allows a right operand of type `&mut T`, reborrowed as `&T`, with exactly the same referent type `T`. This operator-specific adjustment does not depend on an expected result type and does not rewrite inner reference layers.
+Scalar ordering uses `<`, `<=`, `>`, `>=` on matching integer types and bool (false precedes true). Reference operands compare target values, not addresses. Their reference layers must have matching mutability at each depth and end in the same supported scalar type. One additional operand combination is supported: a left operand of type `&T` allows a right operand of type `&mut T`, adjusted to `&T`, with exactly the same referent type `T`. This operator-specific adjustment does not depend on an expected result type and does not rewrite inner reference layers.
 
 For example, `&a < &b`, `&mut a < &mut b`, and `&a < &mut b` work for matching ordered scalars; `&mut a < &b` and `&&a < &&mut b` do not. There is no automatic value/reference comparison such as `a < &b`, or dereference through `Box` for ordering.
 
@@ -137,7 +137,49 @@ CompoundAssignmentExpression ->
 
 `&place` forms a shared reference; `&mut place` requires a mutable place. Applied to a value expression, borrowing materializes a temporary. `*reference` accesses its target, and `*box` accesses the owned T under the [Box rules](../heap.md#box-access-and-moves). Other types, including Vec, are not dereference operands. In prefix borrow position, `&&x` means `&(&x)`; infix `left && right` is short-circuit boolean and.
 
-Each explicit `*` performs one dereference. Dereferencing `&T` gives shared access; dereferencing `&mut T` gives mutable access unless reached through a shared reference. An immutable binding holding `&mut T` can still modify the target. Once a shared reference is crossed, further dereferences cannot restore mutable access.
+Each explicit `*` performs one dereference. Dereferencing `&T` gives shared
+access; dereferencing `&mut T` gives mutable access unless reached through a
+shared reference. An `&mut T` stored in an immutable owned local, struct, array,
+or `Box` can still modify its target. Once a shared reference is crossed along
+the place's access path, further dereferences cannot restore mutable access.
+
+All parameters below are immutable bindings. Each function can still modify
+the integer through its stored mutable reference:
+
+```rust,ignore
+struct Holder<'a> {
+    value: &'a mut i32,
+}
+
+fn through_local(value: &mut i32) {
+    *value = 2; // one dereference reaches the integer
+}
+
+fn through_struct(holder: Holder<'_>) {
+    *holder.value = 2; // modifies the integer, not the field holding the reference
+}
+
+fn through_array(values: [&mut i32; 1]) {
+    *values[0] = 2; // indexes the reference, then dereferences it
+}
+
+fn through_box(value: Box<&mut i32>) {
+    **value = 2; // first * accesses the Box content; second * follows &mut i32
+}
+```
+
+The following functions are compile errors. Their first dereference crosses
+a shared reference, so the inner mutable reference cannot grant mutable access:
+
+```rust,ignore
+fn through_shared_reference(value: &&mut i32) {
+    **value = 2; // compile error: the outer & gives only shared access
+}
+
+fn through_shared_box(value: &Box<&mut i32>) {
+    ***value = 2; // compile error: & then Box then &mut still crosses shared access
+}
+```
 
 `place = value` stores with the required copy/move behavior. Compound assignment applies the corresponding operation to the current scalar value at the destination. Both forms produce unit. The following order rules apply even if reference-operation lowering ultimately uses the same scalar instructions.
 

@@ -39,10 +39,14 @@ condition is always true.
 
 ## Unreachable code
 
-Unreachable code is accepted subject to ordinary name, type, and
-place-mutability rules, except for source forms explicitly classified as
-undefined behavior. Control flow must preserve the behavior of diverging
-expressions, including skipping the remainder of a block after a return.
+Unreachable code still requires the usual semantic checks, including name
+resolution, type checking, and place-mutability checking. Cases explicitly
+classified as undefined behavior do not require a diagnostic.
+
+For programs within the test guarantees, generated code must respect
+control-flow transfers. A `return` exits the current function, a `break` exits
+its target loop, and a `continue` proceeds to the next iteration. Code bypassed
+by these transfers must not execute.
 
 Assigning to an immutable local in unreachable code is undefined behavior under the
 [test guarantees](../undefined-behavior.md#test-guarantees). This includes

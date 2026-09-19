@@ -162,7 +162,9 @@ REIMU also provides psABI-compatible `memcpy`, `memmove`, and `memset`. Use `mem
 
 ## Resource guarantees
 
-<!-- Tests run with 256 MiB total execution memory and a 1 MiB stack. Under the reference runtime and growth strategy below, cumulative heap high-water, including allocator metadata, alignment padding, and retained old buffers, does not exceed 64 MiB. Valid sizes, capacities, and byte-count products fit 32-bit `usize`.
+Tests run with 256 MiB total execution memory and a 1 MiB stack.
+
+<!-- 
 
 The 64 MiB value is test headroom, not a source-visible heap size or a guarantee that one allocation of that size succeeds. Text, static data, stack, and heap share the 256 MiB execution limit. No separate static-data limit applies.
 
@@ -182,7 +184,7 @@ Capacity remains unobservable, and student implementations may use another layou
 
 </details> -->
 
-*Specification pending: memory limits, stack size, and cumulative heap budget will be finalized alongside the course test suite.*
+<!-- *Specification pending: memory limits, stack size, and cumulative heap budget will be finalized alongside the course test suite.* -->
 
 ## Assembly and execution
 

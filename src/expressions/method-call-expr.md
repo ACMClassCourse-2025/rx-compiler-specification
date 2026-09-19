@@ -15,20 +15,25 @@ The receiver type must be known before lookup. Method calls find the receiver ad
 
 1. Start with the receiver expression's type and repeatedly dereference references and `Box`, recording each type in order. `Vec` adds no dereference step.
 2. Immediately after each recorded type `T`, insert `&T` and `&mut T` as candidate receiver types.
-3. Find all methods with the requested name whose declared receiver type exactly matches any candidate. Include inherent methods, available builtin `Clone` methods, and the specified array and container methods. Count the same method for the same concrete `Self` type only once, even if it matches at several positions.
-4. If no candidate matches any available method, compilation fails with a compile error. If more than one distinct matching method is found, the program exhibits undefined behavior, even if Rust's candidate priority rules would select one. Argument types, expected result types, and receiver mutability do not filter this count.
-5. When exactly one matching method is found, select its first matching candidate. Apply the dereferences and any borrow for that candidate; an existing mutable-reference receiver may reborrow under the [ordinary reference rules](../types.md#mutable-reference-reborrowing). Then check receiver mutability and ordinary arguments. If any check fails, compilation fails with a compile error, subject to the separate ownership and lifetime test guarantees.
+3. Visit candidate receiver types in that order. For each candidate:
+   - If multiple distinct methods match that candidate (such as an inherent method and a derived builtin `Clone` method sharing the same receiver type), the call exhibits undefined behavior.
+   - If exactly one method matches that candidate, select it and terminate candidate search. Include inherent methods, available builtin `Clone` methods, and the specified array and container methods.
+   - If no method matches that candidate, proceed to the next candidate in the list.
+4. If no candidate in the list matches any method, compilation fails with a compile error. Argument types, expected result types, and receiver mutability do not filter whether a method matches.
+5. For the selected method, apply the dereferences and any borrow for that candidate; an existing mutable-reference receiver may reborrow under the [ordinary reference rules](../types.md#mutable-reference-reborrowing). Then check receiver mutability and ordinary arguments. If any check fails, compilation fails with a compile error, subject to the separate ownership and lifetime test guarantees.
 
-Tests exclude competing methods; the compiler need not detect them or implement Rust's method priorities. Compiler-generated cloning invokes the builtin operation directly and does not perform this lookup. Duplicate inherent declarations remain [name errors](../names.md#name-collisions); methods on unrelated types outside the receiver's candidate list do not compete.
+Tests exclude competing methods on the same candidate; the compiler need not detect them or implement Rust's inherent-over-trait priorities. Duplicate inherent declarations remain [name errors](../names.md#name-collisions); methods on unrelated types outside the receiver's candidate list do not compete.
 
 <details>
 <summary>Receiver and clone examples</summary>
 
 For `Box<S>`, the candidate receiver types are `Box<S>`, `&Box<S>`, `&mut Box<S>`, `S`, `&S`, and `&mut S`. For a unique method on `S` taking `&self`, calling it on the box dereferences to `S` and borrows that place. An `&mut self` method requires mutable access to the reached `S` place under the [place rules](../expressions.md#places-and-values).
 
-If `S` derives `Clone` and has no inherent `clone` method, calling `s.clone()` on `s: S` resolves to that single method and returns `S`. For `r: &S`, both `S`'s clone (receiver `&S`) and the reference's clone (receiver `&&S`) match, so `r.clone()` is undefined behavior. Write `S::clone(r)` to select `S`'s builtin clone explicitly. If `S` is not `Clone` and has no inherent `clone`, `r.clone()` instead has only the reference clone and returns `&S`.
+If `S` derives `Clone` and has no inherent `clone` method, calling `s.clone()` on `s: S` matches candidate `&S` and returns `S`. Likewise, calling `r.clone()` on `r: &S` matches candidate `&S` directly without checking `&&S`, returning `S`.
 
-Likewise, `b.clone()` for `b: Box<i32>` is undefined behavior because both the box and its integer support `Clone`. `Box::<i32>::clone(&b)` explicitly selects the box's operation. An inherent `clone` method that competes with a derived `clone` method also causes a method call using dot syntax (`.clone()`) to exhibit undefined behavior, regardless of their respective receiver forms.
+However, if `S` derives `Clone` and also declares an inherent method named `clone` (such as `fn clone(&self)`), calling `s.clone()` on `s: S` results in undefined behavior because both the inherent method and the derived trait method match candidate `&S`.
+
+Similarly, for `b: Box<i32>`, candidate `&Box<i32>` matches `Box::<i32>::clone` before `i32`'s candidates are reached, cloning the container into a new `Box<i32>`.
 
 </details>
 

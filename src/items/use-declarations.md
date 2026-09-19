@@ -26,16 +26,16 @@ fn main() {
 The syntax accepts individual paths, `*` globs, nested brace groups with optional
 trailing commas, and `as` aliases. For example, `use rx::core::println_i32;` and
 `use rx::core::{get_i32, println_i32};` are also accepted. Use declarations cannot
-appear in expression blocks or impls, and have no visibility modifier or
+appear in expression blocks or `impl` blocks, and they do not accept visibility modifiers or
 attributes.
 
-After parsing, the compiler may discard the whole declaration. It does not
-resolve the import path, load a crate or module, introduce names or aliases,
-check import conflicts, or emit LLVM IR for the declaration. Builtins such as
+After parsing, the compiler may discard the entire declaration. The compiler does not
+resolve import paths, load crates or modules, introduce names or aliases into any scope,
+check for import conflicts, or emit LLVM IR for the declaration. Builtins such as
 `println_i32` are already available in Rx, with or without a `use` declaration.
 
 The [use compatibility guarantee](../undefined-behavior.md#use-compatibility)
-ensures that tests do not depend on additional import semantics. The longer
-paths, leading `::`, `crate`, and `super` accepted here do not extend the
-[type and expression path rules](../paths.md). See also
+ensures that tests do not depend on additional import semantics. The extended path syntax
+accepted in use declarations (including multi-segment paths, leading `::`, `crate`, and `super`)
+does not apply to [type and expression paths](../paths.md). See also
 [syntax that may be discarded after parsing](../grammar.md#syntax-that-may-be-discarded-after-parsing).

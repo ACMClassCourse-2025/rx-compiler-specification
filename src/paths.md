@@ -1,6 +1,6 @@
 # Paths
 
-A path names a value, type, or associated item through `::`-separated segments. Type and expression paths share [GenericArgs].
+A path names a value, type, or associated item through `::`-separated segments. Both type and expression paths share the same generic argument syntax ([GenericArgs]).
 
 [Use declarations](items/use-declarations.md) have a separate [UsePath] syntax for Rust compatibility. Their paths are not resolved by the Rx compiler and do not extend the type or expression paths defined here.
 
@@ -14,7 +14,7 @@ PathExprSegment -> PathIdentSegment (`::` GenericArgs)?
 PathIdentSegment -> IDENTIFIER | `self` | `Self`
 ```
 
-Expression paths use `::` before generic arguments, as in `Box::<i32>::new`. Their final segment may name a value or an associated item. [CallExpression] and [MethodCallExpression] apply the corresponding call syntax.
+Expression paths use `::` before generic arguments (the 'turbofish' syntax), as in `Box::<i32>::new`. Their final segment may name a value or an associated item. Calls on these paths are governed by [CallExpression] and [MethodCallExpression].
 
 ## Paths in types
 
@@ -24,7 +24,7 @@ TypePath -> TypePathSegment (`::` TypePathSegment)*
 TypePathSegment -> PathIdentSegment (`::`? GenericArgs)?
 ```
 
-Type arguments may follow a segment directly or after `::`, so `Box<i32>` and `Box::<i32>` name the same type. User structs may supply lifetime arguments such as `View<'a>` or use permitted elision.
+Type arguments may follow a segment directly or after `::`, so `Box<i32>` and `Box::<i32>` name the same type. Type paths referencing user-defined structs may supply lifetime arguments, such as `View<'a>`, or rely on permitted lifetime elision.
 
 ## Generic arguments
 
@@ -36,7 +36,7 @@ GenericArgList -> (GenericArg `,`)* GenericArg `,`?
 GenericArg -> Lifetime | Type
 ```
 
-Arguments are comma-separated, may have a trailing comma, and place lifetimes before types. In valid programs, `Box` and `Vec` have exactly one explicit concrete type argument. Omitting it in a `Box::new(...)` or `Vec::new()` constructor call is [undefined behavior](heap.md#builtin-signatures). User functions and structs accept only their declared lifetime arguments; primitive types accept none. Other type-argument arity and kind violations are compile errors; lifetime correctness follows the [lifetime validity guarantee](undefined-behavior.md#lifetime-validity).
+Generic arguments are comma-separated with an optional trailing comma, and any lifetime arguments must precede type arguments. In valid programs, `Box` and `Vec` have exactly one explicit concrete type argument. Omitting it in a `Box::new(...)` or `Vec::new()` constructor call is [undefined behavior](heap.md#builtin-signatures). User-defined functions and structs accept only their declared lifetime arguments, whereas primitive types accept no generic arguments. Any other mismatch in generic argument arity or kind is a compile-time error; lifetime correctness is governed by the [lifetime validity guarantee](undefined-behavior.md#lifetime-validity).
 
 A type argument may recursively contain any supported concrete type. For example:
 
@@ -56,4 +56,4 @@ let borrowed = Vec::<&'a i32>::new();
 
 Functions and methods may use explicit lifetime arguments where Rust permits them. Omitted lifetimes use the supported Rust 2021 inference and elision rules. Tests guarantee that explicit lifetime arguments, including early-bound and late-bound uses, are valid.
 
-Unresolved names are compile errors. After resolution, calls check value arguments and receiver rules. Incorrect lifetime arguments or elision are undefined behavior under the [lifetime validity guarantee](undefined-behavior.md#lifetime-validity).
+Unresolved names are compile-time errors. After name resolution, call expressions are checked against argument and receiver rules. Supplying incorrect lifetime arguments or invalid lifetime elisions results in undefined behavior under the [lifetime validity guarantee](undefined-behavior.md#lifetime-validity).

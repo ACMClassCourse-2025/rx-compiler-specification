@@ -11,7 +11,13 @@ The result is a place whose mutability follows its base. A value base is evaluat
 
 ## Automatic dereferencing
 
-Field access repeatedly dereferences references and `Box` until it reaches the first type which has any field. These are the builtin dereference steps listed under [coercion types](../types.md#coercion-types). For `boxed: Box<S>`, `boxed.field` accesses the field of the contained `S`. Field access does not insert a borrow.
+Field access repeatedly dereferences references and `Box` until it reaches the first struct type containing named fields. These are the builtin dereference steps listed under [coercion types](../types.md#coercion-types). For `boxed: Box<S>`, `boxed.field` accesses the field of the contained `S`. Field access does not insert a borrow.
+
+```rust,ignore
+struct Point { x: i32, y: i32 }
+let p = Box::<Point>::new(Point { x: 10, y: 20 });
+println_i32(p.x);               // automatically dereferences Box<Point> to access field x
+```
 
 Crossing a shared reference makes the field read-only. An immutable binding
 holding `&mut S` can still give mutable access to `S`'s fields. Further

@@ -1,6 +1,6 @@
 # Box and Vec
 
-[Box and Vec types](types/heap.md) defines container composition. This chapter defines their operations, references, and allocation lifetime. The [capability table](builtin-traits.md#trait-capability-summary) defines `Copy`, `Clone`, and equality support.
+The [Box and Vec types](types/heap.md) chapter defines container representations and type rules. This chapter defines their operations, reference semantics, and allocation lifecycles. The [capability table](builtin-traits.md#trait-capability-summary) defines `Copy`, `Clone`, and equality support.
 
 ## Builtin signatures
 
@@ -27,7 +27,7 @@ let boxed = Box::<i32>::new(7);
 let mut values = Vec::<i32>::new();
 ```
 
-Every nested container constructor has its own explicit concrete type argument.
+All container constructors--including nested ones--must provide explicit concrete type arguments.
 Omitting this argument, as in `Box::new(7)` or `Vec::new()`, is undefined
 behavior under the [test guarantees](undefined-behavior.md#test-guarantees).
 Lifetime arguments inside `T` follow the [lifetime rules](references.md#lifetime-validity);
@@ -52,15 +52,23 @@ Reading `Copy` contents copies them. Reading non-`Copy` contents from an owned `
 For `v: Vec<T>` and `index: usize`, the builtin index expression `v[index]`
 is a `T` place.
 
-Indexing and removal require `index < len`; out-of-bounds execution is excluded with no required check or panic. `remove` preserves order and supports non-`Copy`, non-`Clone` elements. Reading a `Copy` indexed element copies it; directly moving a non-`Copy` indexed element is excluded, so use `remove` instead. Assignment to a mutable indexed place is supported.
+Indexing and removal require `index < len`; out-of-bounds execution is excluded with no required check or panic. `remove` preserves order and supports non-`Copy`, non-`Clone` elements. Reading a `Copy` indexed element copies it; directly moving a non-`Copy` indexed element is undefined behavior (excluded by test guarantees), so elements must be extracted using `remove`. Assignment to a mutable indexed place is supported.
+
+```rust,ignore
+let mut v = Vec::<i32>::new();
+v.push(10);
+v.push(20);
+let first = v[0];               // copying an i32 element
+let removed = v.remove(0);      // removing element at index 0
+```
 
 `Vec` itself is not dereferenceable and never coerces to an element or slice
 reference.
 
 ### Indexing and mutable access
 
-Vec indexing implicitly borrows the vector. Shared reads and
-[`&mut T` to `&T` coercions](types.md#coercion-types) need only shared access.
+`Vec` indexing implicitly borrows the vector. Shared reads and
+[`&mut T` to `&T` coercions](types.md#coercion-types) require only shared access.
 Assignment, compound assignment, mutable borrowing or
 reborrowing, and an `&mut self` receiver require mutable access to the vector
 at that indexing step.
@@ -87,8 +95,8 @@ fn mutable_reference(values: &mut Vec<&mut i32>) {
 }
 ```
 
-Mutable reborrows and method receivers need the same access even without an
-explicit assignment to the element. Both functions below need `mut values`:
+Mutable reborrows and method receivers require the same mutable access even without an
+explicit assignment to the element. Both functions below require `mut values`:
 
 ```rust,ignore
 fn mutable_reborrow(values: Vec<&mut i32>) {
@@ -100,7 +108,7 @@ fn nested_method(values: Vec<Vec<i32>>) {
 }
 ```
 
-Fixed-array indexing and owned Box dereferencing do not insert a container
+Fixed-array indexing and owned `Box` dereferencing do not insert a container
 borrow. A mutable reference stored there can therefore remain usable through
 an immutable owner. The position of the mutable reference matters:
 
@@ -143,7 +151,7 @@ A `Vec` stores exactly its initialized sequence; spare capacity is not initializ
 
 Tests obey Rust's borrowing rules, including supported two-phase receiver borrowing such as `v.push(v.len())`. They never use an element reference across a conflicting mutable container operation, regardless of spare capacity. No borrow checker is required.
 
-Zero-sized heap objects are undefined behavior under the [zero-sized-data guarantee](undefined-behavior.md#zero-sized-data). An empty `Vec<T>` for nonzero-sized `T` is valid and need not have a dereferenceable buffer. Valid tests fit the target size representation and do not depend on allocation failure.
+Zero-sized heap objects are undefined behavior under the [zero-sized-data guarantee](undefined-behavior.md#zero-sized-data). An empty `Vec<T>` for nonzero-sized `T` is valid and need not have a dereferenceable buffer. All allocations in valid tests fit within the target's 32-bit `usize` address space, and test cases do not depend on allocation failure.
 
 ## Heap cleanup
 

@@ -12,7 +12,7 @@ Magnitude -> INTEGER_LITERAL | ConstantPath | `(` Magnitude `)`
 ConstantPath -> PathInExpression
 ```
 
-`ConstantPath` must resolve to a constant item, either directly or through an associated-constant path such as `LIMIT`, `Config::LIMIT`, or `Self::LIMIT`. A path to a local, function, or other value is a static form error. `Magnitude` means an integer literal or constant path without a leading minus, not an unsigned target type. Negative forms require a signed integer type. These forms permit `123`, `LIMIT`, `-LIMIT`, `(-1)`, `-(1)`, `((true))`, and valid suffixes and radices.
+`ConstantPath` must resolve to a constant item, either directly or through an associated-constant path such as `LIMIT`, `Config::LIMIT`, or `Self::LIMIT`. A path to a local, function, or other value is a static form error. In this grammar, `Magnitude` denotes an integer literal or constant path without a leading minus, rather than an unsigned target type. Negative forms require a signed integer type. These forms permit `123`, `LIMIT`, `-LIMIT`, `(-1)`, `-(1)`, `((true))`, and valid suffixes and radices.
 
 Each constant context contains an integer or boolean literal, a constant-item reference, an optionally parenthesized negative integer or constant, or parentheses around another allowed form. Any other expression is a static form error.
 
@@ -42,7 +42,7 @@ array lengths are constant values and have expected type `usize`.
 
 Literal typing and signed-minimum cases follow [integer literal rules](expressions/literal-expr.md#integer-typing-and-range). Out-of-range literals are undefined behavior under the [integer literal range guarantee](undefined-behavior.md#integer-literal-range). Ordinary type and restricted-form errors remain compile errors.
 
-The [propagation exclusion](types.md#coercion-sites-and-expected-types) also applies here: `const N: isize = -1;` is undefined behavior because it needs the expected type to pass through unary minus. Write `-1isize` instead. `const N: i32 = -1;` works with the ordinary `i32` default.
+The [propagation exclusion](types.md#coercion-sites-and-expected-types) also applies here: `const N: isize = -1;` is undefined behavior because it needs the expected type to pass through unary minus. Write `-1isize` instead. `const N: i32 = -1;` is valid because the literal `-1` defaults to `i32`.
 
 The element expression in `[expr; 4]` is an ordinary expression governed by [array repetition](expressions/array-expr.md#array-expressions). Only its length is a constant context.
 

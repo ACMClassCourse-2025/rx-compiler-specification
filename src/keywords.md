@@ -1,7 +1,7 @@
 r[lex.keywords]
 # Keywords
 
-The strict and reserved keywords below are reserved across the language. The lists are string-table productions as described in [Notation](notation.md#string-table-productions).
+The strict and reserved keywords listed below cannot be used as identifiers anywhere in Rx. The lists are string-table productions as described in [Notation](notation.md#string-table-productions).
 
 r[lex.keywords.strict]
 ## Strict keywords
@@ -15,4 +15,4 @@ r[lex.keywords.reserved]
 
 ## Contextual names
 
-Other identifier spellings, including `union`, `macro_rules`, and `gen`, are available as ordinary identifiers. Builtin type/trait names and I/O names follow the [protected namespace rules](names.md#protected-builtin-names).
+Contextual keywords in Rust (such as `union`, `macro_rules`, and `gen`) may be used as ordinary identifiers in Rx. Built-in type and trait names and standard I/O function names are governed by the [protected namespace rules](names.md#protected-builtin-names).

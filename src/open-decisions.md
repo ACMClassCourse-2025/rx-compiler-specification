@@ -15,4 +15,4 @@ The allocator ABI, reference `Vec` growth policy, memory and stack settings, and
 
 ## Specification status
 
-The table of contents defines the complete course language. Documentation generation checks its structure and grammar; the integration work above checks the selected parser and runtime. Course assessment, submissions, and scoring are recorded separately.
+The table of contents defines the complete course language. Building the documentation verifies document structure and internal links, while the integration tasks above validate the parser and runtime against the language grammar. Course assessment, submissions, and scoring are recorded separately.

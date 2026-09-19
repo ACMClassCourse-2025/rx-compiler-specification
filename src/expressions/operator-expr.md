@@ -33,7 +33,7 @@ ArithmeticOrLogicalExpression ->
     | Expression `>>` Expression
 ```
 
-Arithmetic `+`, `-`, `*`, `/`, `%` operates on compatible integer operands without implicit integer conversion. Unary minus requires a signed integer. Bitwise `&`, `|`, `^`, and `!` operate on integers; they also provide non-short-circuit boolean operations. Boolean `!` negates truth.
+The arithmetic operators `+`, `-`, `*`, `/`, and `%` operate on compatible integer operands without implicit integer conversion. Unary minus requires a signed integer. Bitwise `&`, `|`, `^`, and `!` operate on integers; they also provide non-short-circuit boolean operations. Boolean `!` performs logical negation on `bool` operands.
 
 Primitive arithmetic and bit operations support the scalar and reference operands in the following table. T denotes one supported scalar type, I denotes a supported signed integer type, and L/R denote independently chosen supported integer types.
 
@@ -47,7 +47,7 @@ Primitive arithmetic and bit operations support the scalar and reference operand
 | Arithmetic/bitwise compound assignment | A mutable place of primitive type T; right is T or &T for the corresponding operation | Unit |
 | Shift compound assignment | A mutable place of primitive integer type L; right is R or &R | Unit |
 
-Expected types do not propagate through binary or unary operators to their operands. Programs requiring that propagation for integer inference are [undefined behavior](../types.md#coercion-sites-and-expected-types). For example, `let n: u32 = 1 + 2;` and `let n: isize = -1;` are undefined behavior; writing `1u32 + 2u32` and `-1isize` supplies the types explicitly.
+Expected types do not propagate through binary or unary operators to their operands. Programs requiring that propagation for integer inference exhibit [undefined behavior](../types.md#coercion-sites-and-expected-types). For example, `let n: u32 = 1 + 2;` and `let n: isize = -1;` are undefined behavior; writing `1u32 + 2u32` and `-1isize` supplies the types explicitly.
 
 Compound assignment likewise does not infer the right operand's integer type from the destination. For `n: u32`, `n += 1;` requires that inference and is undefined behavior; `n += 1u32;` is valid when `n` is mutable. All operand requirements in the table still apply.
 
@@ -64,9 +64,9 @@ The table defines the complete builtin operand combinations for these operations
 
 All supported integers have 32 bits. Runtime addition, subtraction, multiplication, and signed negation wrap using two's-complement arithmetic, as with Rust overflow checks disabled. Optimized and unoptimized code have the same behavior. LLVM overflow flags must not assert non-overflow unless the compiler has proved it for the particular operation.
 
-Signed division truncates toward zero; a nonzero remainder has the sign of the dividend. Division/remainder by zero and signed MIN divided or reduced modulo -1 are excluded from valid executions. No check or panic runtime is required.
+Signed division truncates toward zero; a nonzero remainder has the sign of the dividend. Division or remainder operations where the divisor is zero, or where the signed minimum integer (`i32::MIN`) is divided or reduced modulo -1, are excluded from valid executions. No check or panic runtime is required.
 
-Shifts accept integer operands whose types may differ. The result has the left operand's type. Runtime shift counts use their low five bits. Signed right shift is arithmetic; unsigned right shift is logical. This masking also applies to constant-folded ordinary expressions.
+Shifts accept integer operands whose types may differ. The result has the left operand's type. At runtime, shift amounts are masked to their least significant 5 bits. Signed right shift is arithmetic; unsigned right shift is logical. This masking also applies to constant-folded ordinary expressions.
 
 ## Comparison and logic
 
@@ -88,9 +88,9 @@ Equality operators use the [PartialEq and equality rules](../builtin-traits.md#p
 
 Scalar ordering uses `<`, `<=`, `>`, `>=` on matching integer types and bool (false precedes true). Reference operands compare target values, not addresses. Their reference layers must have matching mutability at each depth and end in the same supported scalar type. One additional operand combination is supported: a left operand of type `&T` allows a right operand of type `&mut T`, adjusted to `&T`, with exactly the same referent type `T`. This operator-specific adjustment does not depend on an expected result type and does not rewrite inner reference layers.
 
-For example, `&a < &b`, `&mut a < &mut b`, and `&a < &mut b` work for matching ordered scalars; `&mut a < &b` and `&&a < &&mut b` do not. There is no automatic value/reference comparison such as `a < &b`, or dereference through `Box` for ordering.
+For example, `&a < &b`, `&mut a < &mut b`, and `&a < &mut b` work for matching ordered scalars; `&mut a < &b` and `&&a < &&mut b` do not. There is neither automatic comparison between values and references (such as `a < &b`) nor automatic dereferencing through `Box` for ordering.
 
-`&&` and `||` require bool values, return bool, and short-circuit from left to right. They have no reference-operand variants: `&true && true` is invalid. There is no integer truthiness. Comparison chains such as `a < b < c` require parentheses and compatible intermediate types.
+`&&` and `||` require bool values, return bool, and short-circuit from left to right. They have no reference-operand variants: `&true && true` is invalid. There is no integer truthiness. Chained comparisons such as `a < b < c` are not permitted directly; they require explicit parentheses and compatible intermediate types (e.g., `(a < b) < c`, where `a < b` evaluates to `bool`), or logical conjunction (`a < b && b < c`).
 
 ## Casts
 
@@ -135,12 +135,12 @@ CompoundAssignmentExpression ->
     | Expression `>>=` Expression
 ```
 
-`&place` forms a shared reference; `&mut place` requires a mutable place. Applied to a value expression, borrowing materializes a temporary. `*reference` accesses its target, and `*box` accesses the owned T under the [Box rules](../heap.md#box-access-and-moves). Other types, including Vec, are not dereference operands. In prefix borrow position, `&&x` means `&(&x)`; infix `left && right` is short-circuit boolean and.
+`&place` forms a shared reference; `&mut place` requires a mutable place. Applied to a value expression, borrowing materializes a temporary. `*reference` accesses its target, and `*box` accesses the owned `T` under the [Box rules](../heap.md#box-access-and-moves). Other types, including `Vec`, are not dereference operands. In prefix borrow position, `&&x` means `&(&x)`; infix `left && right` is short-circuit boolean and.
 
 Each explicit `*` performs one dereference. Dereferencing `&T` gives shared
 access; dereferencing `&mut T` gives mutable access unless reached through a
-shared reference. An `&mut T` stored in an immutable owned local, struct, array,
-or `Box` can still modify its target. Once a shared reference is crossed along
+shared reference. An `&mut T` stored in an immutable local variable, struct, array,
+or `Box` can still be dereferenced to modify its target. Once a shared reference is crossed along
 the place's access path, further dereferences cannot restore mutable access.
 
 All parameters below are immutable bindings. Each function can still modify
@@ -168,8 +168,8 @@ fn through_box(value: Box<&mut i32>) {
 }
 ```
 
-The following functions are compile errors. Their first dereference crosses
-a shared reference, so the inner mutable reference cannot grant mutable access:
+The following functions fail to compile because their first dereference crosses
+a shared reference, preventing the inner mutable reference from granting mutable access:
 
 ```rust,ignore
 fn through_shared_reference(value: &&mut i32) {
@@ -187,7 +187,7 @@ fn through_shared_box(value: &Box<&mut i32>) {
 
 An assignment destination is one mutable [place](../expressions.md#places-and-values). The assigned value must have a compatible type. A destination that fails these requirements is a compile error.
 
-Assignments such as `s = other;` and `a = other_array;` store an entire struct or array in one place.
+Assignments such as `s = other;` and `a = other_array;` assign an entire struct or array value into the destination place in a single operation.
 
 ## Evaluation order
 
@@ -230,8 +230,8 @@ fn main() {
 }
 ```
 
-Official tests are independent of the relative evaluation order of the two operands of compound assignment. The example above illustrates the specified behavior and is outside that assessment domain.
+Official tests are independent of the relative evaluation order of the two operands of compound assignment. The example above illustrates the specified behavior, but evaluation order between the operands is not checked by the grading test suite.
 
 </details>
 
-Ending or replacing an old value does not imply clearing its bytes. Replacing a container does not require recursive destruction or immediate deallocation; its old heap storage may remain under the [heap cleanup rules](../heap.md#heap-cleanup).
+Overwriting or dropping an existing value does not clear or zero its bytes in memory. Replacing a container does not require recursive destruction or immediate deallocation; its old heap storage may remain under the [heap cleanup rules](../heap.md#heap-cleanup).

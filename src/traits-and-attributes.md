@@ -12,9 +12,9 @@ DeriveAttribute -> `derive` `(` (DeriveName (`,` DeriveName)* `,`?)? `)`
 DeriveName -> `Copy` | `Clone` | `PartialEq` | `Eq`
 ```
 
-This is the complete attribute grammar. Zero or more [OuterAttribute]s may precede a top-level named-field [Struct]. Attributes on other constructs, inner attributes (`#![...]`), and other attribute names or derive names are unsupported.
+This is the complete attribute grammar. Zero or more outer attributes ([OuterAttribute]) may precede a top-level named-field [Struct]. Attributes on other constructs, inner attributes (`#![...]`), and other attribute names or derive names are unsupported.
 
-Derive lists may be empty or have a trailing comma. All derive attributes on a struct contribute to the same set of requested traits; repeating a trait within or across attributes is a compile error. Each requested trait must satisfy its [requirements](builtin-traits.md#trait-capability-summary).
+Derive lists may be empty or have a trailing comma. All derive attributes on a struct contribute to the same set of requested traits; specifying duplicate traits within the same attribute or across multiple attributes on the same struct is a compile-time error. Each requested trait must satisfy its [requirements](builtin-traits.md#trait-capability-summary).
 
 ```rust,ignore
 #[derive(Clone)]

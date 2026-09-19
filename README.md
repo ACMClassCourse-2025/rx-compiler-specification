@@ -1,6 +1,6 @@
 # Rx Compiler Specification
 
-Welcome to the Rx compiler project! In this course you will write a compiler for a subset of Rust. This repo provides the specification for the Rx language you will implement, covering both the grammar and runtime semantics.
+Welcome to the Rx compiler project! In this course, you will write a compiler for a subset of Rust. This repository provides the specification for the Rx language you will implement, covering both its grammar and runtime semantics.
 
 ## Online preview
 
@@ -25,8 +25,8 @@ SPEC_RELATIVE=0 mdbook serve --open
 
 ## Issues and contributing
 
-If you identify any issues with the specification, any discrepancies between the specification and the [Rust Reference](https://doc.rust-lang.org/stable/reference/) that makes the specification incorrect under non-UB circumstances, please report them in the [issues section](https://github.com/acmclasscourse-2025/rx-compiler-specification/issues).
+If you identify any issues with the specification, or any discrepancies between this specification and the [Rust Reference](https://doc.rust-lang.org/stable/reference/) that lead to incorrect behavior for defined (non-UB) programs, please report them in the [issues section](https://github.com/acmclasscourse-2025/rx-compiler-specification/issues).
 
 ## License
 
-This project is dual licensed under the MIT and Apache 2.0 licenses. See [LICENSE-MIT](LICENSE-MIT) and [LICENSE-APACHE](LICENSE-APACHE) for details.
+This project is dual-licensed under the MIT and Apache 2.0 licenses. See [LICENSE-MIT](LICENSE-MIT) and [LICENSE-APACHE](LICENSE-APACHE) for details.

@@ -28,7 +28,7 @@ ParenthesizedType -> `(` Type `)`
 
 Diverging expressions use the [never type](types/never.md) internally.
 
-Struct types are nominal. References, arrays, `Box`, and `Vec` are structural. The four integer types remain distinct. Array lengths are compared by value, so `[i32; 4]` and `[i32; (4usize)]` are identical. Reference identity uses referent type and mutability; lifetime arguments do not otherwise distinguish source types and must satisfy the [lifetime validity guarantee](undefined-behavior.md#lifetime-validity).
+Struct types are nominal. References, arrays, `Box`, and `Vec` are structural. The four integer types remain distinct. Array lengths are compared by value, so `[i32; 4]` and `[i32; (4usize)]` are identical. Two reference types are identical if and only if their referent types and mutabilities match; lifetime arguments do not distinguish reference types and must satisfy the [lifetime validity guarantee](undefined-behavior.md#lifetime-validity).
 
 ## Inference
 
@@ -56,7 +56,7 @@ let later: u32 = n;          // compile error: n is already i32
 let mixed = 1 + 2u32;        // compile error: no expected type for 1
 ```
 
-Array lengths and indices have expected type `usize`, so `[i32; 4]`, `[0; 4]`, and `data[0]` are valid without suffixes. Range checking follows type selection: a literal outside the selected type's range is [undefined behavior](undefined-behavior.md#integer-literal-range). Its magnitude does not select a different type.
+Array lengths and indices have expected type `usize`, so `[i32; 4]`, `[0; 4]`, and `data[0]` are valid without suffixes. Range checking follows type selection: an integer literal whose value falls outside the selected type's representable range exhibits [undefined behavior](undefined-behavior.md#integer-literal-range). The magnitude of the literal never causes a different integer type to be selected.
 
 ## Conversions and coercions
 
@@ -64,7 +64,7 @@ An explicit conversion uses `as`. A coercion is an automatic adjustment at one o
 
 ### Explicit conversions
 
-Integer-to-integer and bool-to-integer conversions require `as`. Integer casts preserve the 32-bit pattern; `false` becomes 0 and `true` becomes 1. These are the only supported [casts](expressions/operator-expr.md#casts). Conditions require `bool`; an integer is not a condition.
+Integer-to-integer and bool-to-integer conversions require `as`. Integer casts preserve the 32-bit pattern; `false` becomes 0 and `true` becomes 1. These are the only supported [casts](expressions/operator-expr.md#casts). Conditions require expressions of type `bool`; integer values cannot be used as conditions and are not implicitly converted.
 
 ### Coercion sites and expected types
 
@@ -81,11 +81,23 @@ These sites have a known expected type and use one-to-one coercion:
 | Function tail or `return` operand | Declared result |
 | Struct field initializer | Declared field |
 
-The expected type passes through parentheses and block tails, to both result branches of an `if`, and to all `break` values targeting a `loop`. An expected array type `[T; N]` supplies `T` to each listed or repeated element and requires length `N`. Each of these result expressions is checked against that target; failure is a compile error except for the propagation exclusion below.
+The expected type propagates through parentheses, into block tail expressions, to both result branches of an `if` expression, and to all `break` value expressions targeting a `loop`. An expected array type `[T; N]` supplies `T` to each listed or repeated element and requires length `N`. Each of these result expressions is checked against that target; failure is a compile error except for the propagation exclusion below.
 
-Propagation repeats only through the forms listed above. It does not pass through binary operations, unary operations, or borrow expressions (`&e` and `&mut e`), and does not revisit earlier binding initializers. A program that needs propagation through an operator or borrow to determine an integer literal's type is **undefined behavior**, rather than a required compile error.
+Propagation repeats only through the forms listed above. It does not pass through binary operations, unary operations, or borrow expressions (`&e` and `&mut e`), and does not revisit earlier binding initializers. If a program requires type propagation through an operator or borrow expression to determine an integer literal's type, its behavior is **undefined behavior**, rather than triggering a required compile error.
 
 This excludes reliance on propagation, not the operators or borrows themselves. For example, `let n: i32 = 1 + 2;` works by defaulting, and `let r: &u32 = &1u32;` works because the suffix fixes the type. Incompatible types fixed by suffixes or existing bindings remain compile errors. Call arguments still get their declared expected types, even inside an operator or borrow.
+
+```rust,ignore
+// Expected type u32 propagates into block tails, if branches, and loop breaks:
+let x: u32 = { 1 };                            // valid: 1 receives expected type u32
+let y: u32 = if true { 1 } else { 2 };         // valid: 1 and 2 receive expected type u32
+let z: u32 = loop { break 42; };               // valid: 42 receives expected type u32
+
+// But expected type does NOT penetrate operators or borrows:
+let a: u32 = 1 + 2;                            // undefined behavior (requires propagation through +)
+let b: &u32 = &1;                              // undefined behavior (requires propagation through &)
+let c: &u32 = &1u32;                           // valid: suffix fixes the literal type
+```
 
 Conditions require `bool`, array lengths and indices have expected type `usize`, and loop bodies and an `if` without `else` require unit results. Operators follow their [operand rules](expressions/operator-expr.md). These requirements do not enable additional conversions.
 
@@ -113,7 +125,7 @@ Coercion does not borrow an owned value implicitly: `Box<T>` cannot coerce to `T
 
 ### Mutable-reference reborrowing
 
-> **Note**: Since we guarantee that lifetimes are valid, you do not need to know about reborrowing for this project. We keep it here nevertheless for completeness of specification.
+> **Note**: Since we guarantee that lifetimes are valid, you do not need to know about reborrowing for this project. It is retained here solely for the completeness of the specification.
 
 At a coercion site, an `&mut T` may be borrowed again as `&mut T`. This is a *reborrow*: after the new borrow ends, the original reference is usable again. An unannotated `let` binding instead moves the reference:
 
@@ -129,7 +141,7 @@ let moved = p;           // move
 *moved = 4;
 ```
 
-After the move, `p` cannot be used without reinitialization. Passing `p` to an `&mut i32` parameter can reborrow it in the same way. Later uses do not turn a move into a reborrow.
+After the move, `p` cannot be used without reinitialization. Passing `p` as an argument to an `&mut i32` parameter reborrows it in the same way. Later uses do not turn a move into a reborrow.
 
 ### Least upper bound coercions
 
@@ -178,7 +190,18 @@ struct Node {
 <details>
 <summary>Recursive layout details</summary>
 
-`struct Infinite { child: Infinite }` is invalid because the child is inline; an inline array also fails to break the cycle. Wrapping an independently invalid type in a container does not repair its declaration.
+`struct Infinite { child: Infinite }` is invalid because the child is inline; an inline array also fails to break the cycle. Referencing an invalid cyclical type inside a container (such as `Box` or `Vec`) within another declaration does not make the cyclic type definition valid.
+
+```rust,ignore
+// Invalid: infinite size due to inline containment cycle
+// struct BadNode { child: BadNode }
+// struct BadArray { items: [BadArray; 1] }
+
+// Valid: indirection breaks the layout cycle
+struct GoodNode {
+    child: Box<GoodNode>,
+}
+```
 
 Finite layout does not imply constructibility. `struct Chain { next: Box<Chain> }` has finite layout but no terminating value because `Box` is non-nullable. This does not make its declaration invalid.
 

@@ -2,7 +2,7 @@
 
 ## Definition
 
-We distinguish between a Valid Program, a Compile Error and a Undefined behavior:
+We distinguish among valid programs, compile errors, and undefined behavior:
 
 | Category | Compiler requirement | Test policy |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ Unsupported syntax may be rejected at the language-subset boundary even if the s
 
 ## Language subset
 
-Rx is a subset of Rust 2021. Every Rx source program uses valid Rust syntax, although this specification defines its builtin environment and required behavior.
+Rx is a subset of Rust 2021. Every Rx source program uses valid Rust syntax, but this specification defines its own built-in environment and required runtime behavior.
 
 Rx includes:
 
@@ -33,14 +33,14 @@ The Rx subset excludes:
 - Type parameters and general generics. Lifetime syntax is supported, but its validity is guaranteed rather than checked.
 - Module declarations and import resolution, visibility, privacy, macros, and arbitrary attributes. Use declarations are accepted only as described by the [use compatibility guarantee](#use-compatibility).
 - Unsafe Rust and the standard library beyond the builtins defined here.
-- General constant evaluation beyond the restricted [constant contexts](const_eval.md), and const generics. Constant propagation remains an optional optimization.
+- Const generics and general constant evaluation beyond the restricted [constant contexts](const_eval.md). Constant propagation remains an optional optimization.
 - Integer overflow checks.
 
 [Types](types.md), [expressions](expressions.md), and the [grammar summary](grammar-summary.md) define the complete subset. Forms outside that grammar are unsupported.
 
 ## Test guarantees
 
-The following source forms are undefined behavior and never appear in tests, including in unreachable code and constant contexts where applicable:
+The following source forms trigger undefined behavior and will never appear in test suites, including within unreachable code or constant contexts where applicable:
 
 | Undefined behavior | Defining rules |
 | --- | --- |
@@ -51,8 +51,8 @@ The following source forms are undefined behavior and never appear in tests, inc
 | Declaring a struct named `u32`, `isize`, `usize`, `bool`, `Box`, `Vec`, `Copy`, `Clone`, `PartialEq`, or `Eq` | [Protected builtin names](names.md#protected-builtin-names) |
 | Local binding named `get_i32`, `print_i32`, or `println_i32` | [Protected builtin names](names.md#protected-builtin-names) |
 | Place-mutability violation in unreachable code, including assignment, mutable borrowing, or mutable receiver adjustment | [Unreachable code](types/never.md#unreachable-code) |
-| Array or Vec index operand with never type | [Index operand types](expressions/array-expr.md#index-operand-types) |
-| Documentation comment | [Documentation comments](comments.md#documentation-comments) |
+| Array or `Vec` index operand with the never type `!` | [Index operand types](expressions/array-expr.md#index-operand-types) |
+| Documentation comment (`///`, `//!`, `/**`, `/*!`) | [Documentation comments](comments.md#documentation-comments) |
 | Let or parameter name colliding with a visible unqualified constant | [Constant-name collisions](#constant-name-collisions) |
 | Equality between different source types | [Cross-type equality](#cross-type-equality) |
 | LUB coercion for which neither type can become the common target | [Least upper bound coercions](types.md#least-upper-bound-coercions) |
@@ -61,21 +61,21 @@ The following source forms are undefined behavior and never appear in tests, inc
 | Invalid lifetime declaration, use, bound, or elision | [Lifetime validity](#lifetime-validity) |
 | Observable zero-sized data use outside the unit-result exception | [Zero-sized data](#zero-sized-data) |
 
-These guarantees constrain source programs. Invalid memory access, incorrect termination, or wrong output introduced by compilation is still a compiler failure.
+These guarantees constrain valid source programs. Any invalid memory access, incorrect termination, or incorrect program output introduced during compilation remains a compiler defect.
 
 ### Integer literal range
 
-An integer literal's type is selected by its suffix, its expected integer type, or the `i32` fallback, in that order. A non-i32 literal without expected type is undefined behavior.
+An integer literal's type is selected by its suffix, its expected integer type, or the `i32` fallback, in that order. An unsuffixed integer literal whose value falls outside the `i32` range when evaluated without an expected type constitutes undefined behavior.
 
-Integer literal overflow is undefined behavior. The [literal rules](expressions/literal-expr.md#integer-typing-and-range) still permit signed minima such as `-2147483648i32` and `-(2147483648i32)`.
+Integer literal overflow exhibits undefined behavior. The [literal rules](expressions/literal-expr.md#integer-typing-and-range) still permit signed minima such as `-2147483648i32` and `-(2147483648i32)`.
 
 ### Constant-name collisions
 
-A `let` or ordinary parameter that matches a visible unqualified constant is undefined behavior, regardless of mutability or declaration order. No diagnostic or constant-pattern interpretation is required. An associated constant reachable only as `Type::NAME` does not exclude a local `NAME`. Collisions with builtin names follow the [protected builtin rules](names.md#protected-builtin-names).
+A `let` binding or function parameter whose name matches a visible unqualified constant triggers undefined behavior, regardless of mutability or declaration order. No diagnostic or constant-pattern interpretation is required. An associated constant reachable only as `Type::NAME` does not exclude a local `NAME`. Collisions with builtin names follow the [protected builtin rules](names.md#protected-builtin-names).
 
 ### Cross-type equality
 
-Every `==` or `!=` whose inferred operands have different source types is undefined behavior. No diagnostic, coercion, or cross-type `PartialEq` implementation is required. This includes shared versus mutable references, different array types, different container element types, and `Vec` versus array comparisons.
+Applying `==` or `!=` to operands of differing source types triggers undefined behavior. No diagnostic, coercion, or cross-type `PartialEq` implementation is required. This includes shared versus mutable references, different array types, different container element types, and `Vec` versus array comparisons.
 
 The [equality rules](builtin-traits.md#partialeq) define operand types, capability requirements, and same-type comparison. Lifetime arguments alone do not distinguish source types under [type identity](types.md#supported-types).
 
@@ -88,12 +88,12 @@ Any imported name used by the program denotes an Rx builtin under its existing
 spelling; unused imports and aliases are allowed. Tests never rely on a use
 declaration to introduce another type, value, module, or usable alias into Rx.
 
-Violations of these guarantees are undefined behavior and appear in no positive,
-negative, or performance test. Students need not resolve imports or diagnose
-missing imported items, conflicting imports, or other import validity errors.
-Malformed use syntax retains ordinary parser behavior. After discarding use
-declarations, ordinary name, type, and place-mutability errors elsewhere in the
-program remain compile errors.
+Violations of these guarantees constitute undefined behavior and will not appear in
+any positive, negative, or performance test. The compiler need not resolve imports
+or diagnose missing imported items, conflicting imports, or other import validity errors.
+Malformed use syntax must still be rejected by the parser with a standard syntax error.
+After discarding use declarations, ordinary name, type, and place-mutability errors
+elsewhere in the program remain compile errors.
 
 ### Lifetime validity
 

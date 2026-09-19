@@ -1,22 +1,22 @@
 # Box and Vec types
 
-Box and Vec use [TypePath] with [GenericArgs]. Their syntax follows the
-[type-path rules](../paths.md#paths-in-types); name resolution supplies the
-container type and its single concrete type argument.
+`Box` and `Vec` types are represented by a [TypePath] with [GenericArgs]. Their syntax follows the
+[type-path rules](../paths.md#paths-in-types); name resolution resolves the
+container type name, which requires exactly one concrete type argument.
 
 ## Box types
 
-`Box<T>` is an owning container for one value of type T. A Box has a
-fixed-size representation referring to separately allocated storage for its
+`Box<T>` is an owning container for one value of type `T`. A `Box` has a
+fixed-size representation referring to separately allocated heap storage for its
 contents. Its constructor and dereference operations are described in
 [Builtin signatures](../heap.md#builtin-signatures) and [Box access and
 moves](../heap.md#box-access-and-moves).
 
 ## Vec types
 
-`Vec<T>` is an owning sequence of T values with a runtime length. The type
+`Vec<T>` is an owning sequence of `T` values with a runtime length. The type
 argument determines the element type. The sequence's elements occupy contiguous heap
-storage, while the Vec value has a fixed-size representation. Its methods and
+storage, while the `Vec` value itself has a fixed-size representation. Its methods and
 indexing operation are specified in [Builtin signatures](../heap.md#builtin-signatures)
 and [Vec operations](../heap.md#vec-operations).
 
@@ -53,9 +53,9 @@ fn append(values: &mut Vec<Box<i32>>, value: Box<i32>) {
 
 </details>
 
-The [recursive-type rules](../types.md#recursive-types) define how container indirection permits finite recursive layouts. Lifetime arguments follow the [lifetime rules](../references.md#lifetime-validity). An unannotated local can infer its container type from its initializer, but [not from later statements](../types.md#inference).
+The [recursive-type rules](../types.md#recursive-types) define how container indirection permits finite recursive layouts. Lifetime arguments follow the [lifetime rules](../references.md#lifetime-validity). The container type of an unannotated local variable is inferred from its initializer, but [never from subsequent statements](../types.md#inference).
 
 Container values are created by the [builtin constructors](../heap.md#builtin-signatures).
-Path separators, turbofish, and trailing argument commas follow
-[Paths](../paths.md); combined closing brackets follow
+Path separators, turbofish syntax, and trailing argument commas follow
+[Paths](../paths.md); combined closing angle brackets (`>>`) follow
 [contextual punctuation](../grammar.md#contextual-punctuation).

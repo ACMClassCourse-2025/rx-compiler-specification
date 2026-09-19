@@ -2,16 +2,16 @@
 
 The language grammar is defined by the Lexer and Syntax blocks in each chapter.
 The [grammar summary](grammar-summary.md) collects those same productions in
-one place. This guide locates the rules for precedence and expression boundaries, and
+one place. This guide indexes the rules for precedence and expression boundaries and
 specifies contextual token interpretation.
 
 <details>
 <summary>Grammar coverage by source form</summary>
 
-Each occurrence of [Type] and [Expression] admits the alternatives in their
-respective productions. This composition applies recursively: a struct field
-may have a Vec of Boxes, a constructor argument may contain a block, and a
-constructor result may be followed by indexing or a method call.
+Each occurrence of [Type] or [Expression] admits all alternatives defined in its
+respective production. This composition applies recursively: a struct field
+may hold a nested container type such as `Vec<Box<T>>`, a constructor argument may contain a block, and a
+constructor result may be chained with indexing or a method call.
 
 | Source form | Defining productions | Examples |
 | --- | --- | --- |
@@ -37,9 +37,9 @@ constructor result may be followed by indexing or a method call.
 
 The grammar describes the shape of a construct. Name resolution, typing, place
 mutability, and the [test domain](undefined-behavior.md) determine which parsed
-programs are valid. For example, the identifier in a struct construction must
-name a struct, a method receiver belongs to an inherent impl, and an assignment
-destination must denote a mutable place.
+programs are valid. For example, the identifier in a struct construction expression must
+name a declared struct, a called method must be defined in an inherent impl for the receiver's type,
+and an assignment destination must denote a mutable place.
 
 </details>
 
@@ -79,12 +79,12 @@ semantic processing or LLVM IR representation:
 The [use compatibility](undefined-behavior.md#use-compatibility) and
 [lifetime validity](undefined-behavior.md#lifetime-validity) guarantees exclude
 tests that would require these checks. Discarding lifetime syntax is an
-internal compiler step; the remaining text need not be valid Rust with all
-lifetime annotations removed.
+internal AST transformation; the compiler is not required to ensure that source
+text stripped of lifetime annotations forms valid Rust.
 
-Parsing still checks the syntax of these constructs. Keep reference types and
-their mutability, concrete type arguments such as `i32` in `Vec::<&'a i32>`,
-and all other program structure. Ordinary name, type, and place-mutability
+Parsing must still enforce the grammar of these constructs. The compiler must preserve
+reference types, mutability qualifiers, concrete type arguments (such as `i32` in `Vec::<&'a i32>`),
+and all other AST structures. Ordinary name, type, and place-mutability
 checks and correct reference behavior remain required.
 
 ## Contextual punctuation
@@ -101,7 +101,7 @@ prefix and leaves the remaining punctuation for the enclosing construct.
 | `>>=` | Closing nested type arguments before assignment | Two closing `>` tokens followed by `=` |
 
 In ordinary infix expression contexts, these tokens denote their corresponding
-operators. Thus the following spellings need no space before the assignment:
+operators. Thus, the following variable initializations do not require whitespace between the closing `>` and the `=` token:
 
 ```rust,ignore
 let values: Vec<i32>=Vec::<i32>::new();

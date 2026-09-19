@@ -15,8 +15,9 @@ expression, enclosed in braces. Statements execute in source order.
 
 A final expression without a semicolon is the block's tail expression. It
 determines the block's type and, when reached, its result value. A block
-without a tail produces `()` if it completes normally. Control flow that
-leaves earlier follows the [never rules](../types/never.md).
+without a tail expression evaluates to `()` if it completes normally. Control-flow
+transfers (such as `return`, `break`, or `continue`) that exit the block early
+follow the [never rules](../types/never.md).
 
 ```rust,ignore
 fn select(flag: bool) -> i32 {
@@ -25,5 +26,5 @@ fn select(flag: bool) -> i32 {
 }
 ```
 
-Parsing follows [statement boundaries](../statements.md#statement-boundary);
-storage follows [storage duration](../references.md#storage-and-implementation).
+Parsing of blocks and trailing statements follows the [statement boundary rules](../statements.md#statement-boundary);
+local variable storage follows [storage duration](../references.md#storage-and-implementation).

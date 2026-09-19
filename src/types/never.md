@@ -4,13 +4,12 @@ The never type, conventionally written `!`, describes expressions that do not
 complete normally. It is used internally; `!` is not a valid source type
 annotation.
 
-`return`, `break`, and `continue` expressions have never type: they transfer
+`return`, `break`, and `continue` expressions have the never type: they transfer
 control instead of producing a value where they appear.
 
-Never can fit an expected result type in the supported [coercion contexts](../types.md#conversions-and-coercions).
+The never type can coerce to any expected result type in the supported [coercion contexts](../types.md#conversions-and-coercions).
 Without an expected type, never results do not constrain the other results' common type; if all results are never, that common type is never. This permits an if branch to return early while another branch yields a value, including a reference or container.
-Unit and never are distinct: a unit call returns normally, whereas a return
-expression does not.
+The unit type `()` and the never type `!` are distinct: an expression evaluating to `()` completes normally, whereas an expression of the never type does not.
 
 ```rust,ignore
 fn choose_or_return(flag: bool) -> i32 {
@@ -19,19 +18,19 @@ fn choose_or_return(flag: bool) -> i32 {
 }
 ```
 
-A diverging body can fit an ordinary declared result, for example
+A diverging function body satisfies any declared return type, such as
 `fn forever() -> i32 { loop {} }`. A call to that function has its declared
-type i32. Never behavior is determined within each function body.
+type `i32`. Never behavior is determined locally within each function body.
 
 ## Loop expressions
 
-A `loop` expression has never type if no `break` expression targets it.
+A `loop` expression has the never type if no `break` expression targets it.
 A `break` inside a nested loop targets that nested loop, so
-`loop { loop { break; } }` still has never type.
+`loop { loop { break; } }` still has the never type.
 
 If any `break` expressions target the loop, their values follow the
-[common result rules](../types.md#least-upper-bound-coercions), using the loop's expected type when supplied; `break;` supplies `()`. If every break operand has never type,
-the loop also has never type. A `break` counts even if it is unreachable:
+[common result rules](../types.md#least-upper-bound-coercions), using the loop's expected type when supplied; `break;` supplies `()`. If every break operand has the never type,
+the loop also has the never type. A break expression participates in type inference even if it is unreachable:
 `loop { if false { break 1i32; } }` has type `i32`.
 
 These rules apply to `loop`. A `while` expression has type `()`, even when its
@@ -48,11 +47,11 @@ control-flow transfers. A `return` exits the current function, a `break` exits
 its target loop, and a `continue` proceeds to the next iteration. Code bypassed
 by these transfers must not execute.
 
-Place-mutability violations in unreachable code are undefined behavior under the
+Place-mutability violations in unreachable code exhibit undefined behavior under the
 [test guarantees](../undefined-behavior.md#test-guarantees). This includes ordinary
 and compound assignment to immutable places, mutable borrowing of an immutable
 place, and method or indexing adjustments that require unavailable mutable access.
-The rule covers locals, fields, indexed elements, and dereferenced places. No
+The rule covers local variables, struct fields, indexed elements, and dereferenced places. No
 diagnostic is required for these violations. For example:
 
 ```rust,ignore
@@ -66,9 +65,9 @@ fn example() {
 }
 ```
 
-This exclusion concerns place mutability. Name and type errors, and assignment
-destinations that are not place expressions, remain compile errors even in
-unreachable code.
+This exclusion applies specifically to place mutability. Name resolution errors, type
+mismatch errors, and assignment destinations that are not place expressions remain
+required compile errors even in unreachable code.
 
-The implementation need not expose a particular never representation in its
-AST/IR or prove termination.
+The compiler implementation is not required to represent the never type explicitly in its
+AST or IR, nor is it required to solve the halting problem or prove termination.

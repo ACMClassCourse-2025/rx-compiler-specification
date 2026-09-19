@@ -31,13 +31,13 @@ Expressions form integer, boolean, and unit values; resolve names and associated
 
 Ordinary operands evaluate left to right before the enclosing operation. This includes call arguments, array elements, struct field initializers, comparisons, arithmetic, and indexing. Struct fields evaluate in source order rather than declaration or layout order.
 
-The specialized rules for [assignment](expressions/operator-expr.md#evaluation-order), [short-circuit logic](expressions/operator-expr.md#comparison-and-logic), [array repetition](expressions/array-expr.md#array-expressions), and control flow specify which operands execute and their order.
+Specialized rules for [assignment](expressions/operator-expr.md#evaluation-order), [short-circuit logic](expressions/operator-expr.md#comparison-and-logic), [array repetition](expressions/array-expr.md#array-expressions), and control flow specify which operands are evaluated and in what order.
 
 Optimizations must preserve observable effects, including I/O and writes through references.
 
 ## Places and values
 
-A place denotes storage: a variable, dereference, field, indexed array or `Vec` element, or parenthesized place. Reading it copies or moves according to its type. Assignment requires a mutable place, and borrowing uses the place's address.
+A place denotes storage: a variable, dereference, field, indexed array or `Vec` element, or parenthesized place. Reading a place copies or moves its value according to its type. Assignment requires a mutable place, and borrowing evaluates to a reference containing the place's address.
 
 A mutable local can be assigned. Dereferencing `&mut T` yields a mutable place
 unless reached through a shared reference; dereferencing `&T` does not.
@@ -74,7 +74,7 @@ let p = &x;
 *p = 2;        // compile error: p gives shared access to x
 ```
 
-Nor can mutable access be recovered through a shared reference to an `&mut T`:
+Additionally, mutable access cannot be recovered through a shared reference to an `&mut T`:
 
 ```rust,ignore
 let mut x = 1;
@@ -85,14 +85,14 @@ let shared = &p;
 
 ### Temporary places
 
-A local such as `values` names existing storage. A value expression such as
+A local variable such as `values` names existing storage. A value expression such as
 `make_array()` produces a value without naming a storage location. When an
 operation needs a place for that value, the value is held in temporary storage.
 This is called *materializing a temporary*. It applies to field and index
 bases, explicitly borrowed values, and method receivers that need a borrow.
 
-Evaluate the value expression once each time the enclosing expression is
-evaluated. Use that result for the field, element, borrow, or method call;
+The value expression is evaluated once each time the enclosing expression is
+evaluated. That result is used for the field, element, borrow, or method call;
 obtaining its address must not evaluate it again. For example, indexing
 `make_array()[0]` calls `make_array()` once, and any side effects of that call
 occur once.
@@ -107,7 +107,7 @@ let p = &mut 3;              // borrows a temporary integer
 *p = 4;                     // modifies that integer
 ```
 
-The same rule permits `make().field = value` for a suitable returned struct.
+The same rule permits `make().field = value` for any returned struct containing that field.
 Existing places still follow their own mutability rules: using an immutable
 local or a shared reference as a base does not create a mutable copy of it.
 Assignment still requires a place expression; `1 = 2` and `1 += 2` are invalid.

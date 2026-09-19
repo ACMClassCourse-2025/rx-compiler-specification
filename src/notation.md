@@ -14,30 +14,30 @@ The following notations are used by the *Lexer* and *Syntax* grammar snippets:
 | x<sup>+</sup>     |  _Statement_<sup>+</sup>     | 1 or more of x                            |
 | x<sup>a..b</sup>  | HEX_DIGIT<sup>1..6</sup>      | a to b repetitions of x                   |
 | Rule1 Rule2       | `fn` _Name_ _Parameters_      | Sequence of rules in order                |
-| \|                | `i32` \| `u32`, Block \| Item  | Either one or another                     |
+| \|                | `i32` \| `u32`, Block \| Item  | Alternation (matches one of the alternatives) |
 | `[ ]`              | `[b B]`                       | Any of the characters listed              |
 | `[ - ]`            | `[a-z]`                       | Any of the characters in the range        |
 | `~[ ]`             | `~[b B]`                      | Any characters, except those listed       |
 | ~`string`         | ~`\n`, ~`*/`                  | Any characters, except this sequence      |
 | ( )               | (`,` _Parameter_)<sup>?</sup> | Groups items                              |
-| U+xxxx            | U+0060                        | A single unicode character                |
+| U+xxxx            | U+0060                        | A single Unicode character                |
 | \<text\>          | \<any ASCII char except CR\>  | An English description of what should be matched |
 | Rule <sub>suffix</sub> | IDENTIFIER_OR_KEYWORD <sub>_except `crate`_</sub> | A modification to the previous rule |
 
-Sequences have a higher precedence than `|` alternation.
+Sequencing has higher precedence than `|` alternation.
 
 <details>
 <summary>String-table productions</summary>
 
 ## String-table productions
 
-Some rules, including [unary operators], [binary operators], and [keywords], are lists of printable strings. Each string represents one token produced by lexical analysis and is an implicit reference to a member of that string-table production. See [Tokens][tokens].
+Certain rules, including [unary operators], [binary operators], and [keywords], are defined as tables of literal strings. In syntax productions, literal string references implicitly match the corresponding token produced by lexical analysis. See [Tokens][tokens].
 
 </details>
 
 ## Grammar visualizations
 
-Grammar productions appear in the chapters that define them. Lexer rules use uppercase names; syntax rules use mixed-case names. The button below each grammar block shows its [syntax diagram], where squares are nonterminals and rounded rectangles are terminals.
+Grammar productions appear in the chapters that define them. Lexer rules use uppercase names; syntax rules use mixed-case names. The button below each grammar block shows its [syntax diagram], where rectangles represent nonterminals and rounded rectangles represent terminals.
 
 [syntax diagram]: https://en.wikipedia.org/wiki/Syntax_diagram
 

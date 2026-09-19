@@ -12,11 +12,11 @@ LetStatement -> `let` IdentifierBinding (`:` Type)? `=` Expression `;`
 IdentifierBinding -> `mut`? IDENTIFIER
 ```
 
-Every let binds a single identifier to an initializer. An optional `mut` makes the binding mutable. The initializer may produce any supported value, including a reference formed by a borrow expression.
+A `let` statement binds a single identifier to the evaluated result of an initializer expression. Specifying `mut` makes the binding mutable. The initializer may produce any supported value, including a reference formed by a borrow expression.
 
-Binding visibility and shadowing follow [Names](names.md#scope-rules). A let binding that collides with a visible unqualified const name is undefined behavior; see the [constant-name collision guarantee](undefined-behavior.md#constant-name-collisions).
+Binding visibility and shadowing follow [Names](names.md#scope-rules). A `let` binding that collides with a visible unqualified constant name results in undefined behavior; see the [constant-name collision guarantee](undefined-behavior.md#constant-name-collisions).
 
-The optional annotation and initializer follow [local type inference](types.md#inference) and [coercion rules](types.md#conversions-and-coercions). Subsequent writes follow [assignment destinations](expressions/operator-expr.md#assignment-destinations).
+The optional type annotation and initializer expression are governed by [local type inference](types.md#inference) and [coercion rules](types.md#conversions-and-coercions). Subsequent assignments to the binding are governed by [assignment destinations](expressions/operator-expr.md#assignment-destinations).
 
 ## Expression statements
 
@@ -30,9 +30,10 @@ An expression statement evaluates an expression and discards its result while
 preserving its effects. An empty `;` statement has no effect.
 
 [ExpressionWithoutBlock] requires a semicolon. [ExpressionWithBlock]
-(`{ ... }`, `if`, `while`, or `loop`) may omit it. Without the semicolon, the
-expression must be compatible with `()`; a diverging expression is also valid.
-A block's final expression follows the [tail-expression rules](expressions/block-expr.md).
+(`{ ... }`, `if`, `while`, or `loop`) may omit it. When the semicolon is omitted,
+the expression's evaluated type must be compatible with the unit type `()`, or
+the expression must diverge. A block's final expression follows the
+[tail-expression rules](expressions/block-expr.md).
 
 ```rust,ignore
 fn show(flag: bool) {
@@ -43,9 +44,9 @@ fn show(flag: bool) {
 
 ## Statement boundary
 
-At a position where an expression statement is being parsed, an expression with an outer block form is completed as that statement rather than greedily consuming a following infix operator. In an initializer or other value-expression context, the expression continues normally. Parentheses can force an ordinary expression context.
+When parsing an expression statement, an expression with an outer block form terminates the statement immediately rather than greedily consuming any subsequent infix operator. In an initializer or other value-expression context, the expression continues normally. Parentheses can force an ordinary expression context.
 
-An attached else/else-if remains part of its if expression, and field/method postfix continuations apply to a completed block expression. Other expression statements run to their semicolon; the enclosing block can instead end with a final tail expression before `}`. For example, `{ make() }.value;` is a field-access expression statement when make returns a suitable struct.
+An attached `else` or `else if` clause remains part of its `if` expression, and postfix field accesses or method calls may continue directly after a completed block expression. Other expression statements extend until their terminating semicolon; alternatively, an enclosing block may conclude with a tail expression immediately preceding the closing `}`. For example, `{ make() }.value;` is a valid field-access expression statement provided `make()` returns a struct with a `value` field.
 
 ```rust,ignore
 let value = if true { 10 } else { 20 } - 1; // initializer is the whole subtraction
@@ -53,4 +54,4 @@ if true {} else {} -1;                      // if statement, then -1 expression 
 (if true { 10 } else { 20 }) - 1;           // one expression statement
 ```
 
-The supplied parser must implement these statement boundaries and the grammar above.
+A conforming compiler must implement these statement boundaries and adhere to the grammar defined above.

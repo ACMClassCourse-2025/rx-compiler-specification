@@ -13,7 +13,7 @@ The only target is little-endian RISC-V RV32IM with the ILP32 data model. Extern
 | Execution memory | `--memory=256M` |
 | Stack | `--stack=1M` |
 
-The compiler emits GNU-style text assembly accepted by both the Clang integrated assembler and the pinned REIMU version. A Clang build or REIMU parse, link, or execution failure violates this contract. Syntax accepted by Clang but unsupported by REIMU is not usable. Tests do not require a specific instruction selection, stack-frame shape, register allocator, symbol layout, or assembly text.
+The compiler emits GNU-style text assembly accepted by both the Clang integrated assembler and the pinned REIMU version. Any failure during Clang assembly or REIMU parsing, linking, or execution constitutes a contract violation. Assembly syntax accepted by Clang but unsupported by REIMU must not be emitted. Tests do not require a specific instruction selection, stack-frame shape, register allocator, symbol layout, or assembly text.
 
 RISC-V instruction behavior follows the course-pinned RISC-V Unprivileged ISA specification. External calling behavior follows the course-pinned RISC-V ELF psABI. Both versions remain fixed for the course run.
 
@@ -55,7 +55,7 @@ Source integers and addresses are 32 bits. The table below gives the reference s
 | `&T`, `&mut T` | 4 | 4 | One machine address |
 | `()` | 0 | 1 | No data |
 
-The representation of internal registers and objects is otherwise untested, but observable source behavior and every external interface must remain correct. References carry no runtime lifetime information. Unit return values use no return register.
+The representation of internal registers and compiler-generated intermediate values is otherwise implementation-defined, provided that observable source behavior and all external interfaces are preserved. References carry no runtime lifetime information. Unit return values use no return register.
 
 <details>
 <summary>Reference aggregate layout</summary>
@@ -76,15 +76,15 @@ Code crossing a selected runtime interface must use the same layout on both side
 
 Ordinary functions, methods, recursion, and private assembly helpers may use any consistent internal convention. The psABI is recommended for convenience but is required only at actual external boundaries such as machine `main`, the course C runtime, and REIMU libc.
 
-The psABI's calling convention specifies where arguments and return values go, which registers a caller may expect to survive a call, and how the stack is aligned. For ordinary 32-bit integer or reference arguments, the first eight use `a0` through `a7`, and further arguments use the stack; a 32-bit scalar result uses `a0`. Callees preserve `s0` through `s11` and restore `sp`. A caller that needs a value in `a0` through `a7`, `t0` through `t6`, or `ra` after a call must preserve it itself. At these external boundaries, the stack must follow the psABI's 16-byte alignment rule. The linked specification covers aggregate arguments and the remaining rules.
+The psABI's calling convention specifies where arguments and return values go, which registers a caller may expect to survive a call, and how the stack is aligned. For ordinary 32-bit integer or reference arguments, the first eight use `a0` through `a7`, and further arguments use the stack; a 32-bit scalar result uses `a0`. Callees preserve `s0` through `s11` and restore `sp`. A caller that needs a value in caller-saved registers (`a0` through `a7`, `t0` through `t6`, or `ra`) to survive a call is responsible for saving and restoring it. At these external boundaries, the stack must follow the psABI's 16-byte alignment rule. The linked specification covers aggregate arguments and the remaining rules.
 
-Machine-level indirection must preserve source by-value semantics. For example, modifying the parameter of `fn f(mut x: [i32; 3])` cannot modify a caller value that remains valid. Storage may be reused after a move when the old value is no longer observable.
+Machine-level indirection must preserve source by-value semantics. For example, mutating the parameter inside `fn f(mut x: [i32; 3])` must not modify the caller's value. Storage may be reused after a move when the old value is no longer observable.
 
-Methods may lower the receiver to an explicit parameter. Fixed arrays remain source-level by-value aggregates and do not acquire C array-to-pointer behavior.
+Methods may lower the receiver to an explicit parameter. Fixed-size arrays remain source-level by-value aggregates and do not undergo C-style array-to-pointer decay.
 
 ## Symbols, entry, and runtime
 
-The global machine symbol `main` must provide a C ABI entry point with behavior equivalent to `int main(void)`. It invokes the source [entry function](undefined-behavior/builtin.md#program-entry) and, after that invocation returns, returns the signed 32-bit value 0 in `a0`. It must obey the psABI, including stack alignment and register preservation.
+The global machine symbol `main` must provide a C ABI entry point with behavior equivalent to `int main(void)`. It invokes the source [entry function](undefined-behavior/builtin.md#program-entry) and, after that invocation completes, returns the signed 32-bit value 0 in `a0`. It must obey the psABI, including stack alignment and register preservation.
 
 The recommended lowering gives the source `main` a unique mangled internal symbol and generates a wrapper exporting the machine symbol `main`. Source calls to `main`, including recursive calls, target the internal source function and use its ordinary unit-returning calling convention. Returning from that function resumes its caller; returning from the wrapper ends the program normally. The source signature remains `fn main() -> ()`.
 
@@ -145,7 +145,7 @@ void *__rx_alloc(uint32_t size, uint32_t align);
 
 There is no required `__rx_dealloc`. A custom runtime may instead use a private allocator, call REIMU `malloc`, or inline equivalent behavior. In every case, the compiler computes type size, alignment, element stride, and container capacity while the runtime manages untyped storage. Valid allocation calculations fit `usize`, so dynamic overflow checks and panic support are unnecessary.
 
-REIMU also provides psABI-compatible `memcpy`, `memmove`, and `memset`. Use `memcpy` only for known-disjoint ranges and `memmove` when ranges may overlap. Byte helpers must not compare padding or uninitialized bytes as values and must not turn an ownership move into two owners.
+REIMU also provides psABI-compatible `memcpy`, `memmove`, and `memset`. Use `memcpy` only for known-disjoint ranges and `memmove` when ranges may overlap. Generated code must not use byte helpers to compare padding or uninitialized bytes as values, and raw memory copying must not duplicate non-Copy data into multiple owners.
 
 <details>
 <summary>Suggested compiler/runtime split</summary>
@@ -182,7 +182,7 @@ Capacity remains unobservable, and student implementations may use another layou
 
 </details> -->
 
-To be determined. Let the TAs finish the testcases first XD.
+*Specification pending: memory limits, stack size, and cumulative heap budget will be finalized alongside the course test suite.*
 
 ## Assembly and execution
 
@@ -197,7 +197,7 @@ Both assembly inputs are text `.s` files; the program reads from standard input 
 
 Normal source completion returns status 0, and every output byte, including whitespace, is observable.
 
-Valid programs may contain constants and stack offsets outside a 12-bit immediate and control-flow spans beyond one conditional branch. The specification places no separate limit on source size, compile time, compiler memory, or generated assembly size.
+Valid programs may contain integer constants and stack offsets that exceed the 12-bit signed immediate range, as well as control-flow jumps that exceed the reach of a single conditional branch instruction. The specification places no separate limit on source size, compile time, compiler memory, or generated assembly size.
 
 Submission commands and grading policy are course administration rather than language or execution semantics.
 

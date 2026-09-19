@@ -10,7 +10,7 @@ r[lex.token.syntax]
     | PUNCTUATION
 ```
 
-Tokens are identifiers or keywords, integer literals, lifetime tokens, and punctuation. Keywords, including `true` and `false`, have identifier-like spellings. Their syntactic roles are determined by the keyword rules and [LiteralExpression].
+Tokens are identifiers or keywords, integer literals, lifetime tokens, and punctuation. Keywords, including boolean literals (`true` and `false`), share the lexical character patterns of identifiers, but their syntactic roles are determined by keyword rules and the [LiteralExpression] production.
 
 Tokenization selects the longest token subject to the numeric and lifetime boundaries below. The parser may consume prefixes of combined punctuation according to [contextual punctuation](grammar.md#contextual-punctuation).
 
@@ -51,13 +51,13 @@ Integer literals use decimal digits or a binary, octal, or hexadecimal prefix, w
 | Octal | `0o77`, `0o7_usize` |
 | Hexadecimal | `0xff`, `0xAB_CD`, `0xff_isize` |
 
-The lexer consumes the complete Rust-style numeric token. An invalid suffix or radix digit cannot be repaired by splitting the spelling into a valid integer followed by another token: `123i32foo`, `123bad`, `0b102`, and `0x` are invalid spellings. A supplied Rust lexer may retain a general suffix and reject unsupported suffixes at the language-subset boundary.
+The lexer consumes the complete numeric token using maximal munch. The lexer must not recover from an invalid suffix or invalid radix digit by splitting the input into a valid integer token followed by trailing tokens; spellings such as `123i32foo`, `123bad`, `0b102`, and `0x` must be rejected as invalid tokens. A supplied Rust lexer may retain a general suffix and reject unsupported suffixes at the language-subset boundary.
 
-There is no token-length or numeric-magnitude limit. Preserve the digits and suffix without requiring the magnitude to fit a host integer. Type determination and range validity follow [literal expressions](expressions/literal-expr.md#integer-typing-and-range).
+There is no token-length or numeric-magnitude limit. Compilers must preserve the raw digits and suffix without requiring the literal's magnitude to fit into a host-platform integer type. Type determination and range validity follow [literal expressions](expressions/literal-expr.md#integer-typing-and-range).
 
 A literal outside its determined type's range is undefined behavior; see the [integer literal range guarantee](undefined-behavior.md#integer-literal-range).
 
-A minus is a separate operator token. `0x01_f32` is a hexadecimal integer magnitude with no suffix, not a floating-point literal.
+A leading minus sign (`-`) is tokenized as a separate operator, not as part of an integer literal. Because `f`, `3`, and `2` are valid hexadecimal digits, `0x01_f32` is parsed as a single hexadecimal integer literal whose value is `0x01f32` with no suffix, rather than as a floating-point literal.
 
 ## Lifetimes
 
@@ -68,9 +68,9 @@ LIFETIME_TOKEN -> `'` IDENTIFIER_OR_KEYWORD
 LIFETIME_OR_LABEL -> `'` NON_KEYWORD_IDENTIFIER
 ```
 
-A lifetime token consists of an apostrophe immediately followed by its name, with no intervening whitespace or comment. The lexer consumes the complete name. Examples include `'a`, `'data`, `'static`, and `'_`. The name is not immediately followed by another apostrophe; a spelling such as `'a'` is a character-literal form outside the token grammar above.
+A lifetime token consists of an apostrophe immediately followed by its name, with no intervening whitespace or comment. The lexer consumes the complete name. Examples include `'a`, `'data`, `'static`, and `'_`. A lifetime token must not be followed by a closing apostrophe; spellings such as `'a'` represent character literals, which are not supported in Rx.
 
-[LIFETIME_OR_LABEL] supplies ordinary named lifetimes to [Lifetime]. The special spellings `'static` and `'_` have their own alternatives there. Lifetime tokens occur in reference types, parameter declarations, path arguments, and bounds. The loop and jump productions determine the supported control-flow syntax.
+[LIFETIME_OR_LABEL] supplies ordinary named lifetimes to [Lifetime]. The special spellings `'static` and `'_` have their own alternatives there. Lifetime tokens occur in reference types, parameter declarations, path arguments, and bounds. Although the lexer production `LIFETIME_OR_LABEL` matches loop label tokens, Rx control-flow productions ([Loops](expressions/loop-expr.md)) do not support labeled loops or jumps.
 
 ## Punctuation
 
@@ -87,4 +87,4 @@ PUNCTUATION ->
 
 Comments take priority over `/` punctuation. Combined operators follow the longest-token rule; their contextual splits are specified in [Parser conventions](grammar.md#contextual-punctuation).
 
-An integer is not followed by a supported fractional or exponent part. The absence of floating-point expressions does not make a malformed Rust numeric token valid. Brackets and braces remain paired delimiters; `#` is used only in the supported outer derive attribute.
+Floating-point numbers are not supported in Rx; numeric tokens containing fractional or exponent parts (such as `1.0` or `1e5`) must be rejected as lexical errors rather than split into integer and punctuation tokens. Delimiters (parentheses, brackets, and braces) must always occur in matched pairs. The `#` character is used exclusively to introduce outer derive attributes.

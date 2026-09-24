@@ -1,8 +1,8 @@
 # Never type
 
 The never type, conventionally written `!`, describes expressions that do not
-complete normally. It is used internally; `!` is not a valid source type
-annotation.
+complete normally; such expressions are said to *diverge*. It is used internally;
+`!` is not a valid source type annotation.
 
 `return`, `break`, and `continue` expressions have the never type: they transfer
 control instead of producing a value where they appear. A [block expression](../expressions/block-expr.md) whose execution paths all exit early through these transfers likewise has the never type.

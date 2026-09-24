@@ -34,7 +34,7 @@ preserving its effects. An empty `;` statement has no effect.
 
 When an [ExpressionWithBlock] is used as a statement (where its result is discarded),
 omitting the semicolon requires its evaluated type to be compatible with the unit
-type `()`, or the expression must diverge.
+type `()`, or the expression must [diverge](types/never.md).
 
 In contrast, when an [ExpressionWithBlock] without a semicolon appears as the final
 expression of a block, it serves as the block's tail expression rather than an

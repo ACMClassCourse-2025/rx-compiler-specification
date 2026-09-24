@@ -26,5 +26,7 @@ fn select(flag: bool) -> i32 {
 }
 ```
 
+Even though the formal grammar permits parsing an un-semicoloned [ExpressionWithBlock](../expressions.md) under statement sequences, in the final position of a block it acts as the block's tail expression and determines the block's value.
+
 Parsing of blocks and trailing statements follows the [statement boundary rules](../statements.md#statement-boundary);
 local variable storage follows [storage duration](../references.md#storage-and-implementation).

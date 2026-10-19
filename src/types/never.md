@@ -1,11 +1,27 @@
-# Never type
+# Divergence and Never type
 
-The never type, conventionally written `!`, describes expressions that do not
-complete normally; such expressions are said to *diverge*. It is used internally;
+The never type, conventionally written `!`, has no values and represents
+computations that do not complete normally. It is used internally;
 `!` is not a valid source type annotation.
 
-`return`, `break`, and `continue` expressions have the never type: they transfer
-control instead of producing a value where they appear. A [block expression](../expressions/block-expr.md) without a tail expression whose execution paths all exit early through these transfers or by evaluating diverging expressions likewise has the never type. If a block has a tail expression, that expression determines the block's type even if prior statements diverge.
+A *diverging expression* is an expression that never completes normal execution.
+Any expression of type `!` is a diverging expression. However, diverging expressions are not limited to type `!`.
+
+For example, the following [block expression](../expressions/block-expr.md) diverges but has type `i32`:
+
+```rust,ignore
+{
+    loop {};
+    42i32 // The tail expression determines the block's type, even if unreachable.
+}
+```
+
+A compound expression diverges if any of its required sub-expressions diverges (such as operands in an operator expression, arguments in a call expression, or the initializer in a let statement).
+
+See [block expressions](../expressions/block-expr.md), [if expressions](../expressions/if-expr.md), and [loop expressions](../expressions/loop-expr.md) for their divergence rules.
+
+`return`, `break`, and `continue` expressions diverge and have the never type: they transfer
+control instead of producing a value where they appear.
 
 The never type can coerce to any expected result type in the supported [coercion contexts](../types.md#conversions-and-coercions).
 Without an expected type, never results do not constrain the other results' common type; if all results are never, that common type is never. This permits an if branch to return early while another branch yields a value, including a reference or container.
@@ -18,23 +34,9 @@ fn choose_or_return(flag: bool) -> i32 {
 }
 ```
 
-A diverging function body satisfies any declared return type, such as
+A function body of type `!` satisfies any declared return type, such as
 `fn forever() -> i32 { loop {} }`. A call to that function has its declared
 type `i32`. Never behavior is determined locally within each function body.
-
-## Loop expressions
-
-A `loop` expression has the never type if no `break` expression targets it.
-A `break` inside a nested loop targets that nested loop, so
-`loop { loop { break; } }` still has the never type.
-
-If any `break` expressions target the loop, their values follow the
-[common result rules](../types.md#least-upper-bound-coercions), using the loop's expected type when supplied; `break;` supplies `()`. If every break operand has the never type,
-the loop also has the never type. A break expression participates in type inference even if it is unreachable:
-`loop { if false { break 1i32; } }` has type `i32`.
-
-These rules apply to `loop`. A `while` expression has type `()`, even when its
-condition is always true.
 
 ## Unreachable code
 

@@ -13,11 +13,13 @@ Statements ->
 A block contains [statements](../statements.md) and an optional final
 expression, enclosed in braces. Statements execute in source order.
 
+A block is considered to be [diverging](../types/never.md) if all reachable control flow paths contain a diverging expression.
+
 A block's type and result value are determined as follows:
 
 - If the block has a tail expression (a final expression without a semicolon), that expression determines the block's type and, when reached, its result value. A tail expression determines the block's type even if prior statements diverge (the unreachable tail expression is still type-checked against any expected type).
-- If the block has no tail expression and completes normally, its type is `()` and it evaluates to `()`.
-- If the block has no tail expression and does not complete normally---because every execution path exits early via a control-flow transfer (`return`, `break`, or `continue`) or by evaluating a diverging expression---the block has the [never type](../types/never.md) `!`. If some paths exit early while another path reaches the end without a tail expression, the block completes normally with type `()`.
+- If the block has no tail expression and does not diverge, its type is `()` and it evaluates to `()`.
+- If the block has no tail expression and diverges, the block has the [never type](../types/never.md) `!`.
 
 ```rust,ignore
 fn select(flag: bool) -> i32 {

@@ -7,6 +7,9 @@ ReturnExpression -> `return` Expression?
 
 `return expression` evaluates its operand and returns that value from the current function using copy/move semantics. `return;` returns the unit value `()`. Function tail expressions provide the return value when execution reaches the end of the function body without returning early. In all cases, the returned value must be compatible with the function's declared return type.
 
+A `return` expression [diverges](../types/never.md) and has type `!`,
+regardless of the type of the returned value.
+
 ```rust,ignore
 fn absolute(x: i32) -> i32 {
     if x < 0 {

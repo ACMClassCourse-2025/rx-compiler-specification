@@ -34,7 +34,7 @@
     - [Reference types](types/pointer.md)
     - [Box and Vec types](types/heap.md)
     - [Unit type](types/unit.md)
-    - [Never type](types/never.md)
+    - [Divergence and Never type](types/never.md)
 - [Expressions and evaluation](expressions.md)
     - [Literal expressions](expressions/literal-expr.md)
     - [Path expressions](expressions/path-expr.md)

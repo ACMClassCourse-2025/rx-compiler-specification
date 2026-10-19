@@ -26,7 +26,7 @@ ParenthesizedType -> `(` Type `)`
 | `()` | Function or control-flow result |
 | [`Box<T>`, `Vec<T>`](types/heap.md) | Owned heap object or dynamic sequence |
 
-Diverging expressions use the [never type](types/never.md) internally.
+The [never type](types/never.md) `!` is used internally. Expressions of type `!` diverge, but a diverging expression can have another type.
 
 Struct types are nominal. References, arrays, `Box`, and `Vec` are structural. The four integer types remain distinct. Array lengths are compared by value, so `[i32; 4]` and `[i32; (4usize)]` are identical. Two reference types are identical if and only if their referent types and mutabilities match; lifetime arguments do not distinguish reference types and must satisfy the [lifetime validity guarantee](undefined-behavior.md#lifetime-validity).
 

@@ -21,7 +21,7 @@ When an unparenthesized `Name {` at the condition/body boundary could begin a st
 
 With `else`, an enclosing expected type applies to both result branches through [one-to-one coercions](../types.md#coercion-sites-and-expected-types). Without one, [LUB coercion](../types.md#least-upper-bound-coercions) finds their common type. A branch with the never type `!` can always coerce to the type of the other branch. Without `else`, the expression has unit type `()` and the `then` block has expected type `()`.
 
-An `if` expression [diverges](../types/never.md) if either the condition expression diverges or if all arms diverge.
+An `if` expression with an `else` branch [diverges](../types/never.md) if either the condition expression diverges or all branches diverge. An `if` expression without an `else` branch diverges if and only if its condition expression diverges (because the implicit `else` branch completes normally with unit value `()`).
 
 ```rust,ignore
 // These function bodies diverge despite their declared i32 return type.

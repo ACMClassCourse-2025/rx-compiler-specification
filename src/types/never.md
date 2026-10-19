@@ -16,6 +16,8 @@ For example, the following [block expression](../expressions/block-expr.md) dive
 }
 ```
 
+A compound expression diverges if any of its required sub-expressions diverges (such as operands in an operator expression, arguments in a call expression, or the initializer in a let statement).
+
 See [block expressions](../expressions/block-expr.md), [if expressions](../expressions/if-expr.md), and [loop expressions](../expressions/loop-expr.md) for their divergence rules.
 
 `return`, `break`, and `continue` expressions diverge and have the never type: they transfer

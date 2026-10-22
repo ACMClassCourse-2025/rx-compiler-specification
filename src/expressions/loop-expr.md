@@ -20,7 +20,7 @@ A `while` expression has type `()` and does not [diverge](../types/never.md) (un
 
 A `loop` expression without an associated `break` expression is [diverging](../types/never.md) and has type `!`.
 
-A `loop` with associated break expressions does not [diverge](../types/never.md) if any of the break operands do not diverge. If all of the break operands diverge, then the loop expression also diverges and has type `!`.
+A `loop` with associated break expressions does not [diverge](../types/never.md) if any of the break operands do not diverge. If all of the break operands diverge, then the loop expression also diverges.
 
 Although the outer `loop` below never completes normally at runtime, it is
 not considered diverging under this rule: the unreachable `break` still has
